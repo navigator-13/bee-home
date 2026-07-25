@@ -173,7 +173,12 @@ body {
   transition: opacity 0.22s linear;
 }
 
+/* Two layers, because they are at different depths. Bees passing through go
+   behind the object and are cut by it. The ones arriving are between it and
+   the viewer, which is the only way the line is seen to reach the bore rather
+   than disappear a moment before it gets there. */
 .flight { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }
+.flight.front { z-index: 3; }
 
 .ln { fill: none; stroke: var(--ink); stroke-linecap: round; stroke-linejoin: round;
       vector-effect: non-scaling-stroke; }
@@ -244,17 +249,90 @@ figcaption b { color: var(--ink); font-weight: 400; }
 
 .steps figure { margin: 0; }
 
-.facts {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
-  gap: clamp(24px, 3vw, 56px);
-  margin-top: clamp(34px, 5vh, 64px);
+/* Numbers hung off the object itself. Each one is a hairline leader and a
+   figure, so a fact reads as a property of the thing in the photograph rather
+   than as a statistic filed underneath it. */
+.called { position: relative; }
+
+.call {
+  position: absolute;
+  width: max-content;
+  max-width: 21ch;
+  padding-left: 12px;
+  border-left: 1px solid var(--ink);
+  transform: translateY(-50%);
 }
 
-.facts div { border-top: 1px solid var(--rule); padding-top: 18px; }
-.facts b { display: block; font-size: clamp(27px, 3.1vw, 44px); font-weight: 400;
-           letter-spacing: -0.02em; margin-bottom: 8px; }
-.facts p { margin: 0; font-size: clamp(13px, 0.95vw, 16px); color: var(--soft); max-width: 34ch; }
+.call.right {
+  padding: 0 12px 0 0;
+  border-left: 0;
+  border-right: 1px solid var(--ink);
+  text-align: right;
+  transform: translate(-100%, -50%);
+}
+
+.call b {
+  display: block;
+  font-weight: 400;
+  font-size: clamp(17px, 1.7vw, 27px);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.call span {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--mono);
+  font-size: clamp(8.5px, 0.62vw, 10px);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  line-height: 1.5;
+  /* Darker than a label elsewhere on the page: this one sits over a
+     photograph and the usual grey disappears into pale timber. */
+  color: #514f45;
+}
+
+/* ---- where you are ---- */
+
+.region { margin-top: clamp(30px, 5vh, 58px); }
+
+.region select {
+  display: block;
+  margin: 10px 0 0;
+  padding: 10px 14px;
+  min-width: min(100%, 320px);
+  border: 1px solid var(--ink);
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: clamp(14px, 1.1vw, 18px);
+}
+
+.region select:focus-visible { outline: 2px solid var(--bee); outline-offset: 2px; }
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: clamp(20px, 2.6vw, 46px);
+  margin-top: clamp(24px, 3.4vh, 44px);
+}
+
+.cards section { border-top: 1px solid var(--rule); padding-top: 16px; }
+.cards h3 {
+  margin: 0 0 12px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--soft);
+}
+
+.cards ul { margin: 0; padding: 0; list-style: none; font-size: clamp(14px, 1.05vw, 17px); }
+.cards li { margin-bottom: 8px; line-height: 1.4; }
+.cards li i { display: block; font-style: normal; font-size: 0.8em; color: var(--soft); }
+#regionSeed { margin-top: clamp(20px, 3vh, 34px); max-width: 60ch; line-height: 1.8; }
 
 /* The builder is the page, not a door to another one. */
 .builder {
@@ -292,16 +370,33 @@ figcaption b { color: var(--ink); font-weight: 400; }
   .copy h1 { font-size: clamp(30px, 8.6cqi, 54px); }
   .copy .sub { display: none; }
   .phase { margin-top: 1em; min-height: 5.4em; }
+  /* Held off centre here too. Centred, the object sat like a specimen on a
+     card; pushed right it keeps the asymmetry the wide layout is built on and
+     leaves a clear left margin for the bees to come up. */
+  .ground { left: 63%; }
   /* On one column the object has the full width, so the planting needs less
      spill to stay in frame. */
-  .garden { left: -35%; width: 170%; }
+  .garden { left: -48%; width: 180%; }
   .builder { height: 82vh; }
+  /* Leaders would have to point across the whole frame at this width, so the
+     callouts drop into a plain column under the photograph. */
+  .call, .call.right {
+    position: static;
+    max-width: none;
+    transform: none;
+    text-align: left;
+    padding: 0 0 0 12px;
+    border: 0;
+    border-left: 1px solid var(--ink);
+    margin-top: 18px;
+  }
 }
 </style>
 
 <section id="build">
   <div class="stage" id="stage">
     <svg class="flight" id="flight" viewBox="0 0 100 100" aria-hidden="true"></svg>
+    <svg class="flight front" id="flightFront" viewBox="0 0 100 100" aria-hidden="true"></svg>
     <p class="mark">Open source &#183; CC BY 4.0</p>
     <div class="frame">
       <div class="copy" id="copy">
@@ -312,8 +407,8 @@ figcaption b { color: var(--ink); font-weight: 400; }
             actually be cut and stacked.</span>
           <span>Plant native wildflowers within about 300 metres and your chances go up
             sharply.</span>
-          <span>Every female solitary bee is a queen, and every queen gets 20 to 30
-            offspring.</span>
+          <span>A single solitary bee could provide as much pollination as 120
+            honeybees.</span>
         </div>
       </div>
       <div class="art">
@@ -338,13 +433,6 @@ figcaption b { color: var(--ink); font-weight: 400; }
   <section class="band" id="design">
     <p class="label">Design</p>
     <h2 class="lede">Design your very own Bee Home in a few minutes.</h2>
-    <div class="two">
-      <p>Select size, visual style and desired placement &#8212; a rooftop, a balcony or a
-        garden. Your design updates instantly, and every storey you can add is one that
-        physically stacks. The ones that do not are simply unavailable.</p>
-      <p>Each storey can be a different timber. The identifier under the model is the whole
-        design: send it to someone and they get exactly what you made.</p>
-    </div>
     <div class="builder">
       <iframe src="../../viewer/" title="Bee Home builder" loading="lazy"></iframe>
     </div>
@@ -365,7 +453,7 @@ figcaption b { color: var(--ink); font-weight: 400; }
       <figure><img src="../renders/web/assembly-1.jpg" alt="One storey resting on its base" /></figure>
       <figure><img src="../renders/web/assembly-2.jpg" alt="Two storeys stacked" /></figure>
       <figure><img src="../renders/web/assembly-3.jpg" alt="Three storeys stacked" /></figure>
-      <figure><img src="../renders/web/assembly-4.jpg" alt="The finished four-storey stack" /></figure>
+      <figure><img src="../renders/web/assembly-4.jpg" alt="The roof closing the stack" /></figure>
     </div>
     <p class="label" style="margin-top:14px">Assembly needs your hands, a drill and two screws</p>
   </section>
@@ -379,31 +467,35 @@ figcaption b { color: var(--ink); font-weight: 400; }
       <p>Assembling it requires just your hands and a few minutes of your time. To mount it on
         a wall, simply use a drill and two screws.</p>
     </div>
-    <figure class="bleed">
+
+    <!-- The numbers belong to the object, so they hang off it rather than
+         being restated as a row of statistics underneath. -->
+    <figure class="called">
       <img src="../renders/web/hero.jpg" alt="A Bee Home standing on legs in low afternoon light" />
+      <div class="call" style="left:12%; top:26%"><b>4&#8211;10 mm</b><span>Bore range, one species per diameter</span></div>
+      <div class="call right" style="left:78%; top:46%"><b>120&#215;</b><span>One solitary bee pollinates as much as 120 honeybees</span></div>
+      <div class="call" style="left:16%; top:74%"><b>5&#8211;30 yrs</b><span>Lifespan, depending on timber and upkeep</span></div>
+      <div class="call right" style="left:74%; top:16%"><b>20&#8211;30</b><span>Offspring per queen</span></div>
     </figure>
-    <p class="label" style="margin-top:14px">Rendered from the project's own geometry</p>
-    <div class="facts">
-      <div><b>120&#215;</b><p>A single solitary bee could provide as much pollination as 120 honeybees.</p></div>
-      <div><b>5&#8211;30 yrs</b><p>How long a Bee Home lasts, depending on the wood, the location, and how well you maintain it.</p></div>
-      <div><b>20&#8211;30</b><p>Offspring per queen &#8212; and every female solitary bee is a queen.</p></div>
-    </div>
   </section>
 
-  <section class="band">
+  <section class="band" id="plant">
     <p class="label">Plant for them</p>
-    <h2 class="lede">Since bees are free-living beings, we cannot guarantee their arrival.</h2>
+    <h2 class="lede">Planting native wildflowers will increase your chances.</h2>
     <div class="two">
-      <p>Nonetheless, planting native wildflowers will definitely increase your chances. Tell
-        us roughly where you are and we'll name the cavity-nesting bees recorded nearby, what
-        they pollinate locally, and which seed to sow.</p>
+      <p>Tell us roughly where you are. We'll name the cavity-nesting bees recorded near you,
+        what they pollinate locally, and which seed to sow &#8212; asked here, after your
+        design, because this is where it starts to matter.</p>
       <p>Solitary bees are friendly. They don't produce honey and therefore have nothing to
         protect. They only sting if trod on, and are safe to keep around kids and pets.</p>
     </div>
-    <figure>
-      <img src="../renders/web/detail.jpg" alt="Close view of the nesting cavities in one storey" />
-      <figcaption>Cavity face, 4 to 10 mm bores</figcaption>
-    </figure>
+
+    <div class="region">
+      <label class="label" for="regionPick">Where are you?</label>
+      <select id="regionPick"></select>
+      <div class="cards" id="regionCards"></div>
+      <p class="label" id="regionSeed"></p>
+    </div>
   </section>
 
   <p class="foot">
@@ -425,6 +517,7 @@ figcaption b { color: var(--ink); font-weight: 400; }
   var stage = document.getElementById('stage');
   var garden = document.getElementById('garden');
   var flightSvg = document.getElementById('flight');
+  var flightFront = document.getElementById('flightFront');
   var groundEl = document.getElementById('ground');
   var copyEl = document.getElementById('copy');
   var frames = [].slice.call(document.querySelectorAll('.model img'));
@@ -739,7 +832,9 @@ figcaption b { color: var(--ink); font-weight: 400; }
   }
 
   function buildFlights() {
-    while (flightSvg.firstChild) flightSvg.removeChild(flightSvg.firstChild);
+    [flightSvg, flightFront].forEach(function (svg) {
+      while (svg.firstChild) svg.removeChild(svg.firstChild);
+    });
     flights = [];
 
     var s = stage.getBoundingClientRect();
@@ -749,12 +844,21 @@ figcaption b { color: var(--ink); font-weight: 400; }
     var W = Math.round(s.width);
     var H = Math.round(s.height);
     flightSvg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    flightFront.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
 
     // Aim at the near edge of the cavity face, not the middle of the plate:
     // the model's faces are filled in the page colour and would swallow the
     // last third of any line that ended behind them.
-    var tx = m.left + m.width * 0.06 - s.left;
-    var ty = m.top + m.height * 0.2 - s.top;
+    // Land on the bore face, and on a different storey each time. Aimed at the
+    // silhouette edge instead, the lines stopped beside the object rather than
+    // at it -- they never found the home.
+    var HOMES = [[0.23, 0.28], [0.32, 0.37], [0.18, 0.46]];
+    function home(i) {
+      var f = HOMES[i % HOMES.length];
+      return [m.left + m.width * f[0] - s.left, m.top + m.height * f[1] - s.top];
+    }
+    var tx = home(0)[0];
+    var ty = home(0)[1];
 
     // Sweeps run above the headline or below it and only turn towards the
     // object once they are clear of the text, so a line never cuts a word in
@@ -836,17 +940,16 @@ figcaption b { color: var(--ink); font-weight: 400; }
         var from = enter(line[0], line[1], line[2]);
         var h1 = handle(line[3], false);
         var h2 = handle(line[4], true);
-        var to = come ? [tx, ty + (arrivals++ - 1) * H * 0.085]
-          : enter(line[5][0], line[5][1], line[5][2]);
+        var to = come ? home(arrivals++) : enter(line[5][0], line[5][1], line[5][2]);
         // Stacked, the only clear run at the object is up the left margin.
         if (come && stacked) {
           from = [-W * 0.07, H * 0.98];
-          h1 = [W * 0.1, H * 0.86];
-          h2 = [-W * 0.02, ty + H * 0.14];
+          h1 = [W * 0.12, H * 0.88];
+          h2 = [to[0] - W * 0.3, to[1] + H * 0.12];
         }
         flights.push({
           come: come,
-          el: path(flightSvg, 'ln ' + (come ? 'come' : 'fly'),
+          el: path(come ? flightFront : flightSvg, 'ln ' + (come ? 'come' : 'fly'),
             'M' + fmt(from[0]) + ' ' + fmt(from[1])
             + 'C' + fmt(h1[0]) + ' ' + fmt(h1[1])
             + ',' + fmt(h2[0]) + ' ' + fmt(h2[1])
@@ -898,6 +1001,102 @@ figcaption b { color: var(--ink); font-weight: 400; }
     var on = p < GARDEN[0] ? 0 : p < FLY[0] ? 1 : 2;
     phases.forEach(function (el, i) { el.classList.toggle('on', i === on); });
   }
+
+  /* ---------------- where you are ----------------
+
+     Asked after the builder, not before it: by this point someone has made
+     something, and the question reads as help rather than as a toll gate.
+
+     The lists below are a working stand-in. Each region names cavity-nesting
+     genera actually recorded there, a crop those bees are known to work, and
+     wildflowers sold as native seed in that region -- enough to prove the
+     shape of the feature. Wired to a real occurrence source (GBIF, or a
+     national recording scheme) this is the same UI with live data behind it. */
+
+  var REGIONS = [
+    {
+      name: 'Britain and Ireland',
+      bees: [['Red mason bee', 'Osmia bicornis'], ['Leafcutter bee', 'Megachile centuncularis'],
+        ['Blue mason bee', 'Osmia caerulescens']],
+      crops: ['Apple', 'Pear', 'Field bean', 'Raspberry'],
+      plants: [['Viper\u2019s bugloss', 'Echium vulgare'], ['Common knapweed', 'Centaurea nigra'],
+        ['Bird\u2019s-foot trefoil', 'Lotus corniculatus'], ['Wild marjoram', 'Origanum vulgare']],
+      seed: 'Sold as native-origin seed by UK meadow suppliers; ask for local provenance.'
+    },
+    {
+      name: 'Nordics',
+      bees: [['Red mason bee', 'Osmia bicornis'], ['Willughby\u2019s leafcutter', 'Megachile willughbiella'],
+        ['Golden-mouthed mason bee', 'Osmia leaiana']],
+      crops: ['Apple', 'Oilseed rape', 'Bilberry', 'Strawberry'],
+      plants: [['Yarrow', 'Achillea millefolium'], ['Field scabious', 'Knautia arvensis'],
+        ['Selfheal', 'Prunella vulgaris'], ['Meadow clary', 'Salvia pratensis']],
+      seed: 'Nordic seed houses list \u00e4ngsfr\u00f6 / engfr\u00f8 mixes by county of origin.'
+    },
+    {
+      name: 'Central Europe',
+      bees: [['Horned mason bee', 'Osmia cornuta'], ['Leafcutter bee', 'Megachile ericetorum'],
+        ['Small scissor bee', 'Chelostoma florisomne']],
+      crops: ['Apple', 'Cherry', 'Plum', 'Oilseed rape'],
+      plants: [['Common poppy', 'Papaver rhoeas'], ['Cornflower', 'Centaurea cyanus'],
+        ['Sainfoin', 'Onobrychis viciifolia'], ['Wild carrot', 'Daucus carota']],
+      seed: 'Regiosaatgut is sold by provenance region; the zone number is on the packet.'
+    },
+    {
+      name: 'Mediterranean',
+      bees: [['Horned mason bee', 'Osmia cornuta'], ['Resin bee', 'Heriades truncorum'],
+        ['Leafcutter bee', 'Megachile pilidens']],
+      crops: ['Almond', 'Olive', 'Citrus', 'Melon'],
+      plants: [['Lavender', 'Lavandula stoechas'], ['Rosemary', 'Salvia rosmarinus'],
+        ['Wild thyme', 'Thymus vulgaris'], ['Crown daisy', 'Glebionis coronaria']],
+      seed: 'Look for autochthonous seed from a regional botanical garden or seed bank.'
+    },
+    {
+      name: 'North America, east',
+      bees: [['Blue orchard bee', 'Osmia lignaria'], ['Taurus mason bee', 'Osmia taurus'],
+        ['Pugnacious leafcutter', 'Megachile pugnata']],
+      crops: ['Apple', 'Blueberry', 'Cherry', 'Squash'],
+      plants: [['Wild bergamot', 'Monarda fistulosa'], ['Purple coneflower', 'Echinacea purpurea'],
+        ['New England aster', 'Symphyotrichum novae-angliae'], ['Golden alexanders', 'Zizia aurea']],
+      seed: 'Ask a regional native plant society for an ecotype-matched seed grower.'
+    },
+    {
+      name: 'North America, west',
+      bees: [['Blue orchard bee', 'Osmia lignaria'], ['California leafcutter', 'Megachile fidelis'],
+        ['Aztec mason bee', 'Osmia aztecana']],
+      crops: ['Almond', 'Cherry', 'Apple', 'Sunflower'],
+      plants: [['California poppy', 'Eschscholzia californica'], ['Phacelia', 'Phacelia tanacetifolia'],
+        ['Gumweed', 'Grindelia camporum'], ['Common yarrow', 'Achillea millefolium']],
+      seed: 'Buy by seed transfer zone; growers list the zone their stock was collected in.'
+    }
+  ];
+
+  var pick = document.getElementById('regionPick');
+  var cards = document.getElementById('regionCards');
+  var seedNote = document.getElementById('regionSeed');
+
+  function list(items) {
+    return items.map(function (item) {
+      return typeof item === 'string' ? '<li>' + item + '</li>'
+        : '<li>' + item[0] + '<i>' + item[1] + '</i></li>';
+    }).join('');
+  }
+
+  function showRegion() {
+    var r = REGIONS[pick.selectedIndex];
+    cards.innerHTML =
+      '<section><h3>Cavity nesters recorded near you</h3><ul>' + list(r.bees) + '</ul></section>'
+      + '<section><h3>What they pollinate locally</h3><ul>' + list(r.crops) + '</ul></section>'
+      + '<section><h3>Sow these</h3><ul>' + list(r.plants) + '</ul></section>';
+    seedNote.textContent = r.seed;
+  }
+
+  REGIONS.forEach(function (r) {
+    var option = document.createElement('option');
+    option.textContent = r.name;
+    pick.appendChild(option);
+  });
+  pick.addEventListener('change', showRegion);
+  showRegion();
 
   var ticking = false;
   function onScroll() {

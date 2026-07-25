@@ -1,354 +1,364 @@
 {
-  "units": "mm",
-  "storeys": {
-    "A": {
-      "a": {
-        "file": "models/A_a.glb",
-        "size_mm": [
-          120.0,
-          160.0,
-          30.0
-        ],
-        "triangles": 176
-      },
-      "b": {
-        "file": "models/A_b.glb",
-        "size_mm": [
-          120.0,
-          160.0,
-          30.0
-        ],
-        "triangles": 126
-      }
-    },
-    "B": {
-      "a": {
-        "file": "models/B_a.glb",
-        "size_mm": [
-          120.0,
-          160.0,
-          30.0
-        ],
-        "triangles": 191
-      },
-      "b": {
-        "file": "models/B_b.glb",
-        "size_mm": [
-          120.0,
-          160.0,
-          30.0
-        ],
-        "triangles": 128
-      }
-    },
-    "C": {
-      "a": {
-        "file": "models/C_a.glb",
-        "size_mm": [
-          120.0,
-          160.0,
-          30.0
-        ],
-        "triangles": 210
-      },
-      "b": {
-        "file": "models/C_b.glb",
-        "size_mm": [
-          120.0,
-          160.0,
-          30.0
-        ],
-        "triangles": 148
-      }
-    },
-    "D": {
-      "a": {
-        "file": "models/D_a.glb",
-        "size_mm": [
-          120.0,
-          160.0,
-          30.0
-        ],
-        "triangles": 140
-      },
-      "b": {
-        "file": "models/D_b.glb",
-        "size_mm": [
-          120.0,
-          160.0,
-          30.0
-        ],
-        "triangles": 64
-      }
-    },
-    "E": {
-      "a": {
-        "file": "models/E_a.glb",
-        "size_mm": [
-          120.0,
-          160.0,
-          30.0
-        ],
-        "triangles": 222
-      },
-      "b": {
-        "file": "models/E_b.glb",
-        "size_mm": [
-          120.0,
-          160.0,
-          30.0
-        ],
-        "triangles": 164
-      }
-    },
-    "F": {
-      "a": {
-        "file": "models/F_a.glb",
-        "size_mm": [
-          120.0,
-          160.0,
-          30.0
-        ],
-        "triangles": 210
-      },
-      "b": {
-        "file": "models/F_b.glb",
-        "size_mm": [
-          120.0,
-          160.0,
-          30.0
-        ],
-        "triangles": 140
-      }
-    },
-    "G": {
-      "a": {
-        "file": "models/G_a.glb",
-        "size_mm": [
-          120.0,
-          160.0,
-          30.0
-        ],
-        "triangles": 211
-      },
-      "b": {
-        "file": "models/G_b.glb",
-        "size_mm": [
-          120.0,
-          160.0,
-          30.0
-        ],
-        "triangles": 124
-      }
-    },
-    "H": {
-      "a": {
-        "file": "models/H_a.glb",
-        "size_mm": [
-          120.0,
-          140.0,
-          30.0
-        ],
-        "triangles": 191
-      },
-      "b": {
-        "file": "models/H_b.glb",
-        "size_mm": [
-          120.0,
-          140.0,
-          30.0
-        ],
-        "triangles": 108
-      }
-    },
-    "I": {
-      "a": {
-        "file": "models/I_a.glb",
-        "size_mm": [
-          120.0,
-          160.0,
-          30.0
-        ],
-        "triangles": 214
-      },
-      "b": {
-        "file": "models/I_b.glb",
-        "size_mm": [
-          120.0,
-          160.0,
-          30.0
-        ],
-        "triangles": 148
-      }
-    },
-    "J": {
-      "a": {
-        "file": "models/J_a.glb",
-        "size_mm": [
-          120.0,
-          160.0,
-          30.0
-        ],
-        "triangles": 212
-      },
-      "b": {
-        "file": "models/J_b.glb",
-        "size_mm": [
-          120.0,
-          160.0,
-          30.0
-        ],
-        "triangles": 140
-      }
-    },
-    "K": {
-      "a": {
-        "file": "models/K_a.glb",
-        "size_mm": [
-          120.0,
-          160.0,
-          30.0
-        ],
-        "triangles": 144
-      },
-      "b": {
-        "file": "models/K_b.glb",
-        "size_mm": [
-          120.0,
-          160.0,
-          30.0
-        ],
-        "triangles": 76
-      }
-    },
-    "L": {
-      "a": {
-        "file": "models/L_a.glb",
-        "size_mm": [
-          120.0,
-          160.0,
-          30.0
-        ],
-        "triangles": 196
-      },
-      "b": {
-        "file": "models/L_b.glb",
-        "size_mm": [
-          120.0,
-          160.0,
-          30.0
-        ],
-        "triangles": 140
-      }
-    },
-    "M": {
-      "a": {
-        "file": "models/M_a.glb",
-        "size_mm": [
-          120.0,
-          160.0,
-          30.0
-        ],
-        "triangles": 144
-      },
-      "b": {
-        "file": "models/M_b.glb",
-        "size_mm": [
-          120.0,
-          160.0,
-          30.0
-        ],
-        "triangles": 76
-      }
-    },
-    "N": {
-      "a": {
-        "file": "models/N_a.glb",
-        "size_mm": [
-          120.0,
-          160.0,
-          30.0
-        ],
-        "triangles": 159
-      },
-      "b": {
-        "file": "models/N_b.glb",
-        "size_mm": [
-          120.0,
-          160.0,
-          30.0
-        ],
-        "triangles": 76
-      }
-    },
-    "O": {
-      "a": {
-        "file": "models/O_a.glb",
-        "size_mm": [
-          120.0,
-          160.0,
-          30.0
-        ],
-        "triangles": 258
-      },
-      "b": {
-        "file": "models/O_b.glb",
-        "size_mm": [
-          120.0,
-          160.0,
-          30.0
-        ],
-        "triangles": 204
-      }
-    },
-    "P": {
-      "a": {
-        "file": "models/P_a.glb",
-        "size_mm": [
-          120.0,
-          160.0,
-          30.0
-        ],
-        "triangles": 215
-      },
-      "b": {
-        "file": "models/P_b.glb",
-        "size_mm": [
-          120.0,
-          160.0,
-          30.0
-        ],
-        "triangles": 172
-      }
-    }
+ "units": "mm",
+ "storeys": {
+  "A": {
+   "a": {
+    "file": "models/A_a.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 176
+   },
+   "b": {
+    "file": "models/A_b.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 126
+   }
   },
-  "guides": [
-    {
-      "name": "base",
-      "file": "models/base.glb",
-      "size_mm": [
-        140.0,
-        160.0,
-        30.0
-      ]
-    },
-    {
-      "name": "leg",
-      "file": "models/leg.glb",
-      "size_mm": [
-        15.0,
-        30.0,
-        50.0
-      ]
-    },
-    {
-      "name": "spike",
-      "file": "models/spike.glb",
-      "size_mm": [
-        30.0,
-        30.0,
-        200.0
-      ]
-    }
-  ]
+  "B": {
+   "a": {
+    "file": "models/B_a.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 191
+   },
+   "b": {
+    "file": "models/B_b.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 128
+   }
+  },
+  "C": {
+   "a": {
+    "file": "models/C_a.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 210
+   },
+   "b": {
+    "file": "models/C_b.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 148
+   }
+  },
+  "D": {
+   "a": {
+    "file": "models/D_a.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 140
+   },
+   "b": {
+    "file": "models/D_b.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 64
+   }
+  },
+  "E": {
+   "a": {
+    "file": "models/E_a.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 222
+   },
+   "b": {
+    "file": "models/E_b.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 164
+   }
+  },
+  "F": {
+   "a": {
+    "file": "models/F_a.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 210
+   },
+   "b": {
+    "file": "models/F_b.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 140
+   }
+  },
+  "G": {
+   "a": {
+    "file": "models/G_a.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 211
+   },
+   "b": {
+    "file": "models/G_b.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 124
+   }
+  },
+  "H": {
+   "a": {
+    "file": "models/H_a.glb",
+    "size_mm": [
+     120.0,
+     140.0,
+     30.0
+    ],
+    "triangles": 191
+   },
+   "b": {
+    "file": "models/H_b.glb",
+    "size_mm": [
+     120.0,
+     140.0,
+     30.0
+    ],
+    "triangles": 108
+   }
+  },
+  "I": {
+   "a": {
+    "file": "models/I_a.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 214
+   },
+   "b": {
+    "file": "models/I_b.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 148
+   }
+  },
+  "J": {
+   "a": {
+    "file": "models/J_a.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 212
+   },
+   "b": {
+    "file": "models/J_b.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 140
+   }
+  },
+  "K": {
+   "a": {
+    "file": "models/K_a.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 144
+   },
+   "b": {
+    "file": "models/K_b.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 76
+   }
+  },
+  "L": {
+   "a": {
+    "file": "models/L_a.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 196
+   },
+   "b": {
+    "file": "models/L_b.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 140
+   }
+  },
+  "M": {
+   "a": {
+    "file": "models/M_a.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 144
+   },
+   "b": {
+    "file": "models/M_b.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 76
+   }
+  },
+  "N": {
+   "a": {
+    "file": "models/N_a.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 159
+   },
+   "b": {
+    "file": "models/N_b.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 76
+   }
+  },
+  "O": {
+   "a": {
+    "file": "models/O_a.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 258
+   },
+   "b": {
+    "file": "models/O_b.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 204
+   }
+  },
+  "P": {
+   "a": {
+    "file": "models/P_a.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 215
+   },
+   "b": {
+    "file": "models/P_b.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 172
+   }
+  }
+ },
+ "guides": [
+  {
+   "name": "base",
+   "file": "models/base.glb",
+   "size_mm": [
+    140.0,
+    160.0,
+    30.0
+   ]
+  },
+  {
+   "name": "leg",
+   "file": "models/leg.glb",
+   "size_mm": [
+    15.0,
+    30.0,
+    50.0
+   ]
+  },
+  {
+   "name": "spike",
+   "file": "models/spike.glb",
+   "size_mm": [
+    30.0,
+    30.0,
+    200.0
+   ]
+  },
+  {
+   "name": "roof",
+   "file": "models/roof.glb",
+   "size_mm": [
+    140.0,
+    160.0,
+    22.0
+   ],
+   "note": "stand-in for the Grasshopper roof variant; plain slab, no bores"
+  }
+ ]
 }

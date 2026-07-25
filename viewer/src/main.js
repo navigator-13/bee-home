@@ -127,6 +127,16 @@ async function rebuild() {
     y += entry.size_mm[2] / 1000;
   }
 
+  // Cap it. Left open, the stack ends on the cavity channels of the top
+  // storey, which is not how the object was ever shown.
+  const roof = index.guides.find((g) => g.name === 'roof');
+  if (roof) {
+    const roofGeometry = await stage.load(roof.file);
+    stage.add(roofGeometry, new THREE.Vector3(0, y, 0),
+      // Shares the top storey's step: closing the stack is one move, not two.
+      { wood: woodFor(state.stack.length - 1), storey: state.stack.length - 1 });
+  }
+
   if (state.position !== 'fixed') {
     const base = index.guides.find((g) => g.name === 'base');
     const baseGeometry = await stage.load(base.file);
