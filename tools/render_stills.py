@@ -437,7 +437,7 @@ def env_workshop(dress=True):
     # and at f/10 a wall five metres off is just a large empty area of the frame.
     back = slab(9.4, 0.12, 3.62, (0.1, 1.62, 2.70))
     back.data.materials.append(planks)
-    right = slab(0.12, 5.2, 3.62, (2.55, 0.0, 2.70))
+    right = slab(0.12, 5.2, 3.62, (3.30, 0.0, 2.70))
     right.data.materials.append(plaster)
     ceiling = plane(12, location=(0, 0.2, 2.70))
     ceiling.data.materials.append(flat_material("ceiling", (0.68, 0.68, 0.665), 0.92))
@@ -467,7 +467,7 @@ def env_workshop(dress=True):
     key = bpy.context.object
     key.data.shape = "RECTANGLE"
     key.data.size, key.data.size_y = 1.44, 2.01
-    key.data.energy = 900.0
+    key.data.energy = 620.0
     key.data.color = (0.945, 0.960, 1.0)
     key.rotation_euler = (0, math.radians(-90), 0)
 
@@ -477,7 +477,7 @@ def env_workshop(dress=True):
     # and a key square to the bench leaves everything behind it black.
     bpy.ops.object.light_add(type="SUN", location=(-1.8, 0.0, 1.4))
     sun = bpy.context.object
-    sun.data.energy = 3.1
+    sun.data.energy = 4.6
     sun.data.angle = math.radians(9)
     sun.data.color = (1.0, 0.982, 0.958)
     sun.rotation_euler = (math.radians(64), 0, math.radians(-42))
@@ -493,11 +493,11 @@ def env_workshop(dress=True):
 
     # Bounce off the right-hand wall, keeping the shadow side open. Weak: the
     # shadow side wants to stay a stop or so down, not disappear.
-    bpy.ops.object.light_add(type="AREA", location=(2.45, -0.10, 0.55))
+    bpy.ops.object.light_add(type="AREA", location=(2.60, -0.10, 0.55))
     bounce = bpy.context.object
     bounce.data.shape = "RECTANGLE"
     bounce.data.size, bounce.data.size_y = 2.6, 1.8
-    bounce.data.energy = 55.0
+    bounce.data.energy = 42.0
     bounce.data.color = (1.0, 0.988, 0.972)
     bounce.rotation_euler = (0, math.radians(90), 0)
 
@@ -714,14 +714,27 @@ def env_studio_wall():
     the subject to take a contact shadow.
     """
     sweep = env_studio()
-    wall = slab(2.6, 0.11, 2.2, (0.06, 0.145, 1.30))
+    wall = slab(3.4, 0.11, 2.6, (0.06, 0.145, 2.10))
     wall.data.materials.append(
-        pbr_material("studio_wall", "beige_wall_001", scale=0.55,
-                     tint=(0.86, 0.855, 0.84), bump=0.5))
+        pbr_material("studio_wall", "beige_wall_001", scale=1.7,
+                     tint=(0.90, 0.898, 0.90), bump=0.55))
     # A skirting stops the wall meeting the floor on a single hard line, which
-    # is the detail that makes a plane read as a wall rather than as a card.
-    skirt = slab(2.6, 0.024, 0.09, (0.06, 0.078, 0.09))
-    skirt.data.materials.append(flat_material("skirting", (0.845, 0.842, 0.832), 0.55))
+    # is the detail that makes a plane read as a wall rather than as a card. It
+    # sits well below any of the framing here, but it is what stops a grazing
+    # camera catching the join.
+    skirt = slab(3.4, 0.026, 0.095, (0.06, 0.076, 0.095))
+    skirt.data.materials.append(flat_material("skirting", (0.855, 0.852, 0.842), 0.5))
+
+    # A second, closer soft source aimed along the wall. The studio key alone
+    # lights the object beautifully and leaves the wall behind it dead flat,
+    # and the whole reason this variant needs a wall is to see it take a shadow.
+    bpy.ops.object.light_add(type="AREA", location=(-1.35, -1.15, 1.85))
+    graze = bpy.context.object
+    graze.data.shape = "RECTANGLE"
+    graze.data.size, graze.data.size_y = 1.5, 1.2
+    graze.data.energy = 130.0
+    graze.data.color = (1.0, 0.99, 0.975)
+    graze.rotation_euler = (math.radians(64), 0, math.radians(-40))
     return sweep
 
 
@@ -884,6 +897,24 @@ def place(obj, x, y, z, z_min, z_stretch=1.0, yaw=0.0):
     obj.rotation_euler = (0, 0, yaw)
 
 
+def seat(objects, z=0.0):
+    """Drop a group so its lowest vertex rests at `z`.
+
+    `place` positions a part from its untransformed z-extent, which is right for
+    a stack but wrong the moment a part is tipped on edge — the rotation swings
+    the geometry through the bench. This re-measures after the fact.
+    """
+    from mathutils import Vector
+
+    bpy.context.view_layer.update()
+    corners = [obj.matrix_world @ Vector(c) for obj in objects for c in obj.bound_box]
+    shift = z - min(c.z for c in corners)
+    for obj in objects:
+        obj.location.z += shift
+    bpy.context.view_layer.update()
+    return objects
+
+
 def paint(objects, wood):
     mat = wood_material(f"wood_{wood}_{len(bpy.data.materials)}", WOODS[wood])
     for obj in objects:
@@ -961,20 +992,26 @@ def add_spike(index, origin, lift, wood="birch"):
     return paint(objs, wood)
 
 
-def add_wall_mount(index, origin, lift, wood="birch"):
-    """Fixed to a board: the base plate cantilevered off a vertical panel."""
+def add_wall_mount(index, origin, lift, wood="birch", wall_y=0.092):
+    """Fixed to a wall: the base plate carried on a short cleat.
+
+    The cleat is a bracket, not a backboard. The earlier version ran a panel the
+    full height of the mount, which meant a metre of dark timber standing behind
+    a 150 mm object — the framing then had to fit the panel, and the product
+    ended up a detail at the top of its own photograph. Anything holding this to
+    a wall only has to be as tall as the base it carries.
+    """
     objs = []
     base_parts, base_h, base_zmin = load_part(os.path.join(MODELS, "base.glb"))
     for obj in base_parts:
         place(obj, origin[0], origin[1], lift - base_h * MM, base_zmin)
-    objs += base_parts
-    objs = paint(objs, wood)
+    objs += paint(base_parts, wood)
 
-    board = slab(0.30, 0.020, lift + 0.30, (origin[0], origin[1] + 0.092, lift + 0.22))
-    board.data.materials.append(
-        wood_material(f"board_{len(bpy.data.materials)}", WOODS["walnut"],
-                      roughness=0.70, scale=5.0))
-    return objs + [board]
+    cleat = slab(0.150, 0.026, 0.128, (origin[0], origin[1] + wall_y, lift - 0.006))
+    cleat.data.materials.append(
+        wood_material(f"cleat_{len(bpy.data.materials)}", WOODS["walnut"],
+                      roughness=0.62, scale=6.0))
+    return objs + [cleat]
 
 
 def render(path):
@@ -1006,27 +1043,42 @@ def shot_workshop_bench(index):
     env_workshop()
     subject, _ = build(index, ["A", "B", "C", "M"], ["birch", "beech"],
                        origin=(-0.06, 0.04), lift=0.0, yaw=math.radians(16))
-    frame(subject, azimuth=-36, elevation=19, lens=52, margin=2.20, fstop=10.0,
-          target=(0.5, 0.44, 0.44))
+    frame(subject, azimuth=-34, elevation=15, lens=50, margin=3.05, fstop=10.0,
+          target=(0.62, 0.46, 0.52))
     render(f"{OUT}/workshop-bench.png")
 
 
 def shot_workshop_hands(index):
-    """Lower and closer: a storey going on, tools and shavings in the near field."""
+    """Lower and closer: a part-built stack with the next storeys still loose.
+
+    Nothing hovers. An exploded stack is a diagram convention and it survives on
+    a white sweep, but dropped into a room with real light and real shadows a
+    floating part stops reading as "about to go on" and starts reading as a
+    mistake. The same moment is carried here by a seated stack, the next storey
+    laid down beside it and one stood on edge behind.
+    """
     reset(*size(2000, 1400, 130))
     env_workshop()
     origin = (-0.02, 0.02)
     yaw = math.radians(-12)
-    subject, top = build(index, ["N", "O"], ["birch", "ash"], origin=origin,
-                         lift=0.0, yaw=yaw, roof=False)
-    # The next storey held just clear of the stack — the moment before it seats.
-    nxt, _, z_min = load_part(os.path.join(MODELS, "P_a.glb"))
-    for obj in nxt:
-        place(obj, origin[0] + 0.012, origin[1] - 0.006, top + 0.055, z_min,
-              yaw=yaw + math.radians(7))
-    subject += paint(nxt, "beech")
-    frame(subject, azimuth=-38, elevation=9, lens=68, margin=1.95, fstop=9.0,
-          target=(0.5, 0.45, 0.46))
+    subject, _ = build(index, ["N", "O"], ["birch", "ash"], origin=origin,
+                       lift=0.0, yaw=yaw, roof=False)
+
+    flat, _, z_min = load_part(os.path.join(MODELS, "P_a.glb"))
+    for obj in flat:
+        place(obj, 0.165, -0.070, 0.0, z_min, yaw=math.radians(28))
+    subject += paint(flat, "beech")
+
+    # One stood on its edge, leaning back on the stack — how a part actually
+    # waits its turn on a bench.
+    edge, _, e_zmin = load_part(os.path.join(MODELS, "C_a.glb"))
+    for obj in edge:
+        place(obj, -0.150, 0.120, 0.0, e_zmin, yaw=math.radians(-40))
+        obj.rotation_euler = (math.radians(74), 0, math.radians(-40))
+    subject += paint(seat(edge), "birch")
+
+    frame(subject, azimuth=-40, elevation=11, lens=70, margin=1.45, fstop=9.0,
+          target=(0.50, 0.46, 0.56))
     render(f"{OUT}/workshop-hands.png")
 
 
@@ -1054,7 +1106,7 @@ def shot_studio_three_quarter(index):
     subject, _ = build(index, ["D", "F", "G", "M"], ["beech", "birch", "walnut"],
                        lift=lift, yaw=yaw)
     subject += add_support(index, (0, 0), lift, wood="beech", yaw=yaw)
-    frame(subject, azimuth=-30, elevation=3, lens=105, margin=1.10, fstop=11.0,
+    frame(subject, azimuth=-30, elevation=3, lens=105, margin=1.18, fstop=11.0,
           target=(0.5, 0.5, 0.52))
     render(f"{OUT}/studio-three-quarter.png")
 
@@ -1063,11 +1115,15 @@ def shot_studio_grounded(index):
     """The ground-spike variant: different storeys again, and a cooler timber."""
     reset(*size(2000, 1500, 120), look="AgX - Base Contrast")
     env_studio()
-    lift = 0.40
+    lift = 0.27
     subject, _ = build(index, ["I", "J", "C", "M"], ["ash", "ash", "walnut"], lift=lift)
     subject += add_spike(index, (0, 0), lift, wood="ash")
-    frame(subject, azimuth=-20, elevation=6, lens=110, margin=1.10, fstop=11.0,
-          target=(0.5, 0.5, 0.56))
+    # Cropped through the spike rather than showing its point. On a seamless
+    # sweep there is no ground for it to enter, and a tapered post stopping in
+    # mid-air reads as a floating stick; running it out of the frame lets the
+    # eye finish it.
+    frame(subject, azimuth=-24, elevation=6, lens=110, margin=0.76, fstop=11.0,
+          target=(0.5, 0.5, 0.78))
     render(f"{OUT}/studio-grounded.png")
 
 
@@ -1075,24 +1131,16 @@ def shot_studio_wall(index):
     """The wall-fixed variant, on an actual wall, with the shadow to prove it."""
     reset(*size(2000, 1500, 120), look="AgX - Base Contrast")
     env_studio_wall()
-    lift = 0.62
+    lift = 1.05
     subject, _ = build(index, ["N", "O", "P", "M"], ["birch", "walnut", "birch"],
                        lift=lift)
     subject += add_wall_mount(index, (0, 0), lift, wood="birch")
-    frame(subject, azimuth=-26, elevation=4, lens=105, margin=1.34, fstop=11.0,
-          target=(0.5, 0.5, 0.50))
+    # Slightly below the object and off to one side, so the cleat, the gap
+    # behind it and the shadow it throws all read at once. Square on, a wall
+    # mount is indistinguishable from something standing on a shelf.
+    frame(subject, azimuth=-31, elevation=-4, lens=100, margin=1.62, fstop=11.0,
+          target=(0.5, 0.5, 0.46))
     render(f"{OUT}/studio-wall.png")
-
-
-def shot_detail_joint(index):
-    """Close on a corner: the storey seam and the spine key, raking window light."""
-    reset(*size(1800, 1350, 130))
-    env_workshop(dress=False)
-    bpy.context.scene.view_settings.exposure = -0.95
-    subject, _ = build(index, ["D", "F", "G", "H"], ["birch", "ash", "walnut"], lift=0.02)
-    frame(subject, azimuth=-52, elevation=12, lens=120, margin=1.02, fstop=13.0,
-          target=(0.24, 0.26, 0.50), pull=0.66)
-    render(f"{OUT}/detail-joint.png")
 
 
 def shot_assembly(index):
@@ -1146,7 +1194,6 @@ SHOTS = {
     "studio-three-quarter": shot_studio_three_quarter,
     "studio-grounded": shot_studio_grounded,
     "studio-wall": shot_studio_wall,
-    "detail-joint": shot_detail_joint,
     "assembly": shot_assembly,
 }
 

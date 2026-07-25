@@ -95,7 +95,7 @@ to feed alongside the prompt:
 
 - `docs/plates/bh-4.png` — hidden-line drawing of the real four-storey model
   (ground truth for proportions; the object must match this)
-- `docs/renders/web/hero-studio.jpg` — our current best render (material and
+- `docs/renders/web/studio-front.jpg` — our current best render (material and
   lighting reference)
 - `viewer/public/models/*.glb` — actual geometry, for tools that take 3D input
 
