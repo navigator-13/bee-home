@@ -31,12 +31,17 @@ MODELS = "viewer/public/models"
 OUT = "docs/renders"
 TEXTURE = "docs/reference/textures/WoodPlywood001_COL_2K.jpg"
 
+# Tints multiplied over the plywood scan, which is a very light sheet: its mean
+# linear value is (0.94, 0.74, 0.55), so a tint near white leaves the timber
+# nearly white too. That is what made earlier passes read as bleached MDF. The
+# launch photography sits around sRGB (0.66, 0.43, 0.31) on a lit face — a warm
+# oak — so the tints are set to land there once the scan is multiplied through.
 WOODS = {
-    "birch": (0.945, 0.839, 0.729),
-    "oak": (0.851, 0.725, 0.549),
-    "larch": (0.808, 0.569, 0.349),
-    "walnut": (0.420, 0.290, 0.196),
-    "charred": (0.169, 0.153, 0.141),
+    "birch": (0.520, 0.395, 0.290),
+    "oak": (0.360, 0.225, 0.150),
+    "larch": (0.430, 0.250, 0.145),
+    "walnut": (0.150, 0.092, 0.068),
+    "charred": (0.032, 0.030, 0.031),
 }
 
 # The glTF files are millimetre-scaled and Y-up as written. Blender's importer
@@ -78,6 +83,11 @@ def wood_material(name, rgb, roughness=0.62, scale=0.006):
     mat, nodes, links = node_material(name)
     bsdf = nodes["Principled BSDF"]
     bsdf.inputs["Roughness"].default_value = roughness
+    # Sawn plywood is close to a pure diffuser. Left at the default, the narrow
+    # vertical faces of the spine catch the sky at a grazing angle and come back
+    # as flat grey bars laid over the timber.
+    if "Specular IOR Level" in bsdf.inputs:
+        bsdf.inputs["Specular IOR Level"].default_value = 0.22
 
     if os.path.exists(TEXTURE):
         coord = nodes.new("ShaderNodeTexCoord")
@@ -132,10 +142,20 @@ def plane(size, location=(0, 0, 0), rotation=(0, 0, 0)):
 
 
 def slab(width, depth, height, location):
-    """A box with its top face at `location.z`."""
+    """A box with its top face at `location.z`.
+
+    The scale is applied to the mesh, not left on the object. Texture Coordinate
+    > Object reads the *local* space, so a unit cube stretched to bench size
+    still measures one unit across and every wood shader on it collapses to a
+    single flat colour — which is why the bench had no grain on it at all.
+    """
     bpy.ops.mesh.primitive_cube_add(size=1, location=location)
     obj = bpy.context.object
     obj.scale = (width, depth, height)
+    bpy.ops.object.select_all(action="DESELECT")
+    obj.select_set(True)
+    bpy.context.view_layer.objects.active = obj
+    bpy.ops.object.transform_apply(scale=True)
     obj.location = (location[0], location[1], location[2] - height / 2)
     return obj
 
@@ -222,18 +242,26 @@ def foliage_material(name, rgb, translucency=0.30):
     return mat
 
 
-def scatter(mesh, material, count, centre, spread, height, tilt=0.5, seed=1):
-    """Instance one blade many times — linked mesh data, so it stays cheap."""
+def scatter(mesh, material, count, centre, spread, height, tilt=0.5, seed=1, rise=0.0):
+    """Instance one leaf many times — linked mesh data, so it stays cheap.
+
+    `rise` is what makes a bank of planting rather than a lawn. Scattering
+    everything on the ground and scaling it up to fill the background gives
+    metre-long leaves, which read as agave however far out of focus they are.
+    Small leaves spread through a *height* instead pile into a mass, which is
+    what a shrub actually is.
+    """
     rng = random.Random(seed)
     objs = []
     for _ in range(count):
-        obj = bpy.data.objects.new("blade", mesh)
+        obj = bpy.data.objects.new("leaf", mesh)
         bpy.context.collection.objects.link(obj)
-        radius = spread * math.sqrt(rng.random())
+        sx, sy = spread if isinstance(spread, tuple) else (spread, spread * 0.7)
+        radius = math.sqrt(rng.random())
         angle = rng.uniform(0, math.tau)
-        obj.location = (centre[0] + radius * math.cos(angle),
-                        centre[1] + radius * rng.uniform(0.35, 1.0) * math.sin(angle),
-                        centre[2])
+        obj.location = (centre[0] + sx * radius * math.cos(angle),
+                        centre[1] + sy * radius * math.sin(angle),
+                        centre[2] + rise * rng.random() ** 0.7)
         obj.rotation_euler = (rng.uniform(-tilt, tilt), rng.uniform(-tilt, tilt),
                               rng.uniform(0, math.tau))
         s = height * rng.uniform(0.6, 1.4)
@@ -247,6 +275,11 @@ def scatter(mesh, material, count, centre, spread, height, tilt=0.5, seed=1):
 def env_garden():
     """Late afternoon outdoors: warm low sun, leaf shade, planting behind."""
     scene = bpy.context.scene
+    # AgX desaturates as it approaches white, so a timber left sitting up at
+    # 0.8 goes pale and chalky no matter how warm the albedo is. Every set here
+    # is trimmed to land lit oak near 0.55, where the tint survives the transform
+    # — which is where the launch photography sits.
+    scene.view_settings.exposure = -0.12
 
     world = bpy.data.worlds.new("garden")
     scene.world = world
@@ -259,7 +292,7 @@ def env_garden():
     sky.sun_disc = False          # the disc is a real lamp below, for hard shade
     sky.altitude = 120.0
     bg = nodes["Background"]
-    bg.inputs[1].default_value = 0.9
+    bg.inputs[1].default_value = 0.32
     links.new(sky.outputs["Color"], bg.inputs["Color"])
 
     # Ground: soil showing through thin grass, not a green bedsheet.
@@ -272,9 +305,9 @@ def env_garden():
     patch.inputs["Detail"].default_value = 8.0
     ramp = nodes.new("ShaderNodeValToRGB")
     ramp.color_ramp.elements[0].position = 0.36
-    ramp.color_ramp.elements[0].color = (0.055, 0.038, 0.026, 1.0)   # damp soil
+    ramp.color_ramp.elements[0].color = (0.105, 0.072, 0.046, 1.0)   # damp soil
     ramp.color_ramp.elements[1].position = 0.62
-    ramp.color_ramp.elements[1].color = (0.085, 0.115, 0.038, 1.0)   # grass
+    ramp.color_ramp.elements[1].color = (0.115, 0.145, 0.052, 1.0)   # grass
     links.new(coord.outputs["Object"], patch.inputs["Vector"])
     links.new(patch.outputs["Fac"], ramp.inputs["Fac"])
     links.new(ramp.outputs["Color"], bsdf.inputs["Base Color"])
@@ -289,23 +322,70 @@ def env_garden():
     ground = plane(30)
     ground.data.materials.append(mat)
 
-    # Planting: a low bank of grass around the subject and a taller mass behind
-    # that the long lens will throw to mush.
-    blade = leaf_mesh("blade", 1.0, 0.09)
-    near = foliage_material("leaf_near", (0.070, 0.135, 0.032))
-    far = foliage_material("leaf_far", (0.055, 0.105, 0.030))
-    scatter(blade, near, 160 if DRAFT else 420, (0.0, 0.10, 0.0), 0.95, 0.16, seed=3)
-    scatter(blade, far, 120 if DRAFT else 340, (-0.3, 1.5, 0.0), 1.9, 0.55, seed=5)
-    scatter(blade, far, 120 if DRAFT else 340, (0.9, 2.4, 0.0), 2.2, 0.75, seed=9)
-    scatter(blade, near, 60 if DRAFT else 160, (-1.4, -0.9, 0.0), 0.9, 0.30, seed=11)
+    # Planting, in four depths. A single even scatter reads as mown lawn from a
+    # low camera, and the horizon line behind it gives the whole thing away as a
+    # plane with grass on it. So: ground cover at the feet, clumps at mid depth,
+    # then a bank tall enough to close the frame off above the subject, and a
+    # few stems right in front of the lens to open on.
+    blade = leaf_mesh("blade", 1.0, 0.045)
+    # The bank behind is broad-leaved, not more grass. Blades of grass at a
+    # metre tall read as a reed bed however far out of focus they are; wide
+    # leaves overlap into a mass, which is what a planted border looks like.
+    broad = leaf_mesh("broad", 1.0, 0.20)
+    near = foliage_material("leaf_near", (0.075, 0.140, 0.034))
+    mid = foliage_material("leaf_mid", (0.062, 0.118, 0.030))
+    far = foliage_material("leaf_far", (0.048, 0.092, 0.032))
+    dense = 0.35 if DRAFT else 1.0
+    # The mass of the border is a painted wall of leaf colour standing 3 m back.
+    # Real leaves cannot be scattered thinly enough to fill a whole background
+    # without either turning into agave or floating like confetti — so the bulk
+    # is a mottled surface, and instanced leaves only have to break its edge.
+    hedge_mat, hnodes, hlinks = node_material("hedge")
+    hbsdf = hnodes["Principled BSDF"]
+    hbsdf.inputs["Roughness"].default_value = 0.72
+    hcoord = hnodes.new("ShaderNodeTexCoord")
+    clump = hnodes.new("ShaderNodeTexVoronoi")
+    clump.feature = "SMOOTH_F1"
+    clump.inputs["Scale"].default_value = 9.0
+    clump.inputs["Smoothness"].default_value = 0.85
+    detail = hnodes.new("ShaderNodeTexNoise")
+    detail.inputs["Scale"].default_value = 26.0
+    detail.inputs["Detail"].default_value = 8.0
+    blend = hnodes.new("ShaderNodeMixRGB")
+    blend.blend_type = "MULTIPLY"
+    blend.inputs["Fac"].default_value = 0.55
+    hramp = hnodes.new("ShaderNodeValToRGB")
+    hramp.color_ramp.elements[0].position = 0.10
+    hramp.color_ramp.elements[0].color = (0.012, 0.024, 0.008, 1.0)
+    hramp.color_ramp.elements[1].position = 0.85
+    hramp.color_ramp.elements[1].color = (0.105, 0.190, 0.052, 1.0)
+    hlinks.new(hcoord.outputs["Object"], clump.inputs["Vector"])
+    hlinks.new(hcoord.outputs["Object"], detail.inputs["Vector"])
+    hlinks.new(clump.outputs["Distance"], blend.inputs["Color1"])
+    hlinks.new(detail.outputs["Fac"], blend.inputs["Color2"])
+    hlinks.new(blend.outputs["Color"], hramp.inputs["Fac"])
+    hlinks.new(hramp.outputs["Color"], hbsdf.inputs["Base Color"])
+    hedge = plane(26, location=(0.2, 3.4, 2.4), rotation=(math.radians(90), 0, 0))
+    hedge.data.materials.append(hedge_mat)
+
+    scatter(blade, near, int(2600 * dense), (0.0, 0.10, 0.0), (1.5, 1.1), 0.085, seed=3)
+    scatter(blade, mid, int(1500 * dense), (-0.3, 1.2, 0.0), (2.6, 0.6), 0.16, seed=5)
+    scatter(broad, mid, int(1900 * dense), (0.5, 1.7, 0.0), (3.0, 0.45), 0.11,
+            tilt=1.0, rise=0.36, seed=9)
+    scatter(broad, far, int(5200 * dense), (0.1, 2.7, 0.0), (6.0, 0.50), 0.13,
+            tilt=1.2, rise=1.30, seed=13)
+    # Foreground stems, out at the edges and inside the near focus limit so they
+    # melt into a soft green frame instead of standing over the subject.
+    scatter(blade, near, int(70 * dense), (-0.90, -0.58, 0.0), 0.26, 0.16, seed=19)
+    scatter(blade, near, int(55 * dense), (0.96, -0.64, 0.0), 0.24, 0.14, seed=23)
 
     # Key: a low sun raking across, warm, with leaf shade thrown over it.
     bpy.ops.object.light_add(type="SUN", location=(-5, -3, 3))
     sun = bpy.context.object
-    sun.data.energy = 5.2
-    sun.data.angle = math.radians(1.2)
-    sun.data.color = (1.0, 0.885, 0.735)
-    sun.rotation_euler = (math.radians(74), 0, math.radians(-46))
+    sun.data.energy = 8.6
+    sun.data.angle = math.radians(1.0)
+    sun.data.color = (1.0, 0.760, 0.505)
+    sun.rotation_euler = (math.radians(79), 0, math.radians(-52))
     foliage_gobo((-0.7, -0.5, 1.9), size=10, scale=4.6)
 
     # Sky fill from the open side, cool against the warm key.
@@ -313,15 +393,26 @@ def env_garden():
     fill = bpy.context.object
     fill.data.shape = "RECTANGLE"
     fill.data.size, fill.data.size_y = 3.0, 2.2
-    fill.data.energy = 26.0
-    fill.data.color = (0.80, 0.88, 1.0)
+    fill.data.energy = 10.0
+    fill.data.color = (0.86, 0.91, 1.0)
     fill.rotation_euler = (math.radians(74), 0, math.radians(54))
+
+    # A warm bounce off the ground on the key side — low sun over soil is never
+    # neutral, and without this the shaded faces go straight to sky blue.
+    bpy.ops.object.light_add(type="AREA", location=(-1.5, -0.9, 0.22))
+    warm = bpy.context.object
+    warm.data.shape = "RECTANGLE"
+    warm.data.size, warm.data.size_y = 2.4, 1.2
+    warm.data.energy = 16.0
+    warm.data.color = (1.0, 0.80, 0.58)
+    warm.rotation_euler = (math.radians(64), 0, math.radians(-58))
     return ground
 
 
 def env_makerspace():
     """A workshop: big cool north window, plywood bench, shop thrown far back."""
     scene = bpy.context.scene
+    scene.view_settings.exposure = -0.85
 
     world = bpy.data.worlds.new("makerspace")
     scene.world = world
@@ -331,8 +422,8 @@ def env_makerspace():
     bg.inputs[1].default_value = 0.55
 
     # Bench: a worn plywood top with the ply edge showing, at z = 0.
-    top = wood_material("bench_ply", (0.735, 0.640, 0.505), roughness=0.72, scale=0.010)
-    bench = slab(3.4, 1.9, 0.038, (0.0, 0.25, 0.0))
+    top = wood_material("bench_ply", (0.400, 0.345, 0.268), roughness=0.78, scale=1.7)
+    bench = slab(4.6, 1.65, 0.042, (0.0, 0.16, 0.0))
     bench.data.materials.append(top)
 
     # Trestle legs, only ever seen as dark verticals under the bench edge.
@@ -340,39 +431,45 @@ def env_makerspace():
     nodes["Principled BSDF"].inputs["Base Color"].default_value = (0.055, 0.055, 0.062, 1.0)
     nodes["Principled BSDF"].inputs["Roughness"].default_value = 0.45
     nodes["Principled BSDF"].inputs["Metallic"].default_value = 0.7
-    for sx in (-1.3, 1.3):
-        for sy in (-0.55, 0.95):
+    for sx in (-1.6, 1.6):
+        for sy in (-0.42, 0.62):
             leg = slab(0.06, 0.06, 0.92, (sx, sy, -0.038))
             leg.data.materials.append(dark)
 
     # Floor far below, and a back wall a long way off so it defocuses hard.
     floor_mat, nodes, _ = node_material("shop_floor")
-    nodes["Principled BSDF"].inputs["Base Color"].default_value = (0.075, 0.075, 0.080, 1.0)
+    nodes["Principled BSDF"].inputs["Base Color"].default_value = (0.205, 0.198, 0.186, 1.0)
     nodes["Principled BSDF"].inputs["Roughness"].default_value = 0.80
-    floor = plane(24, location=(0, 0, -0.96))
+    floor = plane(24, location=(0, 0, -0.90))
     floor.data.materials.append(floor_mat)
 
     wall_mat, nodes, _ = node_material("shop_wall")
-    nodes["Principled BSDF"].inputs["Base Color"].default_value = (0.165, 0.170, 0.168, 1.0)
+    nodes["Principled BSDF"].inputs["Base Color"].default_value = (0.215, 0.222, 0.216, 1.0)
     nodes["Principled BSDF"].inputs["Roughness"].default_value = 0.92
-    wall = plane(24, location=(0, 7.0, 2.0), rotation=(math.radians(90), 0, 0))
+    wall = plane(24, location=(0, 5.2, 1.6), rotation=(math.radians(90), 0, 0))
     wall.data.materials.append(wall_mat)
 
     # A hint of a shop: racking, sheet stock on edge, a couple of crates. All of
     # it sits metres behind the subject and only ever appears as soft blocks.
     props, nodes, _ = node_material("shop_props")
-    nodes["Principled BSDF"].inputs["Base Color"].default_value = (0.230, 0.205, 0.165, 1.0)
+    nodes["Principled BSDF"].inputs["Base Color"].default_value = (0.215, 0.190, 0.150, 1.0)
     nodes["Principled BSDF"].inputs["Roughness"].default_value = 0.85
     rng = random.Random(4)
-    for i in range(9):
-        x = -3.4 + i * 0.82 + rng.uniform(-0.2, 0.2)
-        h = rng.uniform(0.9, 2.1)
-        d = rng.uniform(0.10, 0.45)
-        sheet = slab(rng.uniform(0.5, 1.1), d, h, (x, 6.0 + rng.uniform(-0.5, 0.5), h - 0.96))
+    for i in range(11):
+        x = -3.8 + i * 0.76 + rng.uniform(-0.18, 0.18)
+        h = rng.uniform(1.1, 2.3)
+        d = rng.uniform(0.10, 0.42)
+        sheet = slab(rng.uniform(0.45, 1.0), d, h, (x, 4.3 + rng.uniform(-0.4, 0.4), h - 0.90))
         sheet.data.materials.append(props)
-    for i in range(4):
-        crate = slab(0.7, 0.6, 0.5, (-2.6 + i * 1.7, 4.4, -0.46))
+    for i in range(5):
+        crate = slab(0.7, 0.6, 0.52, (-3.0 + i * 1.6, 3.0, -0.38))
         crate.data.materials.append(props)
+    # Stock stacked just past the far edge of the bench, so a high camera has
+    # something behind the work instead of an empty floor.
+    for i, (x, w, h) in enumerate(((-1.75, 0.9, 0.74), (-0.60, 0.7, 0.52),
+                                   (0.55, 1.1, 0.64), (1.70, 0.6, 0.86))):
+        stack = slab(w, 0.5, h, (x, 1.35 + (i % 2) * 0.20, h - 0.90))
+        stack.data.materials.append(props)
 
     # Key: a tall north window, cool and very soft — the whole look of the room.
     bpy.ops.object.light_add(type="AREA", location=(-2.6, -0.9, 1.5))
@@ -396,7 +493,7 @@ def env_makerspace():
     wash = bpy.context.object
     wash.data.shape = "RECTANGLE"
     wash.data.size, wash.data.size_y = 6.0, 2.0
-    wash.data.energy = 120.0
+    wash.data.energy = 140.0
     wash.data.color = (0.90, 0.92, 1.0)
     wash.rotation_euler = (math.radians(120), 0, 0)
     return bench
@@ -405,6 +502,7 @@ def env_makerspace():
 def env_studio():
     """A white seamless sweep, one big soft key — catalogue product lighting."""
     scene = bpy.context.scene
+    scene.view_settings.exposure = -1.30
 
     world = bpy.data.worlds.new("studio")
     scene.world = world
@@ -439,7 +537,7 @@ def env_studio():
 
     mat, nodes, links = node_material("seamless")
     bsdf = nodes["Principled BSDF"]
-    bsdf.inputs["Base Color"].default_value = (0.735, 0.740, 0.750, 1.0)
+    bsdf.inputs["Base Color"].default_value = (0.820, 0.822, 0.828, 1.0)
     bsdf.inputs["Roughness"].default_value = 0.88
     tooth = nodes.new("ShaderNodeTexNoise")
     tooth.inputs["Scale"].default_value = 420.0
@@ -454,17 +552,17 @@ def env_studio():
     bpy.ops.object.light_add(type="AREA", location=(-1.5, -1.5, 2.6))
     key = bpy.context.object
     key.data.shape = "RECTANGLE"
-    key.data.size, key.data.size_y = 2.8, 2.2
-    key.data.energy = 380.0
+    key.data.size, key.data.size_y = 1.8, 1.4
+    key.data.energy = 420.0
     key.data.color = (1.0, 0.985, 0.965)
-    key.rotation_euler = (math.radians(48), 0, math.radians(-38))
+    key.rotation_euler = (math.radians(52), 0, math.radians(-34))
 
     # Fill: a big white flat opposite, low power, kills the black side.
     bpy.ops.object.light_add(type="AREA", location=(2.0, -1.0, 0.75))
     fill = bpy.context.object
     fill.data.shape = "RECTANGLE"
     fill.data.size, fill.data.size_y = 3.0, 2.2
-    fill.data.energy = 65.0
+    fill.data.energy = 34.0
     fill.data.color = (1.0, 0.99, 0.98)
     fill.rotation_euler = (math.radians(88), 0, math.radians(66))
 
@@ -474,7 +572,7 @@ def env_studio():
     back_light = bpy.context.object
     back_light.data.shape = "RECTANGLE"
     back_light.data.size, back_light.data.size_y = 4.0, 2.0
-    back_light.data.energy = 150.0
+    back_light.data.energy = 105.0
     back_light.rotation_euler = (math.radians(128), 0, 0)
     return sweep
 
@@ -503,24 +601,46 @@ def frame(objects, azimuth=-58, elevation=14, lens=70, margin=1.5, fstop=8.0,
     lo = Vector((min(c[i] for c in corners) for i in range(3)))
     hi = Vector((max(c[i] for c in corners) for i in range(3)))
     centre = Vector((lo[i] + (hi[i] - lo[i]) * target[i] for i in range(3)))
-    radius = max((hi - lo).length / 2, 0.02) * pull
-
-    sensor = 36.0
-    distance = (radius * margin) / math.tan(math.atan(sensor / (2 * lens)))
+    radius = max(max((c - centre).length for c in corners), 0.02)
     a, e = math.radians(azimuth), math.radians(elevation)
-    location = centre + Vector((
-        distance * math.cos(e) * math.sin(a),
-        -distance * math.cos(e) * math.cos(a),
-        distance * math.sin(e),
+    direction = Vector((
+        math.cos(e) * math.sin(a),
+        -math.cos(e) * math.cos(a),
+        math.sin(e),
     ))
 
-    bpy.ops.object.camera_add(location=location)
+    bpy.ops.object.camera_add(location=centre + direction * radius * 4)
     cam = bpy.context.object
     cam.data.lens = lens
     empty = bpy.data.objects.new("target", None)
     bpy.context.collection.objects.link(empty)
     empty.location = centre
     cam.constraints.new("TRACK_TO").target = empty
+
+    # Fit by projecting the corners through the finished camera rather than by
+    # trigonometry on a sensor width. A 36 mm sensor only describes the *long*
+    # edge of the frame, so solving against it fits a tall object to the width
+    # and lets the legs run off the bottom — which is exactly what happened.
+    # Projecting handles both axes, the aspect ratio and the lens at once, and
+    # converges in a few passes because extent goes as 1/distance.
+    from bpy_extras.object_utils import world_to_camera_view
+
+    scene = bpy.context.scene
+    for _ in range(12):
+        bpy.context.view_layer.update()
+        extent = 0.0
+        for corner in corners:
+            projected = world_to_camera_view(scene, cam, corner)
+            if projected.z <= 0:
+                continue
+            extent = max(extent, abs(projected.x - 0.5) * 2, abs(projected.y - 0.5) * 2)
+        if extent <= 1e-6:
+            break
+        distance = (cam.location - centre).length
+        cam.location = centre + direction * (distance * extent * margin)
+    # `pull` comes last: the macros want to sit inside the fitted framing.
+    cam.location = centre + direction * ((cam.location - centre).length * pull)
+    bpy.context.view_layer.update()
 
     cam.data.dof.use_dof = True
     if focus is None:
@@ -640,7 +760,7 @@ def build(index, letters, woods, origin=(0, 0), lift=0.0, yaw=0.0, roof=True):
         placed += paint(parts, woods[i % len(woods)])
         z += height * MM + JOINT
     if roof:
-        placed += add_roof(origin, z, yaw=yaw, wood=woods[-1])
+        placed += add_roof(origin, z, yaw=yaw, wood=woods[0])
         z += 22 * MM + JOINT
     return placed, z
 
@@ -703,7 +823,8 @@ def add_wall_mount(index, origin, lift, wood="birch"):
 
     board = slab(0.30, 0.020, lift + 0.30, (origin[0], origin[1] + 0.092, lift + 0.22))
     board.data.materials.append(
-        wood_material(f"board_{len(bpy.data.materials)}", WOODS["walnut"], roughness=0.70))
+        wood_material(f"board_{len(bpy.data.materials)}", WOODS["walnut"],
+                      roughness=0.70, scale=5.0))
     return objs + [board]
 
 
@@ -730,12 +851,13 @@ def shot_hero_garden(index):
     """Sited in planting, low three-quarter, long lens, warm rake."""
     reset(*size(2000, 1250, 110))
     env_garden()
-    lift = 0.46
-    subject, _ = build(index, ["D", "F", "G", "H", "M"], ["birch", "birch", "oak"],
-                       lift=lift, yaw=math.radians(-6))
-    subject += add_support(index, (0, 0), lift, yaw=math.radians(-6))
-    frame(subject, azimuth=-46, elevation=6, lens=105, margin=1.30, fstop=3.2,
-          target=(0.5, 0.5, 0.60), focus=(0.35, 0.15, 0.72))
+    lift = 0.34
+    yaw = math.radians(-8)
+    subject, _ = build(index, ["D", "F", "G", "H", "M"], ["oak", "oak", "walnut"],
+                       lift=lift, yaw=yaw)
+    subject += add_support(index, (0, 0), lift, wood="oak", yaw=yaw)
+    frame(subject, azimuth=-50, elevation=7, lens=105, margin=1.14, fstop=4.5,
+          target=(0.5, 0.5, 0.62), focus=(0.35, 0.15, 0.74))
     render(f"{OUT}/hero-garden.png")
 
 
@@ -743,11 +865,11 @@ def shot_hero_studio(index):
     """Near-elevation, clean, the catalogue frame."""
     reset(*size(2000, 1500, 110), look="AgX - Base Contrast")
     env_studio()
-    lift = 0.34
-    subject, _ = build(index, ["N", "O", "P", "M"], ["birch", "oak", "birch"], lift=lift)
-    subject += add_support(index, (0, 0), lift)
-    frame(subject, azimuth=-14, elevation=4, lens=135, margin=1.34, fstop=11.0,
-          target=(0.5, 0.5, 0.52))
+    lift = 0.26
+    subject, _ = build(index, ["N", "O", "P", "M"], ["oak", "larch", "oak"], lift=lift)
+    subject += add_support(index, (0, 0), lift, wood="oak")
+    frame(subject, azimuth=-13, elevation=5, lens=120, margin=1.08, fstop=11.0,
+          target=(0.5, 0.5, 0.54))
     render(f"{OUT}/hero-studio.png")
 
 
@@ -755,29 +877,37 @@ def shot_bench_makerspace(index):
     """On the bench, looking down, with offcuts and a loose storey to hand."""
     reset(*size(1600, 1200, 96))
     env_makerspace()
-    subject, _ = build(index, ["A", "B", "C", "M"], ["oak", "birch", "oak"],
+    subject, _ = build(index, ["A", "B", "C", "M"], ["oak", "larch", "oak"],
                        origin=(-0.08, 0.02), lift=0.0, yaw=math.radians(14))
     props = []
 
-    # Offcuts: the strips a sheet leaves behind, lying where they were dropped.
+    # Offcuts: the strips a sheet leaves behind, dropped in a loose fan rather
+    # than laid out — a tidy row reads as a diagram, not a bench.
     rng = random.Random(21)
-    cut_mat = wood_material("offcut", WOODS["birch"], roughness=0.70)
-    for i in range(5):
-        x = 0.30 + rng.uniform(-0.05, 0.16)
-        y = -0.13 + i * 0.055 + rng.uniform(-0.02, 0.02)
-        off = slab(rng.uniform(0.10, 0.26), rng.uniform(0.026, 0.05), 0.012, (x, y, 0.012))
-        off.rotation_euler = (0, 0, rng.uniform(-0.5, 0.5))
+    cut_mat = wood_material("offcut", WOODS["birch"], roughness=0.70, scale=6.0)
+    for i in range(6):
+        angle = rng.uniform(-0.7, 0.7)
+        x = 0.235 + rng.uniform(-0.03, 0.10)
+        y = -0.16 + i * 0.048 + rng.uniform(-0.015, 0.015)
+        off = slab(rng.uniform(0.10, 0.24), rng.uniform(0.024, 0.046), 0.012,
+                   (x, y, 0.012 + i * 0.0004))
+        off.rotation_euler = (0, 0, angle)
         off.data.materials.append(cut_mat)
         props.append(off)
 
-    # A storey lying flat, waiting to go on.
+    # A storey lying flat and one propped on its edge, waiting to go on.
     loose, _, z_min = load_part(os.path.join(MODELS, "P_a.glb"))
     for obj in loose:
-        place(obj, 0.24, 0.20, 0.0, z_min, yaw=math.radians(-38))
+        place(obj, 0.175, 0.175, 0.0, z_min, yaw=math.radians(-34))
     props += paint(loose, "larch")
 
-    frame(subject + props, azimuth=-34, elevation=38, lens=52, margin=1.24, fstop=4.5,
-          target=(0.44, 0.44, 0.42), focus=(0.5, 0.5, 0.5))
+    standing, _, s_zmin = load_part(os.path.join(MODELS, "C_a.glb"))
+    for obj in standing:
+        place(obj, -0.235, 0.155, 0.0, s_zmin, yaw=math.radians(24))
+    props += paint(standing, "oak")
+
+    frame(subject + props, azimuth=-26, elevation=22, lens=44, margin=1.06, fstop=3.6,
+          target=(0.46, 0.46, 0.40), focus=(0.40, 0.40, 0.55))
     render(f"{OUT}/bench-makerspace.png")
 
 
@@ -785,11 +915,15 @@ def shot_detail_cavity(index):
     """Macro straight onto the tunnel mouths, everything else gone soft."""
     reset(*size(1600, 1200, 110))
     env_garden()
+    # A macro is nearly all timber, so it meters far hotter than a wide shot.
+    bpy.context.scene.view_settings.exposure = -0.95
     lift = 0.30
-    subject, _ = build(index, ["N", "O", "P", "M"], ["birch", "oak", "birch"], lift=lift)
-    subject += add_support(index, (0, 0), lift)
-    frame(subject, azimuth=-16, elevation=2, lens=150, margin=1.05, fstop=2.5,
-          target=(0.46, 0.30, 0.62), pull=0.34, focus=(0.46, 0.0, 0.62))
+    block, _ = build(index, ["N", "O", "P", "M"], ["oak", "larch", "oak"], lift=lift)
+    add_support(index, (0, 0), lift, wood="oak")
+    # Framed off the storeys alone: include the legs and the auto-fit pulls back
+    # to hold them, which is how a "macro" ends up being a picture of a stool.
+    frame(block, azimuth=-27, elevation=4, lens=135, margin=1.00, fstop=2.6,
+          target=(0.68, 0.40, 0.46), pull=0.62, focus=(0.68, 0.0, 0.46))
     render(f"{OUT}/detail-cavity.png")
 
 
@@ -797,9 +931,10 @@ def shot_detail_joint(index):
     """Macro on a corner: the storey seam and the spine key, raking window light."""
     reset(*size(1600, 1200, 110))
     env_makerspace()
-    subject, _ = build(index, ["D", "F", "G", "H"], ["oak", "birch", "walnut"], lift=0.0)
-    frame(subject, azimuth=-58, elevation=14, lens=150, margin=1.05, fstop=2.8,
-          target=(0.16, 0.20, 0.46), pull=0.30, focus=(0.16, 0.16, 0.46))
+    bpy.context.scene.view_settings.exposure = -1.15
+    subject, _ = build(index, ["D", "F", "G", "H"], ["oak", "birch", "walnut"], lift=0.02)
+    frame(subject, azimuth=-54, elevation=11, lens=135, margin=1.00, fstop=5.6,
+          target=(0.22, 0.24, 0.50), pull=0.60, focus=(0.22, 0.20, 0.50))
     render(f"{OUT}/detail-joint.png")
 
 
@@ -811,12 +946,12 @@ def shot_stack_trio(index):
 
     # Left: short stack on the ground spike, larch.
     left = (-0.44, 0.03)
-    placed, _ = build(index, ["I", "J", "C"], ["larch"], origin=left, lift=0.30)
-    subject += placed + add_spike(index, left, 0.30, wood="larch")
+    placed, _ = build(index, ["I", "J", "C"], ["larch"], origin=left, lift=0.34)
+    subject += placed + add_spike(index, left, 0.34, wood="larch")
 
-    # Middle: the tall one on legs, birch and walnut.
+    # Middle: the tall one on legs, oak with a walnut band.
     mid = (-0.02, -0.02)
-    placed, _ = build(index, ["A", "B", "C", "M"], ["birch", "birch", "walnut"],
+    placed, _ = build(index, ["A", "B", "C", "M"], ["oak", "oak", "walnut"],
                       origin=mid, lift=0.20)
     subject += placed + add_support(index, mid, 0.20)
 
@@ -825,8 +960,8 @@ def shot_stack_trio(index):
     placed, _ = build(index, ["N", "O", "P"], ["oak"], origin=right, lift=0.16)
     subject += placed + add_wall_mount(index, right, 0.16, wood="oak")
 
-    frame(subject, azimuth=-24, elevation=9, lens=95, margin=1.16, fstop=9.0,
-          target=(0.5, 0.5, 0.46))
+    frame(subject, azimuth=-22, elevation=14, lens=90, margin=1.10, fstop=9.0,
+          target=(0.5, 0.5, 0.50))
     render(f"{OUT}/stack-trio.png")
 
 
@@ -837,9 +972,9 @@ def shot_assembly(index):
     for step in range(1, 5):
         reset(*size(1600, 1200, 96))
         env_makerspace()
-        subject = add_support(index, (0, 0), lift)
+        subject = add_support(index, (0, 0), lift, wood="oak")
         shown = letters[:step]
-        placed, stack_top = build(index, shown, ["birch", "oak", "birch"],
+        placed, stack_top = build(index, shown, ["oak", "larch", "oak"],
                                   lift=lift, roof=(step == 4))
         subject += placed
 
@@ -855,8 +990,8 @@ def shot_assembly(index):
         # The camera is placed from the *finished* object every time, so it
         # cannot drift as the stack grows.
         anchor = frame_anchor(index, letters, lift)
-        frame(anchor, azimuth=-42, elevation=20, lens=68, margin=1.62, fstop=5.0,
-              target=(0.5, 0.5, 0.52))
+        frame(anchor, azimuth=-42, elevation=18, lens=66, margin=1.30, fstop=5.0,
+              target=(0.5, 0.5, 0.50))
         for obj in anchor:
             bpy.data.objects.remove(obj, do_unlink=True)
         render(f"{OUT}/assembly-{step}.png")

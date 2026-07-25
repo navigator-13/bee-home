@@ -1,52 +1,38 @@
 """Cut the Cycles stills down to web assets.
 
-The renders are shot loose so the framing can be decided here rather than in
-Blender: the assembly steps are cropped tight and, crucially, to one shared
-box, because they share a camera and the object must not jump between steps.
-The hero keeps its full frame -- the sweep and the foliage shadow are the
-point of that one.
+Framing is decided in Blender now — every shot is composed in-camera — so this
+does not crop. It only resizes and encodes: 1600 px for the heroes and details,
+900 px for the assembly frames, which are only ever shown as a small strip.
 
     python3 tools/web_renders.py
 """
 import os
 import pathlib
 
-import numpy as np
 from PIL import Image
 
 SRC = pathlib.Path('docs/renders')
 OUT = SRC / 'web'
-WIDTH = {'hero': 1600, 'detail': 1400}
-
-
-def wood_box(path):
-    """Wood is far warmer than the sweep it stands on: R-B separates them."""
-    pixels = np.asarray(Image.open(path).convert('RGB')).astype(int)
-    ys, xs = np.where((pixels[:, :, 0] - pixels[:, :, 2]) > 45)
-    return xs.min(), ys.min(), xs.max(), ys.max()
+ASSEMBLY_WIDTH = 900
+DEFAULT_WIDTH = 1600
 
 
 def main():
     OUT.mkdir(exist_ok=True)
-    steps = sorted(SRC.glob('assembly-*.png'))
-    boxes = [wood_box(p) for p in steps]
-    shared = (min(b[0] for b in boxes), min(b[1] for b in boxes),
-              max(b[2] for b in boxes), max(b[3] for b in boxes))
+    stills = sorted(SRC.glob('*.png'))
+    if not stills:
+        raise SystemExit('no renders in docs/renders — run tools/render_stills.py first')
 
-    for path in sorted(SRC.glob('*.png')):
+    # Anything left in web/ from a previous set would outlive the PNG it came
+    # from and quietly keep publishing a render that no longer exists.
+    for stale in OUT.glob('*.jpg'):
+        if not (SRC / (stale.stem + '.png')).exists():
+            stale.unlink()
+            print('removed stale', stale.name)
+
+    for path in stills:
         image = Image.open(path).convert('RGB')
-        if path.stem.startswith('assembly'):
-            box, margin = shared, 0.14
-        elif path.stem == 'hero':
-            box, margin = None, 0
-        else:
-            box, margin = wood_box(path), 0.05
-        if box:
-            pad = int(max(box[2] - box[0], box[3] - box[1]) * margin)
-            image = image.crop((max(0, box[0] - pad), max(0, box[1] - pad),
-                                min(image.width, box[2] + pad),
-                                min(image.height, box[3] + pad)))
-        width = WIDTH.get(path.stem, 1000)
+        width = ASSEMBLY_WIDTH if path.stem.startswith('assembly') else DEFAULT_WIDTH
         if image.width > width:
             image = image.resize((width, round(image.height * width / image.width)),
                                  Image.LANCZOS)

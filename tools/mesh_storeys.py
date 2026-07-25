@@ -430,9 +430,15 @@ def main():
         })
         print(f"guide {name}: {w} x {d} x {h} mm")
 
+    # The roof is not in the .3dm -- it is written by tools/make_roof.py -- so
+    # rewriting the index from scratch would drop it every time this runs.
+    from make_roof import main as make_roof  # noqa: E402  (circular at import time)
+
     with open(f"{OUT_DIR}/index.json", "w") as fh:
         json.dump(index, fh, indent=2)
-    print(f"\nwrote {len(index['storeys'])*2} storey meshes + {len(index['guides'])} guides")
+    make_roof()
+
+    print(f"\nwrote {len(index['storeys'])*2} storey meshes + {len(index['guides'])+1} guides")
 
 
 if __name__ == "__main__":
