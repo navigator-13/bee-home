@@ -9,7 +9,7 @@
      160.0,
      30.0
     ],
-    "triangles": 176
+    "triangles": 188
    },
    "b": {
     "file": "models/A_b.glb",
@@ -18,7 +18,7 @@
      160.0,
      30.0
     ],
-    "triangles": 126
+    "triangles": 130
    }
   },
   "B": {
@@ -29,7 +29,7 @@
      160.0,
      30.0
     ],
-    "triangles": 191
+    "triangles": 196
    },
    "b": {
     "file": "models/B_b.glb",
@@ -49,7 +49,7 @@
      160.0,
      30.0
     ],
-    "triangles": 210
+    "triangles": 216
    },
    "b": {
     "file": "models/C_b.glb",
@@ -69,7 +69,7 @@
      160.0,
      30.0
     ],
-    "triangles": 140
+    "triangles": 144
    },
    "b": {
     "file": "models/D_b.glb",
@@ -89,7 +89,7 @@
      160.0,
      30.0
     ],
-    "triangles": 222
+    "triangles": 228
    },
    "b": {
     "file": "models/E_b.glb",
@@ -98,7 +98,7 @@
      160.0,
      30.0
     ],
-    "triangles": 164
+    "triangles": 172
    }
   },
   "F": {
@@ -109,7 +109,7 @@
      160.0,
      30.0
     ],
-    "triangles": 210
+    "triangles": 212
    },
    "b": {
     "file": "models/F_b.glb",
@@ -129,7 +129,7 @@
      160.0,
      30.0
     ],
-    "triangles": 211
+    "triangles": 216
    },
    "b": {
     "file": "models/G_b.glb",
@@ -149,7 +149,7 @@
      140.0,
      30.0
     ],
-    "triangles": 191
+    "triangles": 196
    },
    "b": {
     "file": "models/H_b.glb",
@@ -169,7 +169,7 @@
      160.0,
      30.0
     ],
-    "triangles": 214
+    "triangles": 216
    },
    "b": {
     "file": "models/I_b.glb",
@@ -209,7 +209,7 @@
      160.0,
      30.0
     ],
-    "triangles": 144
+    "triangles": 148
    },
    "b": {
     "file": "models/K_b.glb",
@@ -229,7 +229,7 @@
      160.0,
      30.0
     ],
-    "triangles": 196
+    "triangles": 204
    },
    "b": {
     "file": "models/L_b.glb",
@@ -249,7 +249,7 @@
      160.0,
      30.0
     ],
-    "triangles": 144
+    "triangles": 148
    },
    "b": {
     "file": "models/M_b.glb",
@@ -269,7 +269,7 @@
      160.0,
      30.0
     ],
-    "triangles": 159
+    "triangles": 168
    },
    "b": {
     "file": "models/N_b.glb",
@@ -278,7 +278,7 @@
      160.0,
      30.0
     ],
-    "triangles": 76
+    "triangles": 84
    }
   },
   "O": {
@@ -289,7 +289,7 @@
      160.0,
      30.0
     ],
-    "triangles": 258
+    "triangles": 260
    },
    "b": {
     "file": "models/O_b.glb",
@@ -309,7 +309,7 @@
      160.0,
      30.0
     ],
-    "triangles": 215
+    "triangles": 228
    },
    "b": {
     "file": "models/P_b.glb",

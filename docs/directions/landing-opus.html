@@ -249,29 +249,37 @@ figcaption b { color: var(--ink); font-weight: 400; }
 
 .steps figure { margin: 0; }
 
-/* Numbers hung off the object itself. Each one is a hairline leader and a
-   figure, so a fact reads as a property of the thing in the photograph rather
-   than as a statistic filed underneath it. */
-.called { position: relative; }
+/* Numbers called off the drawing, the way a dimension is called off a plan.
+   The leaders are computed against the drawing's own box so each one reaches
+   the part it names at any width. */
+.specs {
+  position: relative;
+  height: clamp(460px, 70vh, 760px);
+  max-width: 1120px;
+  margin: clamp(40px, 6vh, 76px) auto 0;
+}
 
-.call {
+.specs img {
   position: absolute;
-  width: max-content;
-  max-width: 21ch;
-  padding-left: 12px;
-  border-left: 1px solid var(--ink);
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.leaders { position: absolute; inset: 0; width: 100%; height: 100%; }
+.leaders path { fill: none; stroke: var(--ink); stroke-width: 1; }
+.leaders circle { fill: var(--ink); }
+
+.spec {
+  position: absolute;
+  width: min(24ch, 30%);
   transform: translateY(-50%);
 }
 
-.call.right {
-  padding: 0 12px 0 0;
-  border-left: 0;
-  border-right: 1px solid var(--ink);
-  text-align: right;
-  transform: translate(-100%, -50%);
-}
+.spec.end { text-align: right; }
 
-.call b {
+.spec b {
   display: block;
   font-weight: 400;
   font-size: clamp(17px, 1.7vw, 27px);
@@ -279,17 +287,15 @@ figcaption b { color: var(--ink); font-weight: 400; }
   line-height: 1.1;
 }
 
-.call span {
+.spec span {
   display: block;
-  margin-top: 4px;
+  margin-top: 5px;
   font-family: var(--mono);
   font-size: clamp(8.5px, 0.62vw, 10px);
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  line-height: 1.5;
-  /* Darker than a label elsewhere on the page: this one sits over a
-     photograph and the usual grey disappears into pale timber. */
-  color: #514f45;
+  line-height: 1.6;
+  color: var(--soft);
 }
 
 /* ---- where you are ---- */
@@ -378,17 +384,19 @@ figcaption b { color: var(--ink); font-weight: 400; }
      spill to stay in frame. */
   .garden { left: -48%; width: 180%; }
   .builder { height: 82vh; }
-  /* Leaders would have to point across the whole frame at this width, so the
-     callouts drop into a plain column under the photograph. */
-  .call, .call.right {
+  /* The drawing needs the full width here, so the callouts stack under it
+     with a rule instead of a leader. */
+  .specs { height: auto; }
+  .specs img { position: static; height: clamp(360px, 52vh, 480px); }
+  .leaders { display: none; }
+  .spec, .spec.end {
     position: static;
-    max-width: none;
+    width: auto;
     transform: none;
     text-align: left;
-    padding: 0 0 0 12px;
-    border: 0;
+    padding-left: 12px;
     border-left: 1px solid var(--ink);
-    margin-top: 18px;
+    margin-top: 20px;
   }
 }
 </style>
@@ -403,10 +411,9 @@ figcaption b { color: var(--ink); font-weight: 400; }
         <h1>Bee Home is an open invitation to give bees the home they deserve.</h1>
         <p class="sub">Design it here. Download the files for free. Have it made near you.</p>
         <div class="phase" id="phase">
-          <span>Storey by storey. Every combination the builder offers is one that can
-            actually be cut and stacked.</span>
-          <span>Plant native wildflowers within about 300 metres and your chances go up
-            sharply.</span>
+          <span>Storey by storey. Every combination the builder offers is one that can be
+            cut and stacked.</span>
+          <span>Native wildflowers, within about 300 metres of where it hangs.</span>
           <span>A single solitary bee could provide as much pollination as 120
             honeybees.</span>
         </div>
@@ -468,24 +475,34 @@ figcaption b { color: var(--ink); font-weight: 400; }
         a wall, simply use a drill and two screws.</p>
     </div>
 
-    <!-- The numbers belong to the object, so they hang off it rather than
-         being restated as a row of statistics underneath. -->
-    <figure class="called">
+    <figure class="bleed">
       <img src="../renders/web/hero.jpg" alt="A Bee Home standing on legs in low afternoon light" />
-      <div class="call" style="left:12%; top:26%"><b>4&#8211;10 mm</b><span>Bore range, one species per diameter</span></div>
-      <div class="call right" style="left:78%; top:46%"><b>120&#215;</b><span>One solitary bee pollinates as much as 120 honeybees</span></div>
-      <div class="call" style="left:16%; top:74%"><b>5&#8211;30 yrs</b><span>Lifespan, depending on timber and upkeep</span></div>
-      <div class="call right" style="left:74%; top:16%"><b>20&#8211;30</b><span>Offspring per queen</span></div>
+    </figure>
+
+    <!-- The numbers hang off the drawing, not the photograph. On a render they
+         sat on top of the thing they described; on an outline a leader can
+         reach the part it means. -->
+    <figure class="specs" id="specs">
+      <svg class="leaders" id="leaders" aria-hidden="true"></svg>
+      <img id="specDrawing" src="../plates/bh-4.png"
+           alt="Hidden-line drawing of a four-storey Bee Home with dimensions called out" />
+      <div class="spec" data-at="0.242,0.264" style="left:0; top:20%">
+        <b>4&#8211;10 mm</b><span>Bore range &#183; one species per diameter</span></div>
+      <div class="spec" data-at="0.242,0.345" style="left:0; top:52%">
+        <b>20&#8211;30</b><span>Offspring per queen</span></div>
+      <div class="spec end" data-at="0.68,0.33" style="right:0; top:24%">
+        <b>120&#215;</b><span>One solitary bee pollinates as much as 120 honeybees</span></div>
+      <div class="spec end" data-at="0.47,0.84" style="right:0; top:66%">
+        <b>5&#8211;30 yrs</b><span>Lifespan &#183; timber and upkeep</span></div>
     </figure>
   </section>
 
   <section class="band" id="plant">
     <p class="label">Plant for them</p>
-    <h2 class="lede">Planting native wildflowers will increase your chances.</h2>
+    <h2 class="lede">Plant what the bees near you feed on.</h2>
     <div class="two">
       <p>Tell us roughly where you are. We'll name the cavity-nesting bees recorded near you,
-        what they pollinate locally, and which seed to sow &#8212; asked here, after your
-        design, because this is where it starts to matter.</p>
+        what they pollinate locally, and which seed to sow.</p>
       <p>Solitary bees are friendly. They don't produce honey and therefore have nothing to
         protect. They only sting if trod on, and are safe to keep around kids and pets.</p>
     </div>
@@ -1001,6 +1018,68 @@ figcaption b { color: var(--ink); font-weight: 400; }
     var on = p < GARDEN[0] ? 0 : p < FLY[0] ? 1 : 2;
     phases.forEach(function (el, i) { el.classList.toggle('on', i === on); });
   }
+
+  /* ---------------- called dimensions ----------------
+
+     Each callout names a point on the drawing rather than a point on the
+     page, so the leader is computed from the drawing's own box: the image is
+     object-fit: contain, which means its rendered rectangle is not the
+     element's rectangle at most window sizes. */
+
+  var specsFig = document.getElementById('specs');
+  var leaders = document.getElementById('leaders');
+  var drawing = document.getElementById('specDrawing');
+  var specs = [].slice.call(document.querySelectorAll('.spec'));
+
+  /** Where the drawing actually lands inside its element once contained. */
+  function drawnBox() {
+    var box = drawing.getBoundingClientRect();
+    var ratio = (drawing.naturalWidth || 640) / (drawing.naturalHeight || 1081);
+    var width = Math.min(box.width, box.height * ratio);
+    var height = width / ratio;
+    return {
+      left: box.left + (box.width - width) / 2,
+      top: box.top + (box.height - height) / 2,
+      width: width,
+      height: height,
+    };
+  }
+
+  function drawLeaders() {
+    while (leaders.firstChild) leaders.removeChild(leaders.firstChild);
+    if (getComputedStyle(leaders).display === 'none') return;
+
+    var f = specsFig.getBoundingClientRect();
+    var d = drawnBox();
+    leaders.setAttribute('viewBox', '0 0 ' + Math.round(f.width) + ' ' + Math.round(f.height));
+
+    specs.forEach(function (spec) {
+      var at = spec.dataset.at.split(',');
+      var ax = d.left + d.width * Number(at[0]) - f.left;
+      var ay = d.top + d.height * Number(at[1]) - f.top;
+
+      var s = spec.getBoundingClientRect();
+      var end = spec.classList.contains('end');
+      var sx = (end ? s.left : s.right) - f.left;
+      var sy = s.top + s.height / 2 - f.top;
+
+      // Out flat from the label, then one turn to the point -- a drawn
+      // dimension leader, not a line ruled diagonally across the sheet.
+      var turn = sx + (end ? -1 : 1) * Math.min(40, Math.abs(ax - sx) * 0.35);
+      path(leaders, '', 'M' + fmt(sx) + ' ' + fmt(sy) + 'H' + fmt(turn)
+        + 'L' + fmt(ax) + ' ' + fmt(ay));
+
+      var dot = document.createElementNS(NS, 'circle');
+      dot.setAttribute('cx', fmt(ax));
+      dot.setAttribute('cy', fmt(ay));
+      dot.setAttribute('r', '2.5');
+      leaders.appendChild(dot);
+    });
+  }
+
+  if (drawing.complete) drawLeaders();
+  else drawing.addEventListener('load', drawLeaders);
+  addEventListener('resize', drawLeaders);
 
   /* ---------------- where you are ----------------
 

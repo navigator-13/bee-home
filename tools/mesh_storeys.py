@@ -76,35 +76,84 @@ def basis_for(normal):
     return u, np.cross(n, u)
 
 
-def walk_loops(segments):
-    """Walk undirected segments into closed loops of point indices."""
-    adjacency = defaultdict(list)
-    for a, b in segments:
-        adjacency[a].append(b)
-        adjacency[b].append(a)
+def split_t_junctions(segments, points):
+    """Cut every segment at any vertex that lands in the middle of it.
 
-    unused = {frozenset(s) for s in segments if s[0] != s[1]}
-    loops = []
-    while unused:
-        edge = next(iter(unused))
-        start, current = tuple(edge)
-        unused.discard(edge)
-        loop = [start, current]
-        while True:
-            nxt = None
-            for candidate in adjacency[current]:
-                if frozenset((current, candidate)) in unused:
-                    nxt = candidate
-                    break
-            if nxt is None:
-                break
-            unused.discard(frozenset((current, nxt)))
-            if nxt == start:
-                break
-            loop.append(nxt)
-            current = nxt
-        if len(loop) >= 3:
-            loops.append(loop)
+    Brep edges only meet at shared vertices where the *faces* meet. Where a
+    notch runs into the middle of a longer edge, the long edge is one segment
+    and the notch's corner is a free-floating point on it — a T-junction. The
+    angular walk then sails straight past the junction, the notch is left
+    hanging off the loop, and part of the plane goes untriangulated exactly the
+    way the greedy walk used to leave it. Splitting first makes the graph a
+    proper planar subdivision, which is what the traversal assumes.
+    """
+    out = []
+    for a, b in segments:
+        ax, ay = points[a]
+        bx, by = points[b]
+        dx, dy = bx - ax, by - ay
+        length = math.hypot(dx, dy)
+        if length < 1e-9:
+            continue
+        hits = []
+        for i, (px, py) in enumerate(points):
+            if i in (a, b):
+                continue
+            t = ((px - ax) * dx + (py - ay) * dy) / (length * length)
+            if not 1e-9 < t < 1 - 1e-9:
+                continue
+            if abs((px - ax) * dy - (py - ay) * dx) / length > 1e-3:
+                continue
+            hits.append((t, i))
+        chain = [a] + [i for _, i in sorted(hits)] + [b]
+        out += list(zip(chain, chain[1:]))
+    return out
+
+
+def walk_loops(segments, points):
+    """Trace the faces of the planar edge graph, counter-clockwise.
+
+    Walking undirected segments greedily — take any neighbour that has not been
+    used yet — only works while every vertex has exactly two edges on it. These
+    parts break that constantly: a bore that touches the outer boundary, or two
+    notches meeting at a corner, put four edges on one vertex, and the greedy
+    walk hops from one ring onto the other. The loop still closes, so nothing
+    complains, but it closes across a chord: earcut then triangulates a lopsided
+    polygon and leaves the rest of the face uncovered. That is the slanted black
+    wedge — an unfilled triangle you are seeing the inside of the part through.
+
+    So pick the next edge by angle instead. Arriving at `v` along `u->v`, take
+    the neighbour one step clockwise from `v->u` in the angular order around
+    `v`. That is the standard planar face traversal: it can never cut across a
+    region, and it yields every minimal face of the subdivision exactly once.
+    Interior faces come out counter-clockwise (positive area) and the unbounded
+    face comes out clockwise, so the caller keeps the positive ones and lets the
+    existing nesting decide which are material and which are holes.
+    """
+    adjacency = defaultdict(set)
+    for a, b in segments:
+        if a != b:
+            adjacency[a].add(b)
+            adjacency[b].add(a)
+
+    order = {}
+    for v, neighbours in adjacency.items():
+        order[v] = sorted(neighbours, key=lambda w: math.atan2(
+            points[w][1] - points[v][1], points[w][0] - points[v][0]))
+
+    loops, visited = [], set()
+    for v, neighbours in order.items():
+        for w in neighbours:
+            if (v, w) in visited:
+                continue
+            loop, a, b = [], v, w
+            while (a, b) not in visited:
+                visited.add((a, b))
+                loop.append(a)
+                ring = order[b]
+                a, b = b, ring[(ring.index(a) - 1) % len(ring)]
+            if len(loop) >= 3:
+                loops.append(loop)
     return loops
 
 
@@ -129,19 +178,47 @@ def contains(outer, point):
     return inside
 
 
+def interior_point(loop):
+    """A point strictly inside `loop` — the centroid of one of its ear triangles.
+
+    Nesting used to be decided by testing loop[0], a *vertex*. Two solid regions
+    of one plane routinely share an edge (a shelf sitting on a step), so that
+    vertex lands exactly on the other loop's boundary, where even-odd testing is
+    a coin toss. Lose the toss and a solid region is filed as a hole and cut out
+    of a region it does not even overlap — a whole face silently missing.
+    """
+    verts = np.array(loop, dtype=np.float64)
+    indices = mapbox_earcut.triangulate_float64(verts, np.array([len(loop)], dtype=np.uint32))
+    if len(indices) < 3:
+        return loop[0]
+    a, b, c = (loop[indices[i]] for i in range(3))
+    return ((a[0] + b[0] + c[0]) / 3.0, (a[1] + b[1] + c[1]) / 3.0)
+
+
 def triangulate_plane(loops2d):
-    """Ear-clip a set of coplanar loops, nesting holes inside their outer ring."""
+    """Ear-clip a set of coplanar loops, nesting holes inside their outer ring.
+
+    Nesting is by even-odd depth, so a bore inside a boss inside a plate comes
+    out solid-void-solid rather than everything past the first ring being a hole.
+    """
     ordered = sorted(loops2d, key=lambda lp: abs(signed_area(lp)), reverse=True)
-    groups = []  # (outer, [holes])
-    for loop in ordered:
-        placed = False
-        for outer, holes in groups:
-            if contains(outer, loop[0]):
-                holes.append(loop)
-                placed = True
-                break
-        if not placed:
+    probes = [interior_point(lp) for lp in ordered]
+
+    depth, parent = [], []
+    for i in range(len(ordered)):
+        # Ordered largest first, so the last loop that contains this one is the
+        # tightest thing around it.
+        enclosing = [j for j in range(i) if contains(ordered[j], probes[i])]
+        parent.append(enclosing[-1] if enclosing else None)
+        depth.append(0 if parent[i] is None else depth[parent[i]] + 1)
+
+    groups, group_of = [], {}
+    for i, loop in enumerate(ordered):
+        if depth[i] % 2 == 0:
+            group_of[i] = len(groups)
             groups.append((loop, []))
+        elif parent[i] in group_of:
+            groups[group_of[parent[i]]][1].append(loop)
 
     triangles = []
     for outer, holes in groups:
@@ -207,8 +284,26 @@ def mesh_brep(brep):
         if not segments:
             continue
 
-        loops = [[points2d[i] for i in loop] for loop in walk_loops(segments)]
-        loops = [lp for lp in loops if abs(signed_area(lp)) > 1e-6]
+        segments = split_t_junctions(segments, points2d)
+        loops = [[points2d[i] for i in loop] for loop in walk_loops(segments, points2d)]
+        # basis_for() builds a right-handed (u, v, n), so a bounded face of the
+        # subdivision traces positive and the unbounded one traces negative:
+        # dropping the negatives drops exactly the outside of each ring.
+        loops = [lp for lp in loops if signed_area(lp) > 1e-6]
+
+        # Shape alone still cannot say which regions are timber: the mouth of a
+        # cavity traces exactly like the rim around it, so a recessed top comes
+        # out capped. Each face does carry a hint — Rhino sizes a trimmed planar
+        # surface to its own trim box, so the mid-domain point often lands inside
+        # the region that face covers — but only often, because the surface is
+        # oversized and a non-convex face can push it outside. So the hint is
+        # only allowed to veto, and only when it accounts for every face on the
+        # plane and still leaves a region spare. That spare region is the void.
+        witnesses = [(float(np.dot(o - origin, u)), float(np.dot(o - origin, v)))
+                     for _, o in faces]
+        claimed = [lp for lp in loops if any(contains(lp, w) for w in witnesses)]
+        if len(loops) > len(faces) and len(claimed) == len(faces):
+            loops = claimed
         if not loops:
             continue
 
