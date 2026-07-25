@@ -1,0 +1,250 @@
+[
+  {
+    "values": [
+      "a",
+      "b"
+    ],
+    "disallowedNextLetters": []
+  },
+  {
+    "values": [
+      "d",
+      "e",
+      "f"
+    ],
+    "disallowedNextLetters": [
+      "a",
+      "b",
+      "c",
+      "i",
+      "j",
+      "k",
+      "l",
+      "n",
+      "o",
+      "p"
+    ]
+  },
+  {
+    "values": [
+      "g",
+      "h"
+    ],
+    "disallowedNextLetters": [
+      "a",
+      "b",
+      "c",
+      "i",
+      "j",
+      "k",
+      "l",
+      "n",
+      "o",
+      "p"
+    ]
+  },
+  {
+    "values": [
+      "i",
+      "j"
+    ],
+    "disallowedNextLetters": [
+      "e"
+    ]
+  },
+  {
+    "values": [
+      "k",
+      "l"
+    ],
+    "disallowedNextLetters": []
+  },
+  {
+    "values": [
+      "n",
+      "o",
+      "p"
+    ],
+    "disallowedNextLetters": [
+      "k",
+      "l"
+    ]
+  },
+  {
+    "values": [
+      "a"
+    ],
+    "disallowedNextLetters": [
+      "e",
+      "k",
+      "l"
+    ]
+  },
+  {
+    "values": [
+      "b"
+    ],
+    "disallowedNextLetters": []
+  },
+  {
+    "values": [
+      "c"
+    ],
+    "disallowedNextLetters": []
+  },
+  {
+    "values": [
+      "d"
+    ],
+    "disallowedNextLetters": [
+      "a",
+      "b",
+      "c",
+      "i",
+      "j",
+      "k",
+      "l",
+      "n",
+      "o",
+      "p"
+    ]
+  },
+  {
+    "values": [
+      "e"
+    ],
+    "disallowedNextLetters": [
+      "a",
+      "b",
+      "c",
+      "i",
+      "j",
+      "k",
+      "l",
+      "n",
+      "o",
+      "p"
+    ]
+  },
+  {
+    "values": [
+      "f"
+    ],
+    "disallowedNextLetters": [
+      "a",
+      "b",
+      "c",
+      "i",
+      "j",
+      "k",
+      "l",
+      "n",
+      "o",
+      "p"
+    ]
+  },
+  {
+    "values": [
+      "g"
+    ],
+    "disallowedNextLetters": [
+      "a",
+      "b",
+      "c",
+      "d",
+      "e",
+      "i",
+      "j",
+      "k",
+      "l",
+      "n",
+      "o",
+      "p"
+    ]
+  },
+  {
+    "values": [
+      "h"
+    ],
+    "disallowedNextLetters": [
+      "a",
+      "b",
+      "c",
+      "e",
+      "i",
+      "j",
+      "k",
+      "l",
+      "n",
+      "o",
+      "p"
+    ]
+  },
+  {
+    "values": [
+      "i"
+    ],
+    "disallowedNextLetters": [
+      "e",
+      "k",
+      "l"
+    ]
+  },
+  {
+    "values": [
+      "j"
+    ],
+    "disallowedNextLetters": [
+      "e"
+    ]
+  },
+  {
+    "values": [
+      "k"
+    ],
+    "disallowedNextLetters": []
+  },
+  {
+    "values": [
+      "l"
+    ],
+    "disallowedNextLetters": []
+  },
+  {
+    "values": [
+      "m"
+    ],
+    "disallowedNextLetters": [
+      "e"
+    ]
+  },
+  {
+    "values": [
+      "n"
+    ],
+    "disallowedNextLetters": [
+      "k",
+      "l",
+      "m"
+    ]
+  },
+  {
+    "values": [
+      "o"
+    ],
+    "disallowedNextLetters": [
+      "k",
+      "l",
+      "m"
+    ]
+  },
+  {
+    "values": [
+      "p"
+    ],
+    "disallowedNextLetters": [
+      "k",
+      "l"
+    ]
+  }
+]

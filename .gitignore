@@ -1,1 +1,7 @@
 __pycache__/
+
+# Neue Haas Unica is a commercial Monotype/Linotype webfont. The license notice
+# shipped with it (docs/reference/assets/font-license.css) explicitly restricts
+# use to the original licensee, so it is kept locally for reference only and
+# never committed or redistributed.
+docs/reference/fonts/NeueHaasUnicaW1G-*

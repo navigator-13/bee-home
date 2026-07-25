@@ -1,0 +1,118 @@
+[
+  {
+    "letter": "a",
+    "defaultFilePath": "/models/A_default.obj",
+    "holesFilePath": "/models/A_holes.obj",
+    "type": "floor"
+  },
+  {
+    "letter": "b",
+    "defaultFilePath": "/models/B_default.obj",
+    "holesFilePath": "/models/B_holes.obj",
+    "type": "floor"
+  },
+  {
+    "letter": "c",
+    "defaultFilePath": "/models/C_default.obj",
+    "holesFilePath": "/models/C_holes.obj",
+    "type": "floor"
+  },
+  {
+    "letter": "d",
+    "defaultFilePath": "/models/D_default.obj",
+    "holesFilePath": "/models/D_holes.obj",
+    "type": "floor"
+  },
+  {
+    "letter": "e",
+    "defaultFilePath": "/models/E_default.obj",
+    "holesFilePath": "/models/E_holes.obj",
+    "type": "floor"
+  },
+  {
+    "letter": "f",
+    "defaultFilePath": "/models/F_default.obj",
+    "holesFilePath": "/models/F_holes.obj",
+    "type": "floor"
+  },
+  {
+    "letter": "g",
+    "defaultFilePath": "/models/G_default.obj",
+    "holesFilePath": "/models/G_holes.obj",
+    "type": "floor"
+  },
+  {
+    "letter": "h",
+    "defaultFilePath": "/models/H_default.obj",
+    "holesFilePath": "/models/H_holes.obj",
+    "type": "floor"
+  },
+  {
+    "letter": "i",
+    "defaultFilePath": "/models/I_default.obj",
+    "holesFilePath": "/models/I_holes.obj",
+    "type": "floor"
+  },
+  {
+    "letter": "j",
+    "defaultFilePath": "/models/J_default.obj",
+    "holesFilePath": "/models/J_holes.obj",
+    "type": "floor"
+  },
+  {
+    "letter": "k",
+    "defaultFilePath": "/models/K_default.obj",
+    "holesFilePath": "/models/K_holes.obj",
+    "type": "floor"
+  },
+  {
+    "letter": "l",
+    "defaultFilePath": "/models/L_default.obj",
+    "holesFilePath": "/models/L_holes.obj",
+    "type": "floor"
+  },
+  {
+    "letter": "m",
+    "defaultFilePath": "/models/M_default.obj",
+    "holesFilePath": "/models/M_holes.obj",
+    "type": "floor"
+  },
+  {
+    "letter": "n",
+    "defaultFilePath": "/models/N_default.obj",
+    "holesFilePath": "/models/N_holes.obj",
+    "type": "floor"
+  },
+  {
+    "letter": "o",
+    "defaultFilePath": "/models/O_default.obj",
+    "holesFilePath": "/models/O_holes.obj",
+    "type": "floor"
+  },
+  {
+    "letter": "p",
+    "defaultFilePath": "/models/P_default.obj",
+    "holesFilePath": "/models/P_holes.obj",
+    "type": "floor"
+  },
+  {
+    "defaultFilePath": "/models/ground.obj",
+    "holesFilePath": "",
+    "type": "ground"
+  },
+  {
+    "defaultFilePath": "/models/ground.obj",
+    "holesFilePath": "",
+    "type": "ground_standing"
+  },
+  {
+    "defaultFilePath": "/models/legs.obj",
+    "holesFilePath": "",
+    "type": "legs"
+  },
+  {
+    "defaultFilePath": "/models/spike.obj",
+    "holesFilePath": "",
+    "type": "spike"
+  }
+]
