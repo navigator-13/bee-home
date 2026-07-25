@@ -55,9 +55,9 @@ TEXTURE = "docs/reference/textures/WoodPlywood001_COL_2K.jpg"
 # it, and is checked under both the studio key and the workshop window, since
 # the workshop light is cooler and drags the same tint several degrees back.
 WOODS = {
-    "birch": (0.560, 0.424, 0.186),   # pale northern ply, the default
-    "ash": (0.505, 0.402, 0.205),     # a shade cooler and greyer
-    "beech": (0.610, 0.446, 0.180),   # a shade warmer, still pale
+    "birch": (0.560, 0.382, 0.186),   # pale northern ply, the default
+    "ash": (0.505, 0.362, 0.205),     # a shade cooler and greyer
+    "beech": (0.610, 0.402, 0.180),   # a shade warmer, still pale
     "walnut": (0.150, 0.092, 0.068),  # dark accent band
     "charred": (0.032, 0.030, 0.031),
 }
@@ -479,7 +479,7 @@ def env_workshop(dress=True):
     sun = bpy.context.object
     sun.data.energy = 3.1
     sun.data.angle = math.radians(9)
-    sun.data.color = (1.0, 0.965, 0.905)
+    sun.data.color = (1.0, 0.982, 0.958)
     sun.rotation_euler = (math.radians(64), 0, math.radians(-42))
 
     # A dim, very broad overhead — the rooflight every workshop has, and the
@@ -498,7 +498,7 @@ def env_workshop(dress=True):
     bounce.data.shape = "RECTANGLE"
     bounce.data.size, bounce.data.size_y = 2.6, 1.8
     bounce.data.energy = 55.0
-    bounce.data.color = (1.0, 0.975, 0.945)
+    bounce.data.color = (1.0, 0.988, 0.972)
     bounce.rotation_euler = (0, math.radians(90), 0)
 
     # --- the bench ----------------------------------------------------------
