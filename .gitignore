@@ -12,3 +12,6 @@ viewer/dist/
 
 # generated per-design export bundles
 docs/exports/
+
+# CC0 assets fetched by tools/fetch_assets.py — re-fetchable, not committed
+assets/third_party/

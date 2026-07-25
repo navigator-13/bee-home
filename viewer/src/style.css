@@ -138,32 +138,112 @@ input[type='range'] {
   accent-color: var(--periwinkle);
 }
 
-.stack {
+/* --- the storey rail ---
+   The stack, standing at the left edge of the frame. Each chip is an outline
+   the height of its own storey on screen and rides level with it as the model
+   orbits, so the rail reads as a small elevation of the thing itself. */
+
+.rail {
   list-style: none;
-  margin: 0 0 12px;
+  margin: 0;
   padding: 0;
+  position: fixed;
+  left: 26px;
+  top: 0;
+  bottom: 0;
+  width: 44px;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.rail li {
+  position: absolute;
+  left: 0;
+  width: 40px;
+  min-height: 20px;
   display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.stack li {
-  padding: 5px 9px;
-  background: rgba(241, 214, 186, 0.1);
-  border-left: 2px solid var(--timber);
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  border: 1px solid rgba(233, 233, 225, 0.35);
+  border-radius: 2px;
+  background: rgba(42, 41, 32, 0.35);
+  backdrop-filter: blur(3px);
+  color: var(--grey-light);
+  font-family: 'SFMono-Regular', Menlo, monospace;
   font-size: 11px;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
 }
 
-.stack li.roof {
-  border-left-color: var(--periwinkle);
-  background: rgba(165, 183, 230, 0.14);
+.rail li .dot {
+  position: absolute;
+  right: -4px;
+  top: -4px;
+  width: 8px;
+  height: 8px;
 }
 
-.stack li.bad {
-  border-left-color: #d98a6a;
-  background: rgba(217, 138, 106, 0.16);
+.rail li:hover,
+.rail li.hot { border-color: var(--periwinkle); color: var(--bone); }
+
+.rail li.selected {
+  border-color: var(--periwinkle);
+  background: rgba(165, 183, 230, 0.25);
+  color: var(--bone);
 }
+
+.rail li.bad { border-color: #d98a6a; }
+
+body.drawing .rail li {
+  border-color: rgba(42, 41, 32, 0.4);
+  background: rgba(233, 233, 225, 0.5);
+  color: #4a4940;
+}
+
+body.drawing .rail li:hover,
+body.drawing .rail li.hot,
+body.drawing .rail li.selected { border-color: #7386bd; color: var(--ink); }
+
+
+/* --- the view toggle ---
+   Drawing/timber as one button in the stage corner: outline cube for the
+   drawing, solid cube for the timber. */
+
+.viewToggle {
+  position: fixed;
+  top: 26px;
+  right: 320px;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(233, 233, 225, 0.3);
+  border-radius: 2px;
+  background: rgba(42, 41, 32, 0.35);
+  backdrop-filter: blur(3px);
+  color: var(--grey-light);
+  cursor: pointer;
+  z-index: 4;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.viewToggle:hover { border-color: var(--bone); color: var(--bone); }
+
+/* The icon shows where the toggle goes, not where it is. */
+body.drawing .viewToggle .ic-drawing { display: none; }
+body:not(.drawing) .viewToggle .ic-timber { display: none; }
+
+body.drawing .viewToggle {
+  border-color: rgba(42, 41, 32, 0.35);
+  background: rgba(233, 233, 225, 0.5);
+  color: #4a4940;
+}
+
+body.drawing .viewToggle:hover { border-color: var(--ink); color: var(--ink); }
 
 .palette {
   display: grid;
@@ -275,6 +355,8 @@ input[type='range'] {
   }
   .readout { display: none; }
   .masthead { top: 18px; left: 18px; }
+  .viewToggle { top: 18px; right: 18px; }
+  .rail { left: 10px; }
 }
 
 
@@ -319,17 +401,7 @@ input[type='range'] {
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25);
 }
 
-.stack li {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-}
-
-.stack li:focus-visible { outline: 2px solid var(--periwinkle); outline-offset: 1px; }
-.stack li.selected { background: rgba(165, 183, 230, 0.2); }
-.stack .letter-tag { min-width: 12px; }
-.stack .wood-name { margin-left: auto; color: var(--grey); font-size: 10px; letter-spacing: 0; }
+.rail li:focus-visible { outline: 2px solid var(--periwinkle); outline-offset: 1px; }
 
 
 /* --- drawing mode flips the chrome to ink-on-bone to match the stage --- */
@@ -340,7 +412,6 @@ body.drawing .masthead p,
 body.drawing .panel h2,
 body.drawing .hint,
 body.drawing .readout span,
-body.drawing .stack .wood-name { color: var(--grey-warm); }
 
 body.drawing .panel {
   background: rgba(42, 41, 32, 0.04);
@@ -364,7 +435,6 @@ body.drawing .toggle { color: #4a4940; }
 body.drawing .value,
 body.drawing .readout code { color: #7e6a4a; }
 body.drawing .readout input { color: var(--ink); border-bottom-color: rgba(42, 41, 32, 0.3); }
-body.drawing .stack li { background: rgba(42, 41, 32, 0.05); }
 
 
 /* --- plate mode: nothing but the drawing, on white, for print --- */
@@ -372,6 +442,8 @@ body.drawing .stack li { background: rgba(42, 41, 32, 0.05); }
 body.clean { background: #fff; }
 body.clean .panel,
 body.clean .masthead,
+body.clean .rail,
+body.clean .viewToggle,
 body.clean .readout { display: none; }
 
 /* Plate captures with alpha need the page itself transparent too. */

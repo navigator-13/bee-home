@@ -78,6 +78,7 @@ async function boot() {
   stage = new Stage(el('stage'));
   stage.plateWhite = plate.clean;
   stage.plateAlpha = params.get('alpha') === '1';
+  stage.onFrame = positionRail;
   buildControls();
   await rebuild();
   if (plate.view === 'iso' || !plate.view) stage.lookFrom();
@@ -185,6 +186,135 @@ async function rebuild() {
   refreshReadout();
 }
 
+/**
+ * The build pack, from the browser. Until now the two-page spec sheet only
+ * existed as an offline tool (viewer/tools/make_spec_sheet.mjs, driven by
+ * Playwright) — upstream of the builder, not part of it. This is the real
+ * thing: the live scene is captured to three measured views and laid out as
+ * two A4 pages, and the print dialog does the PDF.
+ */
+function openSpecSheet() {
+  const views = stage.captureViews();
+  const id = formatId(state);
+  const gh = exportString(state);
+  const woods = state.woods.slice(0, state.stack.length);
+
+  const rows = state.stack.map((letter, i) => {
+    const size = index.storeys[letter][state.variant].size_mm;
+    return `<tr><td>${i + 1}</td><td>${letter}${state.variant === 'b' ? ' · plain' : ''}</td>`
+      + `<td>${size[0]} × ${size[1]} × ${size[2]}</td><td>${woodByKey(woodFor(i)).name}</td></tr>`;
+  }).join('');
+
+  const roof = index.guides.find((g) => g.name === 'roof');
+  const base = index.guides.find((g) => g.name === 'base');
+  const parts = [];
+  if (state.position !== 'fixed' && base) {
+    parts.push(`<tr><td>—</td><td>Base plate</td><td>${base.size_mm.join(' × ')}</td><td>${woodByKey(woodFor(0)).name}</td></tr>`);
+  }
+  if (roof) {
+    parts.push(`<tr><td>—</td><td>Roof slab</td><td>${roof.size_mm.join(' × ')}</td><td>${woodByKey(woodFor(state.stack.length - 1)).name}</td></tr>`);
+  }
+  const support = liftMm();
+  if (state.position === 'standing' && support > 0) {
+    parts.push(`<tr><td>—</td><td>Legs × 4</td><td>15 × 30 × ${Math.round(support - base.size_mm[2])}</td><td>${woodByKey(woodFor(0)).name}</td></tr>`);
+  }
+  if (state.position === 'grounded' && support > 0) {
+    parts.push(`<tr><td>—</td><td>Ground spike</td><td>30 × 30 × ${Math.round(support - base.size_mm[2])}</td><td>${woodByKey(woodFor(0)).name}</td></tr>`);
+  }
+
+  const w = window.open('', '_blank');
+  if (!w) return;
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8">
+<title>Bee Home ${id} — build pack</title>
+<style>
+  @page { size: A4; margin: 14mm; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 12px/1.5 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #2a2920; }
+  .sheet { page-break-after: always; }
+  .sheet:last-child { page-break-after: auto; }
+  h1 { font-size: 21px; font-weight: 400; margin: 0; }
+  h2 { font-size: 10px; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase;
+       color: #7d7d73; margin: 18px 0 6px; }
+  .meta { display: flex; gap: 28px; margin: 6px 0 14px; padding-bottom: 10px;
+          border-bottom: 1px solid #d3d3ce; }
+  .meta code { font: 12px/1.4 Menlo, Consolas, monospace; }
+  .meta span { display: block; font-size: 8px; letter-spacing: 0.14em; text-transform: uppercase;
+               color: #7d7d73; }
+  .views { display: grid; grid-template-columns: 1.35fr 1fr; gap: 6mm; align-items: start; }
+  .views img { width: 100%; border: 1px solid #e3e3dc; }
+  .views figure { margin: 0 0 4mm; }
+  .views figcaption { font: 8px/1.4 Menlo, monospace; letter-spacing: 0.14em;
+                      text-transform: uppercase; color: #7d7d73; margin-top: 2mm; }
+  table { width: 100%; border-collapse: collapse; margin-top: 4px; }
+  th { text-align: left; font-size: 8px; letter-spacing: 0.14em; text-transform: uppercase;
+       color: #7d7d73; font-weight: 500; padding: 3px 8px 3px 0; border-bottom: 1px solid #2a2920; }
+  td { padding: 4px 8px 4px 0; border-bottom: 1px solid #e3e3dc; font-size: 11px; }
+  .cols { columns: 2; column-gap: 10mm; }
+  .cols p { margin: 0 0 8px; break-inside: avoid; }
+  .foot { margin-top: 10mm; padding-top: 3mm; border-top: 1px solid #d3d3ce;
+          font: 8px/1.6 Menlo, monospace; letter-spacing: 0.08em; color: #7d7d73; }
+</style></head><body>
+<div class="sheet">
+  <h1>Bee Home</h1>
+  <div class="meta">
+    <div><span>Bee Home ID</span><code>${id}</code></div>
+    <div><span>Grasshopper export</span><code>${gh}</code></div>
+    <div><span>Height overall</span><code>${Math.round(stackHeight() + liftMm())} mm</code></div>
+  </div>
+  <div class="views">
+    <figure><img src="${views.iso}" alt=""><figcaption>Axonometric</figcaption></figure>
+    <div>
+      <figure><img src="${views.front}" alt=""><figcaption>Elevation</figcaption></figure>
+      <figure><img src="${views.plan}" alt=""><figcaption>Plan</figcaption></figure>
+    </div>
+  </div>
+  <h2>Cut list — dimensions in mm, storeys bottom first</h2>
+  <table>
+    <tr><th>No.</th><th>Part</th><th>W × D × H</th><th>Timber</th></tr>
+    ${rows}${parts.join('')}
+  </table>
+</div>
+<div class="sheet">
+  <h1>Making it</h1>
+  <div class="meta"><div><span>Bee Home ID</span><code>${id}</code></div></div>
+  <h2>At the makerspace</h2>
+  <div class="cols">
+    <p>Share this pack and the design files with a local makerspace — an open workshop
+    where you pay per visit or hold a membership. You need a CNC milling machine and
+    someone who runs it; most spaces will do this with you rather than for you.</p>
+    <p>Cut each storey from a single board. The letters are the storeys, bottom
+    first; the ID above encodes the whole design, so anyone with it can check the
+    stack against this sheet.</p>
+  </div>
+  <h2>Assembly</h2>
+  <div class="cols">
+    <p>Base plate first, then the storeys in the order of the cut list, then the
+    roof slab. The parts register on each other and need no fixings — assembling it
+    requires just your hands and a few minutes of your time.</p>
+    <p>To mount the wall-fixed version, use a drill and two screws through the back
+    plate. Keep the bore holes horizontal at all times.</p>
+  </div>
+  <h2>Where it goes</h2>
+  <div class="cols">
+    <p>Facing the morning sun, within 300 metres of flowers, protected from strong
+    wind. Anywhere outside works — a rooftop, a balcony or a garden.</p>
+    <p>Plant native wildflowers nearby. Solitary bees are friendly: they produce no
+    honey, have nothing to defend, and are safe around kids and pets.</p>
+  </div>
+  <h2>Each autumn</h2>
+  <div class="cols">
+    <p>Brush the fronts clean and clear any cavity that stayed empty two seasons
+    running. A Bee Home lasts anywhere between five and thirty years, depending on
+    the wood, the location, and how well you look after it.</p>
+  </div>
+  <p class="foot">Bee Home — open source, CC BY 4.0 · SPACE10, Bakken &amp; Bæck, Tanita Klein ·
+  drawings generated from the design geometry, not to scale · beehome.design</p>
+</div>
+<script>addEventListener('load', () => setTimeout(() => print(), 150));<\/script>
+</body></html>`);
+  w.document.close();
+}
+
 function refreshReadout() {
   el('beeId').textContent = formatId(state);
   el('exportString').textContent = exportString(state);
@@ -273,21 +403,34 @@ function buildControls() {
     palette.append(button);
   }
 
-  const modes = el('modes');
-  for (const [key, label] of [['drawing', 'Drawing'], ['timber', 'Timber']]) {
-    const button = document.createElement('button');
-    button.textContent = label;
-    button.dataset.mode = key;
-    button.className = 'chip';
-    button.addEventListener('click', () => {
-      state.mode = key;
-      document.body.classList.toggle('drawing', key === 'drawing');
-      stage.setMode(key);
-      stage.setSelected(state.selected);
-      syncControls();
+  // Drawing/timber lives as one two-state button in the stage corner.
+  el('viewToggle').addEventListener('click', () => {
+    state.mode = state.mode === 'drawing' ? 'timber' : 'drawing';
+    document.body.classList.toggle('drawing', state.mode === 'drawing');
+    stage.setMode(state.mode);
+    stage.setSelected(state.selected);
+  });
+
+  el('specSheet').addEventListener('click', openSpecSheet);
+
+  // Hover: resting the pointer on a storey lights it and its rail chip.
+  let hoverPending = false;
+  el('stage').addEventListener('pointermove', (event) => {
+    if (hoverPending) return;
+    hoverPending = true;
+    requestAnimationFrame(() => {
+      hoverPending = false;
+      const i = stage.pick(event);
+      stage.setHovered(i);
+      for (const item of el('stackList').children) {
+        item.classList.toggle('hot', Number(item.dataset.storey) === i && i >= 0);
+      }
     });
-    modes.append(button);
-  }
+  });
+  el('stage').addEventListener('pointerleave', () => {
+    stage.setHovered(-1);
+    for (const item of el('stackList').children) item.classList.remove('hot');
+  });
 
   const woods = el('woods');
   for (const wood of WOODS) {
@@ -345,10 +488,6 @@ function syncControls() {
     button.disabled = !allowed.has(button.dataset.letter);
   }
 
-  for (const button of el('modes').children) {
-    button.classList.toggle('active', button.dataset.mode === state.mode);
-  }
-
   const activeWood = state.selected >= 0 ? woodFor(state.selected) : null;
   for (const button of el('woods').children) {
     button.classList.toggle('active', button.dataset.wood === activeWood);
@@ -362,19 +501,41 @@ function syncControls() {
   state.stack.forEach((letter, i) => {
     const item = document.createElement('li');
     const wood = woodByKey(woodFor(i));
-    item.innerHTML = `<span class="dot" style="background:${wood.tint}"></span>`
-      + `<span class="letter-tag">${letter}</span><span class="wood-name">${wood.name}</span>`;
+    item.innerHTML = `${letter}<span class="dot" style="background:${wood.tint}"></span>`;
+    item.dataset.storey = String(i);
+    item.title = `Storey ${i + 1} · ${letter} · ${wood.name}`;
     if (i > 0 && !canPlace(state.stack.slice(0, i), letter, rules)) item.classList.add('bad');
-    if (i === state.stack.length - 1) item.classList.add('roof');
     if (i === state.selected) item.classList.add('selected');
     item.tabIndex = 0;
     item.addEventListener('click', () => selectStorey(i === state.selected ? -1 : i));
+    item.addEventListener('pointerenter', () => stage.setHovered(i));
+    item.addEventListener('pointerleave', () => stage.setHovered(-1));
     item.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectStorey(i); }
     });
-    list.prepend(item); // top storey first, matching the model
+    list.append(item); // order is irrelevant: each chip is positioned off its storey
   });
   el('idInput').value = formatId(state);
+}
+
+/**
+ * Keep each rail chip level with its own storey. Runs on the stage's frame
+ * callback, so the letters ride the model through orbits and rebuilds; the
+ * chip's height is the storey's height on screen, clamped to stay legible.
+ */
+function positionRail() {
+  const list = el('stackList');
+  for (const item of list.children) {
+    const anchor = stage.storeyAnchor(Number(item.dataset.storey));
+    if (!anchor) {
+      item.style.display = 'none';
+      continue;
+    }
+    const height = Math.max(20, Math.min(72, anchor.half * 2));
+    item.style.display = '';
+    item.style.height = `${height}px`;
+    item.style.top = `${anchor.y - height / 2}px`;
+  }
 }
 
 boot();

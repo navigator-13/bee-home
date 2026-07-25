@@ -119,13 +119,43 @@ export class Stage {
     this.maps = this.loadMaps();
     this.raycaster = new THREE.Raycaster();
     this.selected = -1;
+    this.hovered = -1;
+    this.onFrame = null; // the app hangs per-frame UI work here (storey rail)
 
     this.resize();
     addEventListener('resize', () => this.resize());
     this.renderer.setAnimationLoop(() => {
       this.controls.update();
       this.renderer.render(this.scene, this.camera);
+      if (this.onFrame) this.onFrame();
     });
+  }
+
+  /** Screen-space centre and half-height of one storey, in canvas pixels. */
+  storeyAnchor(index) {
+    const box = new THREE.Box3();
+    let found = false;
+    for (const child of this.root.children) {
+      if (child.isMesh && child.userData.storey === index) {
+        box.expandByObject(child);
+        found = true;
+      }
+    }
+    if (!found) return null;
+    // expandByObject works in world space already; no further transform.
+    const centre = box.getCenter(new THREE.Vector3());
+    const top = new THREE.Vector3(centre.x, box.max.y, centre.z);
+    const canvas = this.renderer.domElement;
+    const project = (v) => {
+      const p = v.clone().project(this.camera);
+      return {
+        x: (p.x + 1) / 2 * canvas.clientWidth,
+        y: (1 - p.y) / 2 * canvas.clientHeight,
+        behind: p.z > 1,
+      };
+    };
+    const c = project(centre);
+    return c.behind ? null : { y: c.y, half: Math.abs(project(top).y - c.y) };
   }
 
   /**
@@ -212,12 +242,26 @@ export class Stage {
 
   setSelected(index) {
     this.selected = index;
+    this.restyleLines();
+  }
+
+  /** A lighter touch than selection: the pointer resting on a storey. */
+  setHovered(index) {
+    if (index === this.hovered) return;
+    this.hovered = index;
+    this.restyleLines();
+  }
+
+  restyleLines() {
     for (const child of this.root.children) {
       if (!child.isLineSegments) continue;
-      const isSelected = index >= 0 && child.userData.storey === index;
-      child.material.color.set(isSelected ? '#a5b7e6' : LINE[this.mode]);
-      child.material.opacity = isSelected ? 1 : (this.mode === 'drawing' ? 1 : 0.22);
-      child.material.linewidth = isSelected ? 2 : 1;
+      const storey = child.userData.storey;
+      const isSelected = this.selected >= 0 && storey === this.selected;
+      const isHovered = !isSelected && this.hovered >= 0 && storey === this.hovered;
+      child.material.color.set(isSelected || isHovered ? '#a5b7e6' : LINE[this.mode]);
+      child.material.opacity = isSelected ? 1
+        : isHovered ? 0.85
+          : (this.mode === 'drawing' ? 1 : 0.22);
     }
   }
 
@@ -333,6 +377,63 @@ export class Stage {
     this.controls.target.copy(centre);
     this.controls.enabled = false;
     this.controls.update();
+  }
+
+  /**
+   * The three measured views a spec sheet needs, captured from the live
+   * scene: hidden-line drawing on white, axonometric plus front and plan
+   * orthographics. Renders through temporary cameras so the interactive one
+   * is never touched, and puts the mode back the way it found it.
+   */
+  captureViews() {
+    const previous = { mode: this.mode, white: this.plateWhite, selected: this.selected };
+    this.plateWhite = true;
+    this.setMode('drawing');
+    this.setSelected(-1);
+
+    const box = new THREE.Box3().setFromObject(this.root);
+    const size = box.getSize(new THREE.Vector3());
+    const centre = box.getCenter(new THREE.Vector3());
+    const aspect = this.camera.aspect || 1;
+    const shot = (camera) => {
+      this.renderer.render(this.scene, camera);
+      // Read back synchronously, straight after the render, so the buffer is
+      // still intact without needing preserveDrawingBuffer on all the time.
+      return this.renderer.domElement.toDataURL('image/png');
+    };
+
+    const radius = size.length();
+    const iso = new THREE.PerspectiveCamera(28, aspect, 0.01, 100);
+    iso.position.set(centre.x + radius * 1.15, centre.y + radius * 0.82, centre.z + radius * 1.4);
+    iso.lookAt(centre);
+
+    const ortho = (axis) => {
+      const extent = axis === 'front'
+        ? Math.max(size.x, size.y) * 0.62
+        : Math.max(size.x, size.z) * 0.62;
+      const camera = new THREE.OrthographicCamera(
+        -extent * aspect, extent * aspect, extent, -extent, 0.001, 40,
+      );
+      if (axis === 'front') {
+        camera.position.set(centre.x, centre.y, centre.z + 2);
+      } else {
+        camera.position.set(centre.x, centre.y + 2, centre.z);
+        camera.up.set(0, 0, -1);
+      }
+      camera.lookAt(centre);
+      return camera;
+    };
+
+    const views = {
+      iso: shot(iso),
+      front: shot(ortho('front')),
+      plan: shot(ortho('plan')),
+    };
+
+    this.plateWhite = previous.white;
+    this.setMode(previous.mode);
+    this.setSelected(previous.selected);
+    return views;
   }
 
   lookFrom(distanceScale = 2.6) {

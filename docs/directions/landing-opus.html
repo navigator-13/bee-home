@@ -298,6 +298,112 @@ figcaption b { color: var(--ink); font-weight: 400; }
   color: var(--soft);
 }
 
+/* ---- the herbarium ----
+   Pressed specimens on mounts. In "her eyes" the plate inverts to ink, the
+   line work goes bone, and the nectar guides come up in the bee's periwinkle
+   -- the one colour the page keeps for the bees. */
+
+.regionBar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.eyes { display: flex; }
+
+.eyes button {
+  padding: 9px 16px;
+  border: 1px solid var(--ink);
+  border-left-width: 0;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.eyes button:first-child { border-left-width: 1px; }
+.eyes button.on { background: var(--ink); color: var(--paper); }
+.eyes button:focus-visible { outline: 2px solid var(--bee); outline-offset: 2px; }
+
+.visionNote {
+  margin: 14px 0 0;
+  font-size: clamp(13px, 1vw, 16px);
+  color: var(--soft);
+  max-width: 52ch;
+}
+
+.herbarium {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr));
+  gap: clamp(14px, 1.8vw, 30px);
+  margin-top: clamp(24px, 3.4vh, 44px);
+}
+
+.mount {
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  padding: 10px 10px 0;
+  transition: background 0.5s ease, border-color 0.5s ease;
+}
+
+.mount svg { display: block; width: 100%; height: auto; }
+
+.mount .ln { transition: stroke 0.5s ease; }
+.mount .uv { opacity: 0; stroke: var(--bee); stroke-width: 2;
+             transition: opacity 0.5s ease; }
+
+.mountLabel {
+  border-top: 1px solid var(--rule);
+  padding: 8px 2px 10px;
+  transition: border-color 0.5s ease;
+}
+
+.mountLabel b { display: block; font-weight: 400; font-size: 14px; }
+.mountLabel i {
+  display: block;
+  font-size: 11.5px;
+  color: var(--soft);
+  transition: color 0.5s ease;
+}
+
+/* Her eyes: the plate flips. */
+.bee-mode .mount { background: var(--ink); border-color: var(--ink); }
+.bee-mode .mount .ln { stroke: var(--paper); }
+.bee-mode .mount .ln.leaf { fill: var(--ink); }
+.bee-mode .mount .uv { opacity: 1; }
+.bee-mode .mountLabel { border-color: #4a4940; }
+.bee-mode .mountLabel b { color: var(--paper); }
+.bee-mode .mountLabel i { color: #8d8c81; }
+
+.regionAside {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: clamp(20px, 2.6vw, 46px);
+  margin-top: clamp(26px, 3.6vh, 48px);
+}
+
+.regionAside section { border-top: 1px solid var(--rule); padding-top: 14px; }
+
+.regionAside h3 {
+  margin: 0 0 10px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--soft);
+}
+
+.regionAside ul { margin: 0; padding: 0; list-style: none;
+                  font-size: clamp(14px, 1vw, 16px); }
+.regionAside li { margin-bottom: 7px; line-height: 1.4; }
+.regionAside li i { display: block; font-style: normal; font-size: 0.8em; color: var(--soft); }
+
 /* ---- where you are ---- */
 
 .region { margin-top: clamp(30px, 5vh, 58px); }
@@ -508,10 +614,28 @@ figcaption b { color: var(--ink); font-weight: 400; }
     </div>
 
     <div class="region">
-      <label class="label" for="regionPick">Where are you?</label>
-      <select id="regionPick"></select>
-      <div class="cards" id="regionCards"></div>
-      <p class="label" id="regionSeed"></p>
+      <div class="regionBar">
+        <div>
+          <label class="label" for="regionPick">Where are you?</label>
+          <select id="regionPick"></select>
+        </div>
+        <div class="eyes" role="group" aria-label="Whose eyes">
+          <button id="eyeYou" class="on">Your eyes</button>
+          <button id="eyeBee">Her eyes</button>
+        </div>
+      </div>
+      <p class="visionNote" id="visionNote" hidden>Bees see ultraviolet. Many flowers
+        print landing guides in it &#8212; invisible to you, signage to her.</p>
+
+      <!-- The herbarium: each plant pressed onto its own mount, grown by the
+           same L-system that draws the hero garden. -->
+      <div class="herbarium" id="herbarium"></div>
+
+      <div class="regionAside">
+        <section><h3>Who comes</h3><ul id="regionBees"></ul></section>
+        <section><h3>What they work</h3><ul id="regionCrops"></ul></section>
+        <section><h3>Seed</h3><p class="label" id="regionSeed" style="text-transform:none;letter-spacing:0.04em"></p></section>
+      </div>
     </div>
   </section>
 
@@ -622,7 +746,7 @@ figcaption b { color: var(--ink); font-weight: 400; }
   /* Turtle interpretation. Paths come back grouped by role so a scroll can
      reveal a whole plant at once and it still reads as a plant. */
   function grow(spec, x, y, scale, rand) {
-    var stems = [], leaves = [], heads = [];
+    var stems = [], leaves = [], heads = [], anchors = [];
     var st = { x: x, y: y, a: -90 + (rand() - 0.5) * 12, len: spec.seg * scale,
       lean: (rand() - 0.5) * spec.angle * 1.2 };
     var stack = [], side = rand() < 0.5 ? 1 : -1;
@@ -664,18 +788,21 @@ figcaption b { color: var(--ink); font-weight: 400; }
         side = -side; // florets nod out and down, alternating up the stalk
         heads.push(bell(st.x, st.y, st.a + side * (105 + rand() * 20),
           13 * scale * (0.85 + rand() * 0.3)));
+        anchors.push({ x: st.x, y: st.y, kind: 'bell' });
       } else if (c === 'T') {
         heads.push(bell(st.x, st.y, st.a, 11 * scale, true));
+        anchors.push({ x: st.x, y: st.y, kind: 'bell' });
       } else if (c === 'U' || c === 'D') {
         flush();
         heads.push.apply(heads, spec.head === 'umbel'
           ? umbel(st.x, st.y, st.a, 38 * scale, rand)
           : disc(st.x, st.y, st.a, 13 * scale, rand));
+        anchors.push({ x: st.x, y: st.y, kind: spec.head });
         pts = [[st.x, st.y]];
       }
     }
     flush();
-    return { stems: stems, leaves: leaves, heads: heads };
+    return { stems: stems, leaves: leaves, heads: heads, anchors: anchors };
   }
 
   /* A lanceolate leaf on a drooping spine, midrib drawn in. The midrib
@@ -1150,11 +1277,78 @@ figcaption b { color: var(--ink); font-weight: 400; }
   ];
 
   var pick = document.getElementById('regionPick');
-  var cards = document.getElementById('regionCards');
+  var herbarium = document.getElementById('herbarium');
+  var beesList = document.getElementById('regionBees');
+  var cropsList = document.getElementById('regionCrops');
   var seedNote = document.getElementById('regionSeed');
 
-  function list(items) {
-    return items.map(function (item) {
+  /* Which growth habit draws each species. Everything unlisted falls back by
+     rotation, so a new region never renders blank mounts. */
+  var FORMS = {
+    'Yarrow': 'umbel', 'Common yarrow': 'umbel', 'Wild carrot': 'umbel',
+    'Golden alexanders': 'umbel', 'Wild marjoram': 'umbel',
+    'Common knapweed': 'disc', 'Field scabious': 'disc', 'Common poppy': 'disc',
+    'Cornflower': 'disc', 'Crown daisy': 'disc', 'Wild bergamot': 'disc',
+    'Purple coneflower': 'disc', 'New England aster': 'disc',
+    'California poppy': 'disc', 'Gumweed': 'disc',
+    'Viper\u2019s bugloss': 'spike', 'Selfheal': 'spike', 'Meadow clary': 'spike',
+    'Sainfoin': 'spike', 'Lavender': 'spike', 'Rosemary': 'spike',
+    'Wild thyme': 'spike', 'Phacelia': 'spike',
+    'Bird\u2019s-foot trefoil': 'spike',
+  };
+  var FALLBACK = ['disc', 'umbel', 'spike'];
+
+  function hash(text) {
+    var h = 2166136261;
+    for (var i = 0; i < text.length; i++) {
+      h = Math.imul(h ^ text.charCodeAt(i), 16777619);
+    }
+    return h >>> 0;
+  }
+
+  /* One pressed specimen: the plant grown into a 200x300 mount, plus the
+     ultraviolet layer -- nectar guides at every flower head, drawn only in
+     "her eyes". The guides are rings and approach ticks, which is roughly
+     what UV photography of real flowers shows: a target, not a picture. */
+  function specimen(name, latin, formIndex) {
+    var form = FORMS[name] || FALLBACK[formIndex % FALLBACK.length];
+    var rand = rng(hash(name));
+    var plant = grow(SPECIES[form], 100, 288, 1.12, rand);
+
+    var svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('viewBox', '0 0 200 300');
+    svg.setAttribute('aria-hidden', 'true');
+    plant.stems.forEach(function (d) { path(svg, 'ln stem', d); });
+    plant.leaves.forEach(function (d) { path(svg, 'ln leaf', d); });
+    plant.heads.forEach(function (d) { path(svg, 'ln head', d); });
+
+    plant.anchors.forEach(function (a) {
+      if (a.kind === 'bell') {
+        path(svg, 'ln uv', dot(a.x, a.y, 3.4));
+      } else {
+        // A ring around the head and four ticks pointing in at the centre.
+        path(svg, 'ln uv', dot(a.x, a.y, form === 'umbel' ? 15 : 11));
+        for (var t = 0; t < 4; t++) {
+          var th = (t * 90 + 45) * Math.PI / 180;
+          var r0 = form === 'umbel' ? 22 : 18, r1 = r0 - 7;
+          path(svg, 'ln uv', 'M' + fmt(a.x + Math.cos(th) * r0) + ' ' + fmt(a.y + Math.sin(th) * r0)
+            + 'L' + fmt(a.x + Math.cos(th) * r1) + ' ' + fmt(a.y + Math.sin(th) * r1));
+        }
+      }
+    });
+
+    var mount = document.createElement('figure');
+    mount.className = 'mount';
+    mount.appendChild(svg);
+    var label = document.createElement('figcaption');
+    label.className = 'mountLabel';
+    label.innerHTML = '<b>' + name + '</b><i>' + latin + '</i>';
+    mount.appendChild(label);
+    return mount;
+  }
+
+  function rows(list, items) {
+    list.innerHTML = items.map(function (item) {
       return typeof item === 'string' ? '<li>' + item + '</li>'
         : '<li>' + item[0] + '<i>' + item[1] + '</i></li>';
     }).join('');
@@ -1162,10 +1356,12 @@ figcaption b { color: var(--ink); font-weight: 400; }
 
   function showRegion() {
     var r = REGIONS[pick.selectedIndex];
-    cards.innerHTML =
-      '<section><h3>Cavity nesters recorded near you</h3><ul>' + list(r.bees) + '</ul></section>'
-      + '<section><h3>What they pollinate locally</h3><ul>' + list(r.crops) + '</ul></section>'
-      + '<section><h3>Sow these</h3><ul>' + list(r.plants) + '</ul></section>';
+    herbarium.textContent = '';
+    r.plants.forEach(function (p, i) {
+      herbarium.appendChild(specimen(p[0], p[1], i));
+    });
+    rows(beesList, r.bees);
+    rows(cropsList, r.crops);
     seedNote.textContent = r.seed;
   }
 
@@ -1176,6 +1372,20 @@ figcaption b { color: var(--ink); font-weight: 400; }
   });
   pick.addEventListener('change', showRegion);
   showRegion();
+
+  /* Your eyes / her eyes. */
+  var eyeYou = document.getElementById('eyeYou');
+  var eyeBee = document.getElementById('eyeBee');
+  var visionNote = document.getElementById('visionNote');
+
+  function setEyes(bee) {
+    herbarium.classList.toggle('bee-mode', bee);
+    eyeYou.classList.toggle('on', !bee);
+    eyeBee.classList.toggle('on', bee);
+    visionNote.hidden = !bee;
+  }
+  eyeYou.addEventListener('click', function () { setEyes(false); });
+  eyeBee.addEventListener('click', function () { setEyes(true); });
 
   var ticking = false;
   function onScroll() {

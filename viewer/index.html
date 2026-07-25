@@ -14,6 +14,26 @@
     <p>Reconstructed builder · geometry from <code>BEEHOME&nbsp;GEOMETRIES.3dm</code></p>
   </header>
 
+  <!-- The storey rail. Each chip rides its own storey: positions are
+       projected through the camera every frame, so the letters stay level
+       with the parts they name while the model orbits. -->
+  <ol id="stackList" class="rail" aria-label="Storeys, top first"></ol>
+
+  <!-- Drawing/timber, as a two-state toggle in the stage corner rather than
+       a labelled section in the panel. -->
+  <button id="viewToggle" class="viewToggle" title="Drawing / timber"
+          aria-label="Switch between drawing and timber view">
+    <svg width="17" height="17" viewBox="0 0 17 17" aria-hidden="true">
+      <g class="ic-drawing" fill="none" stroke="currentColor" stroke-width="1.2">
+        <path d="M8.5 1.5 15 5v7l-6.5 3.5L2 12V5Z" />
+        <path d="M2 5l6.5 3.5L15 5M8.5 8.5v7" />
+      </g>
+      <g class="ic-timber" fill="currentColor" stroke="none">
+        <path d="M8.5 1.5 15 5v7l-6.5 3.5L2 12V5Z" />
+      </g>
+    </svg>
+  </button>
+
   <aside class="panel">
     <section>
       <h2>Position</h2>
@@ -27,9 +47,10 @@
 
     <section>
       <h2>Storeys <span class="value"><span id="storeyCount">4</span> · <span id="stackHeight">—</span></span></h2>
-      <ol id="stackList" class="stack"></ol>
       <div id="palette" class="palette"></div>
-      <p class="hint">Greyed letters can’t sit on the current top storey.</p>
+      <p class="hint">Greyed letters can’t sit on the current top storey. The lettered
+        rail on the left is the stack itself — click a letter there to work on
+        that storey.</p>
       <div class="row">
         <button id="remove" class="chip">Remove top</button>
         <button id="reset" class="chip">Reset</button>
@@ -37,26 +58,31 @@
     </section>
 
     <section>
-      <h2>View</h2>
-      <div id="modes" class="row"></div>
-      <p class="hint">Drawing is what the original builder showed — hairline
-        axonometric on bone, no shading.</p>
-    </section>
-
-    <section>
       <h2>Timber <span id="woodScope" class="value">whole stack</span></h2>
       <div id="woods" class="woods"></div>
-      <p class="hint">Click a storey — in the list or in the model — to give it its
+      <p class="hint">Click a storey — on the rail or in the model — to give it its
         own species. Mixed stacks are what building from local offcuts looks like.</p>
       <button id="applyAll" class="chip">Apply to whole stack</button>
     </section>
 
     <section>
-      <h2>Detail</h2>
+      <h2>Front style</h2>
       <label class="toggle">
         <input id="variant" type="checkbox" />
-        <span>Plain variant (<code>_b</code> geometry)</span>
+        <span>Plain fronts</span>
       </label>
+      <p class="hint">The source file cuts every storey two ways: patterned, with the
+        bore openings and channel reveals showing on the face, and plain — a quieter
+        front with the same nesting cavities behind it. The bees don't mind either
+        way.</p>
+    </section>
+
+    <section>
+      <h2>Build pack</h2>
+      <button id="specSheet" class="chip">Spec sheet (PDF)</button>
+      <p class="hint">Two A4 pages from the drawing you're looking at: axonometric,
+        elevation and plan, the cut list, and the notes a makerspace will ask for.
+        Print it, or save as PDF from the print dialog.</p>
     </section>
 
     <p id="warning" class="warning" hidden></p>
