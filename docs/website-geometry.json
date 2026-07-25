@@ -1,0 +1,2232 @@
+{
+  "source": "BEEHOME GEOMETRIES.3dm",
+  "units": "mm",
+  "objects": [
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "Text",
+      "origin": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "size_mm": [
+        -2.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "Text",
+      "origin": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "size_mm": [
+        -2.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "Text",
+      "origin": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "size_mm": [
+        -2.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolylineCurve",
+      "origin": [
+        7235.61,
+        4596.87,
+        -2125.24
+      ],
+      "size_mm": [
+        342.09,
+        3243.54,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Model",
+      "type": "Extrusion",
+      "origin": [
+        7372.59,
+        7587.76,
+        -2155.24
+      ],
+      "size_mm": [
+        140.0,
+        160.0,
+        30.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Model",
+      "type": "Extrusion",
+      "origin": [
+        7487.59,
+        7320.38,
+        -2125.24
+      ],
+      "size_mm": [
+        15.0,
+        30.0,
+        50.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Model",
+      "type": "Extrusion",
+      "origin": [
+        7382.59,
+        7320.38,
+        -2125.24
+      ],
+      "size_mm": [
+        15.0,
+        30.0,
+        50.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Model",
+      "type": "Extrusion",
+      "origin": [
+        7382.59,
+        7210.78,
+        -2125.24
+      ],
+      "size_mm": [
+        15.0,
+        30.0,
+        50.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Model",
+      "type": "Extrusion",
+      "origin": [
+        7487.59,
+        7210.78,
+        -2125.24
+      ],
+      "size_mm": [
+        15.0,
+        30.0,
+        50.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Model",
+      "type": "Extrusion",
+      "origin": [
+        7372.59,
+        7200.58,
+        -2155.24
+      ],
+      "size_mm": [
+        140.0,
+        160.0,
+        30.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Model",
+      "type": "Brep",
+      "origin": [
+        7427.59,
+        6893.71,
+        -2134.69
+      ],
+      "size_mm": [
+        30.0,
+        30.0,
+        200.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Model",
+      "type": "Extrusion",
+      "origin": [
+        7372.59,
+        6847.71,
+        -2164.69
+      ],
+      "size_mm": [
+        140.0,
+        160.0,
+        30.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolylineCurve",
+      "origin": [
+        8241.58,
+        7781.34,
+        -2125.24
+      ],
+      "size_mm": [
+        20.0,
+        15.94,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "NurbsCurve",
+      "origin": [
+        8243.34,
+        7766.66,
+        -2125.24
+      ],
+      "size_mm": [
+        10.95,
+        9.02,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "NurbsCurve",
+      "origin": [
+        8241.27,
+        7764.14,
+        -2125.24
+      ],
+      "size_mm": [
+        15.13,
+        14.06,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8241.27,
+        7741.17,
+        -2125.24
+      ],
+      "size_mm": [
+        15.13,
+        13.17,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8241.58,
+        7726.52,
+        -2125.24
+      ],
+      "size_mm": [
+        20.0,
+        11.99,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8243.34,
+        7713.97,
+        -2125.24
+      ],
+      "size_mm": [
+        5.71,
+        7.23,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8241.27,
+        7710.11,
+        -2125.24
+      ],
+      "size_mm": [
+        15.13,
+        13.61,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8241.58,
+        7687.59,
+        -2125.24
+      ],
+      "size_mm": [
+        14.82,
+        20.31,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8241.58,
+        7677.48,
+        -2125.24
+      ],
+      "size_mm": [
+        20.22,
+        7.98,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8241.27,
+        7663.08,
+        -2125.24
+      ],
+      "size_mm": [
+        15.13,
+        13.42,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8241.58,
+        7653.13,
+        -2125.24
+      ],
+      "size_mm": [
+        14.87,
+        7.62,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolylineCurve",
+      "origin": [
+        7924.31,
+        7638.48,
+        -2125.24
+      ],
+      "size_mm": [
+        9.33,
+        6.78,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "NurbsCurve",
+      "origin": [
+        8243.34,
+        7632.8,
+        -2125.24
+      ],
+      "size_mm": [
+        10.95,
+        9.02,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolylineCurve",
+      "origin": [
+        7916.05,
+        7632.51,
+        -2125.24
+      ],
+      "size_mm": [
+        20.0,
+        18.54,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "NurbsCurve",
+      "origin": [
+        8241.27,
+        7630.28,
+        -2125.24
+      ],
+      "size_mm": [
+        15.13,
+        14.06,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8241.58,
+        7615.49,
+        -2125.24
+      ],
+      "size_mm": [
+        14.82,
+        11.99,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Model",
+      "type": "Brep",
+      "origin": [
+        8005.13,
+        7592.6,
+        -2140.24
+      ],
+      "size_mm": [
+        144.62,
+        192.0,
+        33.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8241.27,
+        7591.48,
+        -2125.24
+      ],
+      "size_mm": [
+        15.13,
+        13.42,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "NurbsCurve",
+      "origin": [
+        8243.34,
+        7578.43,
+        -2125.24
+      ],
+      "size_mm": [
+        10.95,
+        8.91,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8241.27,
+        7576.13,
+        -2125.24
+      ],
+      "size_mm": [
+        20.31,
+        13.73,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "NurbsCurve",
+      "origin": [
+        8243.51,
+        7562.32,
+        -2125.24
+      ],
+      "size_mm": [
+        10.78,
+        8.4,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8235.72,
+        7559.97,
+        -2125.24
+      ],
+      "size_mm": [
+        20.67,
+        13.28,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8241.27,
+        7543.75,
+        -2125.24
+      ],
+      "size_mm": [
+        15.13,
+        13.42,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8241.27,
+        7529.97,
+        -2125.24
+      ],
+      "size_mm": [
+        15.13,
+        12.3,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolylineCurve",
+      "origin": [
+        8241.4,
+        7496.11,
+        -2125.24
+      ],
+      "size_mm": [
+        14.48,
+        20.28,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolylineCurve",
+      "origin": [
+        8241.4,
+        7491.32,
+        -2125.24
+      ],
+      "size_mm": [
+        14.48,
+        2.38,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8241.4,
+        7481.43,
+        -2125.24
+      ],
+      "size_mm": [
+        18.82,
+        7.73,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8241.4,
+        7466.81,
+        -2125.24
+      ],
+      "size_mm": [
+        20.0,
+        11.99,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        7927.45,
+        7451.59,
+        -2125.24
+      ],
+      "size_mm": [
+        6.36,
+        9.58,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        7918.29,
+        7450.75,
+        -2125.24
+      ],
+      "size_mm": [
+        6.92,
+        10.42,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        7916.05,
+        7448.08,
+        -2125.24
+      ],
+      "size_mm": [
+        20.0,
+        15.74,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8241.4,
+        7443.45,
+        -2125.24
+      ],
+      "size_mm": [
+        20.0,
+        11.99,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "NurbsCurve",
+      "origin": [
+        8243.17,
+        7429.11,
+        -2125.24
+      ],
+      "size_mm": [
+        10.95,
+        9.02,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "NurbsCurve",
+      "origin": [
+        8241.1,
+        7426.59,
+        -2125.24
+      ],
+      "size_mm": [
+        15.13,
+        14.06,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "NurbsCurve",
+      "origin": [
+        8243.17,
+        7413.03,
+        -2125.24
+      ],
+      "size_mm": [
+        10.95,
+        9.02,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "NurbsCurve",
+      "origin": [
+        8241.1,
+        7410.51,
+        -2125.24
+      ],
+      "size_mm": [
+        15.13,
+        14.06,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolylineCurve",
+      "origin": [
+        8241.4,
+        7394.96,
+        -2125.24
+      ],
+      "size_mm": [
+        20.0,
+        12.61,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Model",
+      "type": "Brep",
+      "origin": [
+        8005.66,
+        7375.84,
+        -2143.24
+      ],
+      "size_mm": [
+        144.0,
+        192.0,
+        33.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "NurbsCurve",
+      "origin": [
+        8243.17,
+        7374.09,
+        -2125.24
+      ],
+      "size_mm": [
+        10.95,
+        8.91,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8235.89,
+        7371.57,
+        -2125.24
+      ],
+      "size_mm": [
+        20.34,
+        13.73,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "NurbsCurve",
+      "origin": [
+        8243.17,
+        7358.01,
+        -2125.24
+      ],
+      "size_mm": [
+        10.95,
+        9.02,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "NurbsCurve",
+      "origin": [
+        8241.1,
+        7355.49,
+        -2125.24
+      ],
+      "size_mm": [
+        15.13,
+        14.06,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8241.1,
+        7340.31,
+        -2125.24
+      ],
+      "size_mm": [
+        15.13,
+        13.17,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolylineCurve",
+      "origin": [
+        8241.4,
+        7324.91,
+        -2125.24
+      ],
+      "size_mm": [
+        20.0,
+        12.61,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8241.1,
+        7310.48,
+        -2125.24
+      ],
+      "size_mm": [
+        15.13,
+        13.42,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8241.4,
+        7301.88,
+        -2125.24
+      ],
+      "size_mm": [
+        18.82,
+        7.73,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8241.1,
+        7287.87,
+        -2125.24
+      ],
+      "size_mm": [
+        15.13,
+        12.3,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        7915.6,
+        7257.9,
+        -2125.24
+      ],
+      "size_mm": [
+        20.92,
+        17.9,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Model",
+      "type": "Brep",
+      "origin": [
+        8017.66,
+        7183.15,
+        -2140.24
+      ],
+      "size_mm": [
+        120.0,
+        160.0,
+        30.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        7918.29,
+        7112.45,
+        -2125.24
+      ],
+      "size_mm": [
+        15.52,
+        11.15,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        7916.05,
+        7109.79,
+        -2125.24
+      ],
+      "size_mm": [
+        20.0,
+        16.47,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Model",
+      "type": "Brep",
+      "origin": [
+        8017.66,
+        6997.74,
+        -2143.24
+      ],
+      "size_mm": [
+        120.0,
+        160.0,
+        33.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolylineCurve",
+      "origin": [
+        7916.05,
+        6935.74,
+        -2125.24
+      ],
+      "size_mm": [
+        20.0,
+        13.89,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Model",
+      "type": "Brep",
+      "origin": [
+        8017.66,
+        6810.22,
+        -2143.24
+      ],
+      "size_mm": [
+        120.0,
+        176.0,
+        36.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolylineCurve",
+      "origin": [
+        7916.05,
+        6735.94,
+        -2125.24
+      ],
+      "size_mm": [
+        20.0,
+        13.14,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Model",
+      "type": "Brep",
+      "origin": [
+        8017.66,
+        6631.12,
+        -2143.24
+      ],
+      "size_mm": [
+        120.0,
+        160.0,
+        33.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        7915.6,
+        6546.03,
+        -2125.24
+      ],
+      "size_mm": [
+        20.92,
+        18.32,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Model",
+      "type": "Brep",
+      "origin": [
+        8017.66,
+        6452.03,
+        -2140.24
+      ],
+      "size_mm": [
+        120.0,
+        176.0,
+        33.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolylineCurve",
+      "origin": [
+        7916.05,
+        6369.24,
+        -2125.24
+      ],
+      "size_mm": [
+        20.0,
+        15.85,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Model",
+      "type": "Brep",
+      "origin": [
+        8017.66,
+        6251.67,
+        -2143.24
+      ],
+      "size_mm": [
+        132.0,
+        176.0,
+        33.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolylineCurve",
+      "origin": [
+        7916.05,
+        6169.38,
+        -2125.24
+      ],
+      "size_mm": [
+        20.0,
+        2.66,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Model",
+      "type": "Brep",
+      "origin": [
+        8017.66,
+        6090.15,
+        -2140.24
+      ],
+      "size_mm": [
+        120.0,
+        160.0,
+        33.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        7915.6,
+        6002.7,
+        -2125.24
+      ],
+      "size_mm": [
+        20.45,
+        11.74,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Model",
+      "type": "Brep",
+      "origin": [
+        8017.66,
+        5906.32,
+        -2143.24
+      ],
+      "size_mm": [
+        120.0,
+        160.0,
+        33.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolylineCurve",
+      "origin": [
+        7916.05,
+        5788.29,
+        -2125.24
+      ],
+      "size_mm": [
+        20.0,
+        16.58,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Model",
+      "type": "Brep",
+      "origin": [
+        8005.66,
+        5708.26,
+        -2140.24
+      ],
+      "size_mm": [
+        144.0,
+        181.08,
+        33.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolylineCurve",
+      "origin": [
+        7916.05,
+        5605.1,
+        -2125.24
+      ],
+      "size_mm": [
+        20.0,
+        13.25,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Model",
+      "type": "Brep",
+      "origin": [
+        8017.66,
+        5507.67,
+        -2141.24
+      ],
+      "size_mm": [
+        120.0,
+        160.0,
+        31.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolylineCurve",
+      "origin": [
+        7916.05,
+        5368.93,
+        -2125.24
+      ],
+      "size_mm": [
+        20.0,
+        19.92,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Model",
+      "type": "Brep",
+      "origin": [
+        8005.66,
+        5295.3,
+        -2140.24
+      ],
+      "size_mm": [
+        144.0,
+        160.0,
+        30.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolylineCurve",
+      "origin": [
+        7916.05,
+        5171.61,
+        -2125.24
+      ],
+      "size_mm": [
+        20.0,
+        15.94,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Model",
+      "type": "Brep",
+      "origin": [
+        8005.66,
+        5087.56,
+        -2140.24
+      ],
+      "size_mm": [
+        144.0,
+        192.0,
+        33.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "NurbsCurve",
+      "origin": [
+        7917.81,
+        4975.71,
+        -2125.24
+      ],
+      "size_mm": [
+        16.47,
+        13.84,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "NurbsCurve",
+      "origin": [
+        7915.6,
+        4973.04,
+        -2125.24
+      ],
+      "size_mm": [
+        20.92,
+        19.16,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Model",
+      "type": "Brep",
+      "origin": [
+        8008.65,
+        4896.33,
+        -2143.24
+      ],
+      "size_mm": [
+        138.01,
+        191.0,
+        36.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8073.96,
+        4815.42,
+        -2125.24
+      ],
+      "size_mm": [
+        7.37,
+        9.58,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        7916.05,
+        4812.76,
+        -2125.24
+      ],
+      "size_mm": [
+        20.0,
+        14.9,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Model",
+      "type": "Brep",
+      "origin": [
+        8005.66,
+        4704.09,
+        -2143.24
+      ],
+      "size_mm": [
+        144.0,
+        192.0,
+        33.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolylineCurve",
+      "origin": [
+        7877.7,
+        4611.37,
+        -2125.24
+      ],
+      "size_mm": [
+        325.32,
+        3229.04,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8250.2,
+        7665.65,
+        -2125.24
+      ],
+      "size_mm": [
+        4.09,
+        8.32,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolylineCurve",
+      "origin": [
+        8549.63,
+        7638.48,
+        -2125.24
+      ],
+      "size_mm": [
+        9.33,
+        6.78,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolylineCurve",
+      "origin": [
+        8541.37,
+        7632.51,
+        -2125.24
+      ],
+      "size_mm": [
+        20.0,
+        18.54,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Model",
+      "type": "Brep",
+      "origin": [
+        8629.65,
+        7608.6,
+        -2140.24
+      ],
+      "size_mm": [
+        120.0,
+        160.0,
+        30.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8250.2,
+        7594.06,
+        -2125.24
+      ],
+      "size_mm": [
+        4.09,
+        8.32,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8250.2,
+        7546.33,
+        -2125.24
+      ],
+      "size_mm": [
+        4.09,
+        8.32,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolylineCurve",
+      "origin": [
+        8258.49,
+        7491.32,
+        -2125.24
+      ],
+      "size_mm": [
+        2.91,
+        2.38,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8552.77,
+        7451.59,
+        -2125.24
+      ],
+      "size_mm": [
+        6.36,
+        9.58,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8543.61,
+        7450.75,
+        -2125.24
+      ],
+      "size_mm": [
+        6.92,
+        10.42,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8541.37,
+        7448.08,
+        -2125.24
+      ],
+      "size_mm": [
+        20.0,
+        15.74,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Model",
+      "type": "Brep",
+      "origin": [
+        8629.66,
+        7391.84,
+        -2142.24
+      ],
+      "size_mm": [
+        120.0,
+        160.0,
+        32.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8250.03,
+        7313.06,
+        -2125.24
+      ],
+      "size_mm": [
+        4.09,
+        8.32,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8540.92,
+        7257.9,
+        -2125.24
+      ],
+      "size_mm": [
+        20.92,
+        17.9,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Model",
+      "type": "Brep",
+      "origin": [
+        8629.65,
+        7183.15,
+        -2140.24
+      ],
+      "size_mm": [
+        120.0,
+        160.0,
+        30.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8543.61,
+        7112.45,
+        -2125.24
+      ],
+      "size_mm": [
+        15.52,
+        11.15,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8541.37,
+        7109.79,
+        -2125.24
+      ],
+      "size_mm": [
+        20.0,
+        16.47,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Model",
+      "type": "Brep",
+      "origin": [
+        8629.65,
+        6997.74,
+        -2140.24
+      ],
+      "size_mm": [
+        120.0,
+        160.0,
+        33.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolylineCurve",
+      "origin": [
+        8541.37,
+        6935.74,
+        -2125.24
+      ],
+      "size_mm": [
+        20.0,
+        13.89,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Model",
+      "type": "Brep",
+      "origin": [
+        8629.65,
+        6810.22,
+        -2143.24
+      ],
+      "size_mm": [
+        120.0,
+        160.0,
+        36.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolylineCurve",
+      "origin": [
+        8541.37,
+        6735.94,
+        -2125.24
+      ],
+      "size_mm": [
+        20.0,
+        13.14,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Model",
+      "type": "Brep",
+      "origin": [
+        8629.65,
+        6631.12,
+        -2143.24
+      ],
+      "size_mm": [
+        120.0,
+        160.0,
+        33.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8540.92,
+        6546.03,
+        -2125.24
+      ],
+      "size_mm": [
+        20.92,
+        18.32,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Model",
+      "type": "Brep",
+      "origin": [
+        8629.65,
+        6452.03,
+        -2140.24
+      ],
+      "size_mm": [
+        120.0,
+        160.0,
+        33.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolylineCurve",
+      "origin": [
+        8541.37,
+        6369.24,
+        -2125.24
+      ],
+      "size_mm": [
+        20.0,
+        15.85,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Model",
+      "type": "Brep",
+      "origin": [
+        8629.65,
+        6267.67,
+        -2143.24
+      ],
+      "size_mm": [
+        120.0,
+        160.0,
+        33.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolylineCurve",
+      "origin": [
+        8541.37,
+        6169.38,
+        -2125.24
+      ],
+      "size_mm": [
+        20.0,
+        2.66,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Model",
+      "type": "Brep",
+      "origin": [
+        8629.66,
+        6090.15,
+        -2140.24
+      ],
+      "size_mm": [
+        120.0,
+        160.0,
+        33.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8540.92,
+        6002.7,
+        -2125.24
+      ],
+      "size_mm": [
+        20.45,
+        11.74,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Model",
+      "type": "Brep",
+      "origin": [
+        8629.66,
+        5906.32,
+        -2143.24
+      ],
+      "size_mm": [
+        120.0,
+        160.0,
+        33.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolylineCurve",
+      "origin": [
+        8541.37,
+        5788.29,
+        -2125.24
+      ],
+      "size_mm": [
+        20.0,
+        16.58,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Model",
+      "type": "Brep",
+      "origin": [
+        8629.65,
+        5718.8,
+        -2140.24
+      ],
+      "size_mm": [
+        120.0,
+        160.0,
+        33.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolylineCurve",
+      "origin": [
+        8541.37,
+        5605.1,
+        -2125.24
+      ],
+      "size_mm": [
+        20.0,
+        13.25,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Model",
+      "type": "Brep",
+      "origin": [
+        8629.65,
+        5507.67,
+        -2141.24
+      ],
+      "size_mm": [
+        120.0,
+        160.0,
+        31.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolylineCurve",
+      "origin": [
+        8541.37,
+        5368.93,
+        -2125.24
+      ],
+      "size_mm": [
+        20.0,
+        19.92,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Model",
+      "type": "Brep",
+      "origin": [
+        8629.66,
+        5287.8,
+        -2140.24
+      ],
+      "size_mm": [
+        120.0,
+        167.5,
+        30.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolylineCurve",
+      "origin": [
+        8541.37,
+        5171.61,
+        -2125.24
+      ],
+      "size_mm": [
+        20.0,
+        15.94,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Model",
+      "type": "Brep",
+      "origin": [
+        8629.65,
+        5103.56,
+        -2140.24
+      ],
+      "size_mm": [
+        120.0,
+        160.0,
+        33.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "NurbsCurve",
+      "origin": [
+        8543.13,
+        4975.71,
+        -2125.24
+      ],
+      "size_mm": [
+        16.47,
+        13.84,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "NurbsCurve",
+      "origin": [
+        8540.92,
+        4973.04,
+        -2125.24
+      ],
+      "size_mm": [
+        20.92,
+        19.16,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Model",
+      "type": "Brep",
+      "origin": [
+        8629.65,
+        4911.83,
+        -2143.24
+      ],
+      "size_mm": [
+        120.0,
+        160.0,
+        36.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8551.76,
+        4815.42,
+        -2125.24
+      ],
+      "size_mm": [
+        7.37,
+        9.58,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8541.37,
+        4812.76,
+        -2125.24
+      ],
+      "size_mm": [
+        20.0,
+        14.9,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Model",
+      "type": "Brep",
+      "origin": [
+        8629.66,
+        4720.09,
+        -2142.24
+      ],
+      "size_mm": [
+        120.0,
+        160.0,
+        32.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolylineCurve",
+      "origin": [
+        8503.02,
+        4611.37,
+        -2125.24
+      ],
+      "size_mm": [
+        325.32,
+        3229.04,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolylineCurve",
+      "origin": [
+        8866.9,
+        7781.34,
+        -2125.24
+      ],
+      "size_mm": [
+        20.0,
+        15.94,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "NurbsCurve",
+      "origin": [
+        8868.66,
+        7766.66,
+        -2125.24
+      ],
+      "size_mm": [
+        10.95,
+        9.02,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "NurbsCurve",
+      "origin": [
+        8866.59,
+        7764.14,
+        -2125.24
+      ],
+      "size_mm": [
+        15.13,
+        14.06,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8866.59,
+        7741.17,
+        -2125.24
+      ],
+      "size_mm": [
+        15.13,
+        13.17,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8866.9,
+        7726.52,
+        -2125.24
+      ],
+      "size_mm": [
+        20.0,
+        11.99,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8868.66,
+        7713.97,
+        -2125.24
+      ],
+      "size_mm": [
+        5.71,
+        7.23,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8866.59,
+        7710.11,
+        -2125.24
+      ],
+      "size_mm": [
+        15.13,
+        13.61,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8866.9,
+        7687.59,
+        -2125.24
+      ],
+      "size_mm": [
+        14.82,
+        20.31,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8866.9,
+        7677.48,
+        -2125.24
+      ],
+      "size_mm": [
+        20.22,
+        7.98,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8875.53,
+        7665.65,
+        -2125.24
+      ],
+      "size_mm": [
+        4.09,
+        8.32,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8866.59,
+        7663.08,
+        -2125.24
+      ],
+      "size_mm": [
+        15.13,
+        13.42,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8866.9,
+        7653.13,
+        -2125.24
+      ],
+      "size_mm": [
+        14.87,
+        7.62,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "NurbsCurve",
+      "origin": [
+        8868.66,
+        7632.8,
+        -2125.24
+      ],
+      "size_mm": [
+        10.95,
+        9.02,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "NurbsCurve",
+      "origin": [
+        8866.59,
+        7630.28,
+        -2125.24
+      ],
+      "size_mm": [
+        15.13,
+        14.06,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8866.9,
+        7615.49,
+        -2125.24
+      ],
+      "size_mm": [
+        14.82,
+        11.99,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8875.53,
+        7594.06,
+        -2125.24
+      ],
+      "size_mm": [
+        4.09,
+        8.32,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8866.59,
+        7591.48,
+        -2125.24
+      ],
+      "size_mm": [
+        15.13,
+        13.42,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "NurbsCurve",
+      "origin": [
+        8868.66,
+        7578.43,
+        -2125.24
+      ],
+      "size_mm": [
+        10.95,
+        8.91,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8866.59,
+        7576.13,
+        -2125.24
+      ],
+      "size_mm": [
+        20.31,
+        13.73,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "NurbsCurve",
+      "origin": [
+        8868.83,
+        7562.32,
+        -2125.24
+      ],
+      "size_mm": [
+        10.78,
+        8.4,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8861.04,
+        7559.97,
+        -2125.24
+      ],
+      "size_mm": [
+        20.67,
+        13.28,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8875.53,
+        7546.33,
+        -2125.24
+      ],
+      "size_mm": [
+        4.09,
+        8.32,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8866.59,
+        7543.75,
+        -2125.24
+      ],
+      "size_mm": [
+        15.13,
+        13.42,
+        0.0
+      ]
+    },
+    {
+      "layer": "WEBSITE - Guides",
+      "type": "PolyCurve",
+      "origin": [
+        8866.59,
+        7529.97,
+        -2125.24
+      ],
+      "size_mm": [
+        15.13,
+        12.3,
+        0.0
+      ]
+    }
+  ]
+}
