@@ -365,3 +365,11 @@ body.drawing .value,
 body.drawing .readout code { color: #7e6a4a; }
 body.drawing .readout input { color: var(--ink); border-bottom-color: rgba(42, 41, 32, 0.3); }
 body.drawing .stack li { background: rgba(42, 41, 32, 0.05); }
+
+
+/* --- plate mode: nothing but the drawing, on white, for print --- */
+
+body.clean { background: #fff; }
+body.clean .panel,
+body.clean .masthead,
+body.clean .readout { display: none; }

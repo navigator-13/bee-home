@@ -177,7 +177,9 @@ export class Stage {
 
   setMode(mode) {
     this.mode = mode;
-    this.scene.background = new THREE.Color(BACKDROP[mode]);
+    // Plates go into a printed PDF, so they need paper white rather than the
+    // bone the on-screen drawing mode uses.
+    this.scene.background = new THREE.Color(this.plateWhite ? '#ffffff' : BACKDROP[mode]);
     this.shadowFloor.visible = mode === 'timber';
     for (const child of this.root.children) {
       if (child.isLineSegments) {
@@ -295,6 +297,40 @@ export class Stage {
     const radius = Math.max(size.x, size.y, size.z);
     this.controls.minDistance = radius * 0.8;
     this.controls.maxDistance = radius * 6;
+  }
+
+  /**
+   * Swap to an orthographic camera for the measured views a spec sheet needs.
+   * `axis` is 'front' or 'plan'; anything else restores the perspective view.
+   */
+  setProjection(axis) {
+    const box = new THREE.Box3().setFromObject(this.root);
+    if (box.isEmpty()) return;
+    const size = box.getSize(new THREE.Vector3());
+    const centre = box.getCenter(new THREE.Vector3());
+    const aspect = this.camera.aspect || 1;
+
+    if (axis !== 'front' && axis !== 'plan') return;
+
+    const extent = axis === 'front'
+      ? Math.max(size.x, size.y) * 0.62
+      : Math.max(size.x, size.z) * 0.62;
+    const ortho = new THREE.OrthographicCamera(
+      -extent * aspect, extent * aspect, extent, -extent, 0.001, 40,
+    );
+    if (axis === 'front') {
+      ortho.position.set(centre.x, centre.y, centre.z + 2);
+      ortho.up.set(0, 1, 0);
+    } else {
+      ortho.position.set(centre.x, centre.y + 2, centre.z);
+      ortho.up.set(0, 0, -1);
+    }
+    ortho.lookAt(centre);
+    this.camera = ortho;
+    this.controls.object = ortho;
+    this.controls.target.copy(centre);
+    this.controls.enabled = false;
+    this.controls.update();
   }
 
   lookFrom(distanceScale = 2.6) {

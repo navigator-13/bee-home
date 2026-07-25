@@ -21,16 +21,44 @@ let stage = null;
 
 const el = (id) => document.getElementById(id);
 
+/**
+ * Plate mode: the same builder, driven by the URL, used to draw the measured
+ * views that go into the downloadable spec sheet.
+ *
+ *   ?id=01400APPM&plate=iso&explode=70&clean=1
+ *
+ * Keeping this in the builder rather than a separate renderer means the
+ * drawings in someone's PDF are literally the thing they configured.
+ */
+const params = new URLSearchParams(location.search);
+const plate = {
+  view: params.get('plate'),                       // iso | front | plan
+  explodeMm: Number(params.get('explode') || 0),   // vertical fan, per storey
+  clean: params.get('clean') === '1',
+};
+
 async function boot() {
   [index, rules] = await Promise.all([
     fetch('models/index.json').then((r) => r.json()),
     fetch('storey-rules.json').then((r) => r.json()),
   ]);
+  const fromUrl = params.get('id') ? parseId(params.get('id')) : null;
+  if (fromUrl) {
+    Object.assign(state, fromUrl);
+    if (!state.heightMm) state.heightMm = 400;
+    state.woods = state.stack.map(() => DEFAULT_WOOD);
+  }
+  if (params.get('woods')) state.woods = params.get('woods').split(',');
+  if (plate.view) state.mode = 'drawing';
+  if (plate.clean) document.body.classList.add('clean');
+
   stage = new Stage(el('stage'));
+  stage.plateWhite = plate.clean;
   buildControls();
   await rebuild();
-  stage.lookFrom();
+  if (plate.view === 'iso' || !plate.view) stage.lookFrom();
   document.body.classList.add('ready');
+  document.body.dataset.plateReady = '1';
 }
 
 /** Species for storey `i`, falling back as the stack grows. */
@@ -68,7 +96,10 @@ async function rebuild() {
   for (const [i, letter] of state.stack.entries()) {
     const entry = index.storeys[letter][state.variant];
     const geometry = await stage.load(entry.file);
-    stage.add(geometry, new THREE.Vector3(0, y, 0), { wood: woodFor(i), storey: i });
+    // The exploded plate fans the storeys apart vertically so every joint and
+    // cavity is legible in a single drawing.
+    const fan = (plate.explodeMm / 1000) * i;
+    stage.add(geometry, new THREE.Vector3(0, y + fan, 0), { wood: woodFor(i), storey: i });
     y += entry.size_mm[2] / 1000;
   }
 
@@ -107,6 +138,7 @@ async function rebuild() {
   }
 
   stage.frame();
+  if (plate.view && plate.view !== 'iso') stage.setProjection(plate.view);
   document.body.classList.toggle('drawing', state.mode === 'drawing');
   stage.setMode(state.mode);
   stage.setSelected(state.selected);
