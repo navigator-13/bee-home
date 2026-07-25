@@ -155,6 +155,9 @@ body {
   width: 240%;
   height: 100%;
   pointer-events: none;
+  /* In front of the object. The planting stands between the viewer and the
+     legs, which is where it would be -- behind them it read as wallpaper. */
+  z-index: 2;
 }
 
 /* Four captures of the real geometry on one fixed camera, one storey added
@@ -175,7 +178,9 @@ body {
 .ln { fill: none; stroke: var(--ink); stroke-linecap: round; stroke-linejoin: round;
       vector-effect: non-scaling-stroke; }
 .ln.stem  { stroke-width: 1.7; }
-.ln.leaf  { stroke-width: 1.35; }
+/* Leaves are closed shapes, so filling them in the paper colour lets a leaf
+   sit over a leg rather than have the leg drawn through it. */
+.ln.leaf  { stroke-width: 1.35; fill: var(--paper); }
 .ln.head  { stroke-width: 1.35; }
 .ln.grass { stroke-width: 1.1; stroke: #8d8c81; }
 .ln.fly   { stroke-width: 1.6; stroke: var(--soft); }
@@ -759,7 +764,8 @@ figcaption b { color: var(--ink); font-weight: 400; }
     // On one column the headline sits above the object, so there is no free
     // band to its left to fly through and every line uses the space below it.
     var stacked = c.right > m.left;
-    var lane = [Math.max(H * 0.05, c.top - s.top - H * 0.06), c.bottom - s.top + H * 0.04];
+    var lane = [Math.max(H * 0.05, c.top - s.top - H * 0.06),
+      c.bottom - s.top + H * 0.04, H * 0.78];
     var clear = stacked ? W * 0.3 : Math.max(c.right - s.left + W * 0.03, W * 0.4);
     var r2 = rng(7);
 
@@ -769,43 +775,83 @@ figcaption b { color: var(--ink); font-weight: 400; }
     // or below the headline -- so the drawing keeps its shape as the text
     // reflows, and nothing ever runs through a word.
     //
-    // Every y is a fraction of the free band, which is what keeps a line off
-    // the text however the headline reflows. Handles are pushed to the far
-    // ends of the band so each sweep has a real belly rather than ruling a
-    // flat line across the page, and the three that pass through are given
-    // deliberately different shapes so they never read as parallel contours.
+    // Bees do not all arrive from the same side, so the lines enter off every
+    // edge. Two coordinate systems are in play, and which one a point uses is
+    // what keeps the drawing off the type:
     //
-    //     band, entry, handle 1, handle 2, exit  (null exit = arrives)
+    //   'hi' / 'lo'  a fraction of the free band above or below the headline.
+    //                Only these are safe on the left, where the text lives.
+    //   'x' / 'y'    a plain fraction of the stage. Used to the right of the
+    //                copy, where there is nothing to run into.
+    //
+    // Each line is authored rather than rolled, so the sweeps read as
+    // deliberately different rather than as a family of parallel contours.
+    //
+    //     entry edge and position | two handles | exit (null = arrives home)
+    var L = 'l', T = 't', R = 'r';
     var LINES = [
-      ['hi', 0.12, 0.92, 0.06, 0.66],
-      ['hi', 0.74, 0.16, 0.98, 0.34],
-      ['lo', 0.26, 0.9, 0.12, 0.72],
-      ['hi', 0.05, 0.42, 0.04, null],
-      ['hi', 0.94, 0.28, 0.46, null],
+      [L, 'hi', 0.12, ['hi', 0.92], ['hi', 0.06], [R, 'hi', 0.66]],
+      [L, 'hi', 0.74, ['hi', 0.16], ['hi', 0.98], [R, 'hi', 0.34]],
+      [L, 'lo', 0.26, ['lo', 0.9], ['lo', 0.12], [R, 'lo', 0.72]],
+      [T, 'x', 0.66, ['x', 0.6, 'y', 0.14], ['x', 1.02, 'y', 0.3], [R, 'y', 0.46]],
+      [R, 'y', 0.05, ['x', 0.9, 'y', 0.18], ['x', 0.62, 'y', 0.06], [T, 'x', 0.56]],
+      [T, 'x', 0.88, ['x', 0.84, 'y', 0.2], ['x', 1.04, 'y', 0.52], [R, 'y', 0.62]],
+      [L, 'hi', 0.05, ['hi', 0.42], ['hi', 0.04], null],
+      [L, 'hi', 0.94, ['hi', 0.28], ['hi', 0.46], null],
+      // Swings well clear of the object before turning back, or the whole
+      // approach would be hidden behind it.
+      [T, 'x', 0.94, ['x', 0.9, 'y', 0.16], ['x', 0.44, 'y', 0.24], null],
     ];
 
-    // Stacked, the object fills most of the width and there is far less room
-    // for lines to move in. Three sweeps read as intent; six read as a
-    // scribble, so the passing bees are thinned out.
+    // Stacked, the object fills most of the width, the headline owns the top
+    // of the screen and there is far less room to move in. Four sweeps read as
+    // intent there; nine read as a scribble.
+    var NARROW = [0, 1, 2, 6];
+
+    // Nothing flies below the planting: at ground level the sweeps and the
+    // stems are the same weight and the two just turn into mud.
+    function band(kind, f) {
+      return kind === 'hi' && !stacked ? lane[0] * f : lane[1] + (lane[2] - lane[1]) * f;
+    }
+
+    /** A handle given either in band fractions or in plain stage fractions.
+        Band handles have no x of their own: the first sits early in the run,
+        the second past the far edge of the text. */
+    function handle(h, second) {
+      if (h.length > 2) return [W * h[1], H * h[3]];
+      return [second ? clear + W * r2() * 0.14 : W * (0.1 + r2() * 0.14),
+        band(h[0], h[1])];
+    }
+
+    function enter(edge, kind, f) {
+      if (edge === L) return [-W * 0.07, band(kind, f)];
+      if (edge === R) return [W * 1.07, kind === 'y' ? H * Math.min(f, 0.78) : band(kind, f)];
+      return [W * f, edge === T ? -H * 0.07 : H * 1.07];
+    }
+
     var arrivals = 0;
-    LINES.filter(function (line, i) { return !stacked || (i !== 1 && i !== 4); })
+    LINES.filter(function (line, i) { return !stacked || NARROW.indexOf(i) >= 0; })
       .forEach(function (line) {
-        var come = line[4] === null;
-        var band = function (f) {
-          return line[0] === 'hi' && !stacked ? lane[0] * f : lane[1] + (H - lane[1]) * f;
-        };
+        var come = line[5] === null;
+        var from = enter(line[0], line[1], line[2]);
+        var h1 = handle(line[3], false);
+        var h2 = handle(line[4], true);
+        var to = come ? [tx, ty + (arrivals++ - 1) * H * 0.085]
+          : enter(line[5][0], line[5][1], line[5][2]);
         // Stacked, the only clear run at the object is up the left margin.
-        var d = come && stacked
-          ? 'M' + fmt(-W * 0.07) + ' ' + fmt(H * 0.98)
-            + 'C' + fmt(W * 0.1) + ' ' + fmt(H * 0.86)
-            + ',' + fmt(-W * 0.02) + ' ' + fmt(ty + H * 0.14)
-            + ',' + fmt(tx) + ' ' + fmt(ty)
-          : 'M' + fmt(-W * 0.07) + ' ' + fmt(band(line[1]))
-            + 'C' + fmt(W * (0.1 + r2() * 0.14)) + ' ' + fmt(band(line[2]))
-            + ',' + fmt(clear + W * r2() * 0.14) + ' ' + fmt(band(line[3]))
-            + ',' + fmt(come ? tx : W * 1.07) + ' '
-            + fmt(come ? ty + (arrivals++) * H * 0.15 : band(line[4]));
-        flights.push({ come: come, el: path(flightSvg, 'ln ' + (come ? 'come' : 'fly'), d) });
+        if (come && stacked) {
+          from = [-W * 0.07, H * 0.98];
+          h1 = [W * 0.1, H * 0.86];
+          h2 = [-W * 0.02, ty + H * 0.14];
+        }
+        flights.push({
+          come: come,
+          el: path(flightSvg, 'ln ' + (come ? 'come' : 'fly'),
+            'M' + fmt(from[0]) + ' ' + fmt(from[1])
+            + 'C' + fmt(h1[0]) + ' ' + fmt(h1[1])
+            + ',' + fmt(h2[0]) + ' ' + fmt(h2[1])
+            + ',' + fmt(to[0]) + ' ' + fmt(to[1])),
+        });
       });
     measure(flights.map(function (f) { return f.el; }));
   }
@@ -844,7 +890,7 @@ figcaption b { color: var(--ink); font-weight: 400; }
     });
 
     flights.forEach(function (f, i) {
-      var t0 = FLY[0] + i * 0.028;
+      var t0 = FLY[0] + i * 0.018;
       draw(f.el, seg(p, t0, t0 + 0.17));
     });
 
