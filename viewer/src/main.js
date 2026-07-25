@@ -41,7 +41,25 @@ const plate = {
   show: params.get('show') ? Number(params.get('show')) : null,
 };
 
+/**
+ * When the builder ships as one self-contained file -- embedded in the
+ * landing page, opened from disk, published where sibling requests are
+ * blocked -- every mesh, texture and font is inlined ahead of the bundle as a
+ * data URI. Three's loaders all resolve through the default manager, so one
+ * hook covers the meshes and the timber maps alike.
+ */
+function useInlineAssets() {
+  const assets = window.__BEEHOME_ASSETS__;
+  if (!assets) return;
+  const keys = Object.keys(assets);
+  THREE.DefaultLoadingManager.setURLModifier((url) => {
+    const hit = keys.find((key) => String(url).endsWith(key));
+    return hit ? assets[hit] : url;
+  });
+}
+
 async function boot() {
+  useInlineAssets();
   [index, rules] = await Promise.all([
     fetch('models/index.json').then((r) => r.json()),
     fetch('storey-rules.json').then((r) => r.json()),
