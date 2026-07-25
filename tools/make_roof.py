@@ -31,13 +31,17 @@ def box(width, depth, height):
     """A flat-shaded box, origin at the centre of its underside -- the same
     convention every storey in the model index uses."""
     x, y = width / 2, depth / 2
+    # Quads wound counter-clockwise seen from outside the box. The winding is
+    # load-bearing: three.js culls by it, not by the supplied normals, so a
+    # face wound the wrong way renders only from inside the part -- the roof
+    # shipped like that once and read as glass.
     corners = {
-        "bottom": [(-x, -y, 0), (x, -y, 0), (x, y, 0), (-x, y, 0)],
-        "top": [(-x, -y, height), (-x, y, height), (x, y, height), (x, -y, height)],
-        "front": [(-x, -y, 0), (-x, -y, height), (x, -y, height), (x, -y, 0)],
-        "back": [(x, y, 0), (x, y, height), (-x, y, height), (-x, y, 0)],
-        "left": [(-x, y, 0), (-x, y, height), (-x, -y, height), (-x, -y, 0)],
-        "right": [(x, -y, 0), (x, -y, height), (x, y, height), (x, y, 0)],
+        "bottom": [(-x, -y, 0), (-x, y, 0), (x, y, 0), (x, -y, 0)],
+        "top": [(-x, -y, height), (x, -y, height), (x, y, height), (-x, y, height)],
+        "front": [(-x, -y, 0), (x, -y, 0), (x, -y, height), (-x, -y, height)],
+        "back": [(x, y, 0), (-x, y, 0), (-x, y, height), (x, y, height)],
+        "left": [(-x, y, 0), (-x, -y, 0), (-x, -y, height), (-x, y, height)],
+        "right": [(x, -y, 0), (x, y, 0), (x, y, height), (x, -y, height)],
     }
     normals = {
         "bottom": (0, 0, -1), "top": (0, 0, 1),

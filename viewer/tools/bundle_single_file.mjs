@@ -75,16 +75,36 @@ const guard = (s) => s.replace(/<\/script/gi, '<\\/script');
 // Two doors into the asset map. Three's loaders go through the loading
 // manager (see useInlineAssets in src/main.js); the app's own index and rules
 // are plain fetches, so those are shimmed here.
+//
+// The shim never fetches a data: URI -- it decodes the payload itself and
+// synthesizes the Response. Fetching would work from disk but dies under any
+// CSP whose connect-src omits data:, which is exactly the situation on a
+// published artifact page. A Response built from bytes already in memory is
+// outside CSP's jurisdiction.
 const shim = `
 (function () {
   var ASSETS = ${guard(JSON.stringify(inline))};
   window.__BEEHOME_ASSETS__ = ASSETS;
   var keys = Object.keys(ASSETS);
   var real = window.fetch.bind(window);
+  function synth(uri) {
+    var comma = uri.indexOf(',');
+    var mime = uri.slice(5, comma).split(';')[0];
+    var bin = atob(uri.slice(comma + 1));
+    var bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return Promise.resolve(new Response(bytes.buffer, {
+      status: 200,
+      headers: { 'Content-Type': mime },
+    }));
+  }
   window.fetch = function (input, init) {
-    var url = String(typeof input === 'string' ? input : (input && input.url) || '').split('?')[0];
-    var hit = keys.find(function (key) { return url.endsWith(key); });
-    return hit ? real(ASSETS[hit], init) : real(input, init);
+    var url = String(typeof input === 'string' ? input : (input && input.url) || '');
+    // Anything already rewritten to a data: URI by the loading manager.
+    if (url.slice(0, 5) === 'data:') return synth(url);
+    var clean = url.split('?')[0];
+    var hit = keys.find(function (key) { return clean.endsWith(key); });
+    return hit ? synth(ASSETS[hit]) : real(input, init);
   };
 })();
 `;
