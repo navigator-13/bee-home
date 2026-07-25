@@ -1,9 +1,9 @@
-<title>Bee Home &#8212; landing</title>
+<title>Bee Home</title>
 
 <style>
 :root {
-  /* The page is the same bone the drawing is rendered against, so the solid
-     faces of the model disappear into the paper and only its edges read. */
+  /* The page is the same bone the hidden-line drawing renders against, so the
+     solid faces of the model vanish into the paper and only its edges read. */
   --paper: #e9e9e1;
   --ink: #2a2920;
   --soft: #7d7d73;
@@ -20,147 +20,328 @@ body {
   background: var(--paper);
   color: var(--ink);
   font-family: var(--sans);
-  font-size: 16px;
-  line-height: 1.6;
+  line-height: 1.55;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
 }
 
-.pad { max-width: 1180px; margin: 0 auto; padding: 0 40px; }
+/* Everything is sized off the viewport, so a 1280 and a 2560 screen get the
+   same composition rather than the same pixels with more empty space. */
+.pad {
+  width: 100%;
+  max-width: 1680px;
+  margin: 0 auto;
+  padding: 0 clamp(22px, 4vw, 76px);
+}
 
 .label {
   font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.22em;
+  font-size: clamp(9px, 0.66vw, 11px);
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--soft);
+  margin: 0;
 }
 
-.pill {
-  display: inline-block;
-  border: 1px solid var(--ink);
-  border-radius: 999px;
-  padding: 10px 22px;
-  font-size: 13px;
-  text-decoration: none;
-  color: var(--ink);
+/* ---------------- the stage ---------------- */
+
+#build { height: 560vh; position: relative; }
+
+.stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
 }
 
-.pill.solid { background: var(--ink); color: var(--paper); }
-
-/* ---------- stage ---------- */
-
-#build { height: 520vh; position: relative; }
-.stage { position: sticky; top: 0; height: 100vh; overflow: hidden; }
-
-/* The model itself: four renders of the real geometry, same camera, one storey
-   added per frame. Cross-fading between them assembles the actual object
-   rather than an illustration of it. */
-.model {
+/* The mark is a footnote, not a headline. */
+.mark {
   position: absolute;
-  right: 9vw;
-  bottom: 12vh;
-  width: min(26vw, 340px);
-  aspect-ratio: 760 / 1284;
+  top: clamp(16px, 2.2vh, 30px);
+  left: clamp(22px, 4vw, 76px);
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #a8a79c;
+  z-index: 3;
 }
 
+/* Copy and object live in two grid tracks, so they cannot collide however
+   wide the window gets. The type then scales to its own track with container
+   units, which is what keeps a big viewport feeling full instead of empty. */
+.frame {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 46%);
+  align-items: center;
+  padding: clamp(56px, 9vh, 118px) clamp(22px, 4vw, 76px);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.copy {
+  container-type: inline-size;
+  align-self: center;
+  grid-column: 1;
+}
+
+.copy h1 {
+  font-weight: 400;
+  font-size: clamp(31px, 7.4cqi, 86px);
+  line-height: 1.06;
+  letter-spacing: -0.022em;
+  margin: 0 0 0.1em;
+}
+
+.copy .sub {
+  color: var(--soft);
+  font-size: clamp(13px, 1.9cqi, 21px);
+  line-height: 1.5;
+  max-width: 30ch;
+  margin: 1.3em 0 0;
+}
+
+/* The caption tracks the animation, so the words describe what is happening
+   on screen rather than sitting next to it. */
+.phase {
+  position: relative;
+  margin-top: 1.8em;
+  min-height: 3.6em;
+}
+
+.phase span {
+  position: absolute;
+  inset: 0;
+  font-size: clamp(12px, 1.55cqi, 17px);
+  line-height: 1.5;
+  color: var(--ink);
+  max-width: 34ch;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.phase span.on { opacity: 1; }
+
+.art { position: relative; grid-column: 2; height: 100%; }
+
+/* The object and its planting share one box, tied to the plate's own
+   proportions. Left to fit themselves independently they drift apart as the
+   window changes -- flowers waist-high on one screen and ankle-high on the
+   next. Pinned like this, the garden is always the same size relative to the
+   Bee Home, and both stand on the same ground line. */
+.ground {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 100%;
+  max-width: 100%;
+  aspect-ratio: 640 / 1081;
+}
+
+/* The garden spills either side of the object's own width: it grows around
+   the Bee Home rather than being boxed in beside it. Sliced rather than
+   fitted, so the scale is always driven by height -- the same height the
+   plate is fitted to -- and a narrower box simply crops the far edges of the
+   planting instead of shrinking the flowers. */
+.garden {
+  position: absolute;
+  bottom: 0;
+  left: -70%;
+  width: 240%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* Four captures of the real geometry on one fixed camera, one storey added
+   per frame. Cross-fading them assembles the actual object. */
 .model img {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: contain;
-  object-position: bottom;
+  object-position: 50% 100%;
   opacity: 0;
-  transition: opacity 0.18s linear;
+  transition: opacity 0.22s linear;
 }
 
-#garden { position: absolute; inset: 0; width: 100%; height: 100%; }
+.flight { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }
 
-.ln { fill: none; stroke: var(--ink); stroke-width: 1.6; vector-effect: non-scaling-stroke;
-      stroke-linecap: round; stroke-linejoin: round; }
-.ln.leaf { stroke-width: 1.2; }
-.ln.flight { stroke: var(--soft); stroke-width: 1.4; }
-.ln.arrive { stroke: var(--bee); stroke-width: 2.2; }
+.ln { fill: none; stroke: var(--ink); stroke-linecap: round; stroke-linejoin: round;
+      vector-effect: non-scaling-stroke; }
+.ln.stem  { stroke-width: 1.7; }
+.ln.leaf  { stroke-width: 1.35; }
+.ln.head  { stroke-width: 1.35; }
+.ln.grass { stroke-width: 1.1; stroke: #8d8c81; }
+.ln.fly   { stroke-width: 1.6; stroke: var(--soft); }
+.ln.come  { stroke-width: 2.6; stroke: var(--bee); }
 
-.copy { position: absolute; left: 40px; top: 50%; transform: translateY(-50%); max-width: 26ch; z-index: 2; }
+.cue {
+  position: absolute;
+  left: clamp(22px, 4vw, 76px);
+  bottom: clamp(20px, 3.4vh, 40px);
+  z-index: 3;
+}
 
-.copy h1 {
-  font-size: clamp(28px, 3.4vw, 44px);
+/* ---------------- page ---------------- */
+
+.band { padding: clamp(72px, 11vh, 150px) 0; border-top: 1px solid var(--rule); }
+.band:first-of-type { border-top: 0; }
+
+.lede {
   font-weight: 400;
-  line-height: 1.14;
-  letter-spacing: -0.01em;
-  margin: 18px 0 0;
-  text-wrap: balance;
+  font-size: clamp(23px, 3.1vw, 46px);
+  line-height: 1.16;
+  letter-spacing: -0.018em;
+  max-width: 20ch;
+  margin: 0.4em 0 0;
 }
 
-.copy p { color: var(--soft); font-size: 15px; margin: 20px 0 0; }
-.copy .cue { display: block; margin-top: 44px; }
+.two {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: clamp(26px, 3.4vw, 72px);
+  margin-top: clamp(28px, 4vh, 52px);
+  font-size: clamp(14px, 1.05vw, 18px);
+}
 
-.stepper { position: absolute; left: 40px; bottom: 40px; display: flex; gap: 28px; z-index: 2; }
-.stepper span { font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em; color: #b3aea0; }
-.stepper span.on { color: var(--ink); }
-
-/* ---------- page ---------- */
-
-.band { padding: 116px 0; border-top: 1px solid var(--rule); }
-.lede { font-size: clamp(22px, 2.6vw, 30px); font-weight: 400; line-height: 1.35; max-width: 22ch; margin: 16px 0 0; text-wrap: balance; }
-.two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 72px; margin-top: 44px; }
-.two p { margin: 0 0 16px; max-width: 46ch; }
+.two p { margin: 0 0 1em; max-width: 48ch; }
 .two p:last-child { margin-bottom: 0; }
-.facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px; margin-top: 52px; }
-.facts div { border-top: 1px solid var(--rule); padding-top: 18px; }
-.facts b { display: block; font-size: clamp(26px, 3.2vw, 38px); font-weight: 400; margin-bottom: 8px; }
-.facts p { margin: 0; font-size: 14px; color: var(--soft); }
-.actions { display: flex; gap: 12px; margin-top: 40px; flex-wrap: wrap; }
-.foot { padding: 56px 0 100px; border-top: 1px solid var(--rule); color: var(--soft); font-family: var(--mono); font-size: 11px; line-height: 1.9; }
 
-@media (max-width: 900px) {
-  .pad { padding: 0 22px; }
-  .copy { left: 22px; right: 22px; top: 9%; transform: none; max-width: none; }
-  .model { right: 4vw; width: 54vw; bottom: 8vh; }
-  .stepper { left: 22px; gap: 14px; }
-  .two, .facts { grid-template-columns: 1fr; gap: 26px; }
-  #build { height: 460vh; }
+figure { margin: clamp(30px, 5vh, 64px) 0 0; }
+
+figure img { display: block; width: 100%; height: auto; }
+
+figcaption {
+  margin-top: 12px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--soft);
+}
+
+figcaption b { color: var(--ink); font-weight: 400; }
+
+.bleed { width: 100vw; margin-left: calc(50% - 50vw); }
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+  gap: clamp(12px, 1.4vw, 22px);
+  margin-top: clamp(28px, 4vh, 52px);
+}
+
+.steps figure { margin: 0; }
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: clamp(24px, 3vw, 56px);
+  margin-top: clamp(34px, 5vh, 64px);
+}
+
+.facts div { border-top: 1px solid var(--rule); padding-top: 18px; }
+.facts b { display: block; font-size: clamp(27px, 3.1vw, 44px); font-weight: 400;
+           letter-spacing: -0.02em; margin-bottom: 8px; }
+.facts p { margin: 0; font-size: clamp(13px, 0.95vw, 16px); color: var(--soft); max-width: 34ch; }
+
+/* The builder is the page, not a door to another one. */
+.builder {
+  position: relative;
+  margin-top: clamp(28px, 4vh, 52px);
+  border: 1px solid var(--rule);
+  overflow: hidden;
+  background: var(--ink);
+  height: clamp(520px, 78vh, 900px);
+}
+
+.builder iframe { display: block; width: 100%; height: 100%; border: 0; }
+
+.foot {
+  padding: clamp(40px, 6vh, 70px) 0 clamp(60px, 9vh, 110px);
+  border-top: 1px solid var(--rule);
+  color: var(--soft);
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.9;
+}
+
+/* ---------------- narrow ---------------- */
+
+@media (max-width: 860px) {
+  #build { height: 470vh; }
+  .frame {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    align-items: start;
+    padding-top: clamp(58px, 11vh, 100px);
+  }
+  .copy { grid-column: 1; grid-row: 1; }
+  .art { grid-column: 1; grid-row: 2; }
+  .copy h1 { font-size: clamp(30px, 8.6cqi, 54px); }
+  .copy .sub { display: none; }
+  .phase { margin-top: 1em; min-height: 5.4em; }
+  /* On one column the object has the full width, so the planting needs less
+     spill to stay in frame. */
+  .garden { left: -35%; width: 170%; }
+  .builder { height: 82vh; }
 }
 </style>
 
 <section id="build">
   <div class="stage" id="stage">
-    <svg id="garden" viewBox="0 0 1000 620" preserveAspectRatio="xMidYMax slice" aria-hidden="true"></svg>
-    <div class="model" id="model">
-      <img src="$BH1" alt="" data-n="1" />
-      <img src="$BH2" alt="" data-n="2" />
-      <img src="$BH3" alt="" data-n="3" />
-      <img src="$BH4" alt="A Bee Home of four storeys on legs, drawn as a hidden-line axonometric" data-n="4" />
+    <svg class="flight" id="flight" viewBox="0 0 100 100" aria-hidden="true"></svg>
+    <p class="mark">Open source &#183; CC BY 4.0</p>
+    <div class="frame">
+      <div class="copy" id="copy">
+        <h1>Bee Home is an open invitation to give bees the home they deserve.</h1>
+        <p class="sub">Design it here. Download the files for free. Have it made near you.</p>
+        <div class="phase" id="phase">
+          <span>Storey by storey. Every combination the builder offers is one that can
+            actually be cut and stacked.</span>
+          <span>Plant native wildflowers within about 300 metres and your chances go up
+            sharply.</span>
+          <span>Every female solitary bee is a queen, and every queen gets 20 to 30
+            offspring.</span>
+        </div>
+      </div>
+      <div class="art">
+        <div class="ground" id="ground">
+          <svg class="garden" id="garden" viewBox="0 0 1536 1081"
+               preserveAspectRatio="xMidYMax slice" aria-hidden="true"></svg>
+          <div class="model" id="model">
+            <img src="../plates/bh-1.png" alt="" data-n="1" />
+            <img src="../plates/bh-2.png" alt="" data-n="2" />
+            <img src="../plates/bh-3.png" alt="" data-n="3" />
+            <img src="../plates/bh-4.png" data-n="4"
+                 alt="A four-storey Bee Home on legs, drawn as a hidden-line axonometric" />
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="copy" id="copy">
-      <p class="label">Open source &#183; CC BY 4.0</p>
-      <h1>Bee Home is an open invitation to give bees the home they deserve.</h1>
-      <p>Design one in a few minutes. Download the files for free. Have it made near you.</p>
-      <span class="label cue" id="cue">Scroll</span>
-    </div>
-    <div class="stepper" id="stepper">
-      <span>Step 1 &nbsp;Design</span>
-      <span>Step 2 &nbsp;Download</span>
-      <span>Step 3 &nbsp;Fabricate</span>
-    </div>
+    <p class="label cue" id="cue">Scroll</p>
   </div>
 </section>
 
 <div class="pad">
-  <section class="band" style="border-top:0">
+  <section class="band" id="design">
     <p class="label">Design</p>
     <h2 class="lede">Design your very own Bee Home in a few minutes.</h2>
     <div class="two">
-      <p>Just select size, visual style and desired placement &#8212; a rooftop, a balcony or a
-        garden &#8212; or play around with the shuffle button. Your design will instantly update.</p>
-      <p>Every combination is one that can actually be cut and assembled. Storeys that would not
-        physically stack are simply unavailable.</p>
+      <p>Select size, visual style and desired placement &#8212; a rooftop, a balcony or a
+        garden. Your design updates instantly, and every storey you can add is one that
+        physically stacks. The ones that do not are simply unavailable.</p>
+      <p>Each storey can be a different timber. The identifier under the model is the whole
+        design: send it to someone and they get exactly what you made.</p>
     </div>
-    <div class="actions">
-      <a class="pill solid" href="#">Design your Bee Home</a>
-      <a class="pill" href="#">Explore the community</a>
+    <div class="builder">
+      <iframe src="../../viewer/" title="Bee Home builder" loading="lazy"></iframe>
     </div>
   </section>
 
@@ -171,9 +352,17 @@ body {
       <p>We'll help you find a local space, and they'll help you create your Bee Home. Most
         makerspaces have computer-controlled tools, including a CNC milling machine, which is
         what you'll need to fabricate it.</p>
-      <p>A makerspace is an open workshop with access to a variety of fabrication tools. Think of
-        a gym, but for makers, where you either have a membership or pay per visit.</p>
+      <p>A makerspace is an open workshop with access to a variety of fabrication tools. Think
+        of a gym, but for makers, where you either have a membership or pay per visit. You
+        also get a two-page spec sheet: cut list, elevations and the assembly order.</p>
     </div>
+    <div class="steps">
+      <figure><img src="../renders/web/assembly-1.jpg" alt="One storey resting on its base" /></figure>
+      <figure><img src="../renders/web/assembly-2.jpg" alt="Two storeys stacked" /></figure>
+      <figure><img src="../renders/web/assembly-3.jpg" alt="Three storeys stacked" /></figure>
+      <figure><img src="../renders/web/assembly-4.jpg" alt="The finished four-storey stack" /></figure>
+    </div>
+    <p class="label" style="margin-top:14px">Assembly needs your hands, a drill and two screws</p>
   </section>
 
   <section class="band">
@@ -182,12 +371,16 @@ body {
     <div class="two">
       <p>Place it anywhere, as long as it's outside. Make sure your Bee Home is protected from
         strong winds and that the holes remain horizontal at all times.</p>
-      <p>Assembling it requires just your hands and a few minutes of your time. To mount it on a
-        wall, simply use a drill and two screws.</p>
+      <p>Assembling it requires just your hands and a few minutes of your time. To mount it on
+        a wall, simply use a drill and two screws.</p>
     </div>
+    <figure class="bleed">
+      <img src="../renders/web/hero.jpg" alt="A Bee Home standing on legs in low afternoon light" />
+    </figure>
+    <p class="label" style="margin-top:14px">Rendered from the project's own geometry</p>
     <div class="facts">
       <div><b>120&#215;</b><p>A single solitary bee could provide as much pollination as 120 honeybees.</p></div>
-      <div><b>5&#8211;30 yrs</b><p>How long a Bee Home lasts, depending on the wood, the location, and how well you clean and maintain it.</p></div>
+      <div><b>5&#8211;30 yrs</b><p>How long a Bee Home lasts, depending on the wood, the location, and how well you maintain it.</p></div>
       <div><b>20&#8211;30</b><p>Offspring per queen &#8212; and every female solitary bee is a queen.</p></div>
     </div>
   </section>
@@ -196,122 +389,487 @@ body {
     <p class="label">Plant for them</p>
     <h2 class="lede">Since bees are free-living beings, we cannot guarantee their arrival.</h2>
     <div class="two">
-      <p>Nonetheless, planting native wildflowers will definitely increase your chances. Tell us
-        roughly where you are and we'll name the cavity-nesting bees recorded nearby, what they
-        pollinate locally, and which seed to sow.</p>
-      <p>Solitary bees are friendly &#8212; they don't produce honey and therefore have nothing to
+      <p>Nonetheless, planting native wildflowers will definitely increase your chances. Tell
+        us roughly where you are and we'll name the cavity-nesting bees recorded nearby, what
+        they pollinate locally, and which seed to sow.</p>
+      <p>Solitary bees are friendly. They don't produce honey and therefore have nothing to
         protect. They only sting if trod on, and are safe to keep around kids and pets.</p>
     </div>
+    <figure>
+      <img src="../renders/web/detail.jpg" alt="Close view of the nesting cavities in one storey" />
+      <figcaption>Cavity face, 4 to 10 mm bores</figcaption>
+    </figure>
   </section>
 
   <p class="foot">
     Concept pass. The Bee Home is rendered from the project's own geometry &#8212;
-    <code>BEEHOME GEOMETRIES.3dm</code> &#8212; not illustrated. Copy adapted from the original
-    beehome.design, recovered from the Wayback Machine.<br />
+    <code>BEEHOME GEOMETRIES.3dm</code> &#8212; not illustrated. Copy adapted from the
+    original beehome.design, recovered from the Wayback Machine. Plants are grown by a
+    bracketed L-system after Prusinkiewicz &amp; Lindenmayer,
+    <i>The Algorithmic Beauty of Plants</i>.<br />
     CC BY 4.0 &#8212; SPACE10, Bakken &amp; B&aelig;ck, Tanita Klein.
   </p>
 </div>
 
 <script>
 (function () {
-  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var svg = document.getElementById('garden');
   var NS = 'http://www.w3.org/2000/svg';
-  var section = document.getElementById('build');
-  var frames = [].slice.call(document.querySelectorAll('.model img'));
-  var copy = document.getElementById('copy');
-  var cue = document.getElementById('cue');
-  var steps = document.querySelectorAll('#stepper span');
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  function node(cls, dAttr) {
+  var section = document.getElementById('build');
+  var stage = document.getElementById('stage');
+  var garden = document.getElementById('garden');
+  var flightSvg = document.getElementById('flight');
+  var groundEl = document.getElementById('ground');
+  var copyEl = document.getElementById('copy');
+  var frames = [].slice.call(document.querySelectorAll('.model img'));
+  var phases = [].slice.call(document.querySelectorAll('#phase span'));
+  var cue = document.getElementById('cue');
+
+  /* Deterministic noise: the garden must look the same on every load and on
+     every machine, otherwise a screenshot is not a review of anything. */
+  function rng(seed) {
+    return function () {
+      seed = seed + 0x6d2b79f5 | 0;
+      var t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+
+  /* ---------------------------------------------------------------
+     Plants are grown, not drawn.
+
+     A bracketed L-system in the manner of Prusinkiewicz & Lindenmayer,
+     "The Algorithmic Beauty of Plants" (free at algorithmicbotany.org/papers;
+     the well-known MIT JS implementation is nylki/lindenmayer). Three things
+     carry it from "fractal" to "plant":
+
+       - tropism. Each segment is pulled back towards vertical, so stems arch
+         and recover the way a real stalk does under its own weight.
+       - taper. Segment length decays with depth.
+       - phyllotaxis. Florets step by the golden angle, 137.5 degrees, which
+         is what packs a real flower head evenly without collisions.
+
+     And one thing carries it from "plant" to "plate": the turtle records
+     points, not strokes, and each run is laid down afterwards as a single
+     Catmull-Rom curve. An engraver's line is decided once, not per step.
+     --------------------------------------------------------------- */
+
+  var GOLDEN = 137.507764;
+
+  var SPECIES = {
+    /* A compound umbel, flat-topped: wild carrot, yarrow. */
+    umbel: {
+      axiom: 'S',
+      rules: { S: ['FFF[L]FFF[L]FFFU', 'FF[L]FFFF[L]FFFU', 'FFF[L]FFFFFU'] },
+      seg: 30, angle: 12, trop: 0.34, head: 'umbel'
+    },
+    /* A daisy-form head on a branching stem: knapweed, ox-eye. */
+    disc: {
+      axiom: 'S',
+      rules: { S: ['FF[++FFF[L]D]F[L]FFFFFD', 'FFF[--FFF[L]D]F[L]FFFFD'] },
+      seg: 26, angle: 24, trop: 0.26, head: 'disc'
+    },
+    /* A vertical raceme, buds alternating up the stalk: viper's bugloss. */
+    spike: {
+      axiom: 'S',
+      rules: { S: ['FFF[L]F[L]FBFBFBFBFBFBT', 'FFFF[L]F[L]BFBFBFBFBFBT'] },
+      seg: 22, angle: 8, trop: 0.5, head: 'bell'
+    }
+  };
+
+  function expand(spec, rand) {
+    var out = '';
+    for (var j = 0; j < spec.axiom.length; j++) {
+      var rule = spec.rules[spec.axiom[j]];
+      out += !rule ? spec.axiom[j]
+        : typeof rule === 'string' ? rule : rule[Math.floor(rand() * rule.length)];
+    }
+    return out;
+  }
+
+  function fmt(n) { return Math.round(n * 10) / 10; }
+
+  /* One pass of Catmull-Rom over a recorded run of turtle points. */
+  function spline(pts) {
+    var d = 'M' + fmt(pts[0][0]) + ' ' + fmt(pts[0][1]);
+    if (pts.length === 2) return d + 'L' + fmt(pts[1][0]) + ' ' + fmt(pts[1][1]);
+    for (var i = 0; i < pts.length - 1; i++) {
+      var p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
+      d += 'C' + fmt(p1[0] + (p2[0] - p0[0]) / 6) + ' ' + fmt(p1[1] + (p2[1] - p0[1]) / 6)
+        + ' ' + fmt(p2[0] - (p3[0] - p1[0]) / 6) + ' ' + fmt(p2[1] - (p3[1] - p1[1]) / 6)
+        + ' ' + fmt(p2[0]) + ' ' + fmt(p2[1]);
+    }
+    return d;
+  }
+
+  /* Turtle interpretation. Paths come back grouped by role so a scroll can
+     reveal a whole plant at once and it still reads as a plant. */
+  function grow(spec, x, y, scale, rand) {
+    var stems = [], leaves = [], heads = [];
+    var st = { x: x, y: y, a: -90 + (rand() - 0.5) * 12, len: spec.seg * scale,
+      lean: (rand() - 0.5) * spec.angle * 1.2 };
+    var stack = [], side = rand() < 0.5 ? 1 : -1;
+    var pts = [[x, y]];
+
+    function flush() { if (pts.length > 1) stems.push(spline(pts)); pts = []; }
+
+    var word = expand(spec, rand);
+    for (var i = 0; i < word.length; i++) {
+      var c = word[i];
+      if (c === 'F') {
+        // Tropism first, then the stem's one deliberate lean, and only
+        // a whisper of noise. The wobble was never the botany.
+        st.a += (-90 - st.a) * spec.trop * 0.5 + st.lean * 0.3
+          + (rand() - 0.5) * spec.angle * 0.3;
+        var r = st.a * Math.PI / 180;
+        st.x += Math.cos(r) * st.len;
+        st.y += Math.sin(r) * st.len;
+        pts.push([st.x, st.y]);
+        st.len *= 0.95;
+      } else if (c === '+') {
+        st.a -= spec.angle; st.lean = -Math.abs(st.lean);
+      } else if (c === '-') {
+        st.a += spec.angle; st.lean = Math.abs(st.lean);
+      } else if (c === '[') {
+        // The parent stalk keeps its run open across the branch, so a
+        // half-revealed plant is one rising line, not a row of dashes.
+        stack.push({ x: st.x, y: st.y, a: st.a, len: st.len, lean: st.lean, pts: pts });
+        pts = [[st.x, st.y]];
+      } else if (c === ']') {
+        flush();
+        st = stack.pop();
+        pts = st.pts;
+      } else if (c === 'L') {
+        side = -side; // leaves alternate, as they do on the stalk
+        leaves.push(leaf(st.x, st.y, st.a + side * (52 + rand() * 16),
+          spec.seg * scale * (1.2 + rand() * 0.5)));
+      } else if (c === 'B') {
+        side = -side; // florets nod out and down, alternating up the stalk
+        heads.push(bell(st.x, st.y, st.a + side * (105 + rand() * 20),
+          13 * scale * (0.85 + rand() * 0.3)));
+      } else if (c === 'T') {
+        heads.push(bell(st.x, st.y, st.a, 11 * scale, true));
+      } else if (c === 'U' || c === 'D') {
+        flush();
+        heads.push.apply(heads, spec.head === 'umbel'
+          ? umbel(st.x, st.y, st.a, 38 * scale, rand)
+          : disc(st.x, st.y, st.a, 13 * scale, rand));
+        pts = [[st.x, st.y]];
+      }
+    }
+    flush();
+    return { stems: stems, leaves: leaves, heads: heads };
+  }
+
+  /* A lanceolate leaf on a drooping spine, midrib drawn in. The midrib
+     is what makes it read as a plate and not a doodle. */
+  function leaf(x, y, deg, len) {
+    var r = deg * Math.PI / 180;
+    var ux = Math.cos(r), uy = Math.sin(r);
+    var px = -uy, py = ux;
+    if (py < 0) { px = -px; py = -py; } // the spine sags towards the ground
+    var sag = len * 0.22;
+    var tx = x + ux * len + px * sag, ty = y + uy * len + py * sag;
+    var mx = x + ux * len * 0.5 + px * sag * 0.3, my = y + uy * len * 0.5 + py * sag * 0.3;
+    var cx = tx - x, cy = ty - y, cl = Math.sqrt(cx * cx + cy * cy) || 1;
+    var wx = -cy / cl * len * 0.3, wy = cx / cl * len * 0.3;
+    return 'M' + fmt(x) + ' ' + fmt(y)
+      + 'Q' + fmt(mx + wx) + ' ' + fmt(my + wy) + ' ' + fmt(tx) + ' ' + fmt(ty)
+      + 'Q' + fmt(mx - wx) + ' ' + fmt(my - wy) + ' ' + fmt(x) + ' ' + fmt(y)
+      + 'M' + fmt(x) + ' ' + fmt(y)
+      + 'Q' + fmt(mx) + ' ' + fmt(my) + ' ' + fmt(tx) + ' ' + fmt(ty);
+  }
+
+  function dot(x, y, r) {
+    return 'M' + fmt(x - r) + ' ' + fmt(y) + 'a' + r + ' ' + r + ' 0 1 0 ' + (r * 2)
+      + ' 0a' + r + ' ' + r + ' 0 1 0 ' + (-r * 2) + ' 0';
+  }
+
+  /* A compound umbel: rays splay from one node into a flat top, and each
+     ray carries its own small umbellet of pedicels and florets. */
+  function umbel(x, y, deg, len, rand) {
+    var out = [], n = 7;
+    // two thin bracts under the node
+    var bl = len * 0.36;
+    out.push('M' + fmt(x) + ' ' + fmt(y)
+      + 'Q' + fmt(x - bl * 0.75) + ' ' + fmt(y - bl * 0.1)
+      + ' ' + fmt(x - bl) + ' ' + fmt(y + bl * 0.4));
+    out.push('M' + fmt(x) + ' ' + fmt(y)
+      + 'Q' + fmt(x + bl * 0.75) + ' ' + fmt(y - bl * 0.1)
+      + ' ' + fmt(x + bl) + ' ' + fmt(y + bl * 0.4));
+    for (var i = 0; i < n; i++) {
+      var t = i / (n - 1) * 2 - 1; // -1..1 across the fan
+      var l = len * (0.88 - 0.16 * t * t) * (0.95 + rand() * 0.1);
+      var tx = x + t * len * 0.8, ty = y - l;
+      out.push('M' + fmt(x) + ' ' + fmt(y)
+        + 'Q' + fmt(x + t * len * 0.14) + ' ' + fmt(y - l * 0.6)
+        + ' ' + fmt(tx) + ' ' + fmt(ty));
+      for (var k = -1; k <= 1; k++) {
+        var pa = (-90 + t * 32 + k * 30) * Math.PI / 180;
+        var pl = len * (0.16 + rand() * 0.05);
+        var ex = tx + Math.cos(pa) * pl, ey = ty + Math.sin(pa) * pl;
+        out.push('M' + fmt(tx) + ' ' + fmt(ty)
+          + 'L' + fmt(ex) + ' ' + fmt(ey) + dot(ex, ey, 1.3));
+      }
+    }
+    return out;
+  }
+
+  /* Ray petals around an open ring, rounded at the tip and pinched at
+     the base; a few florets inside step by the golden angle (Vogel). */
+  function disc(x, y, deg, r0, rand) {
+    var out = [], petals = 12;
+    var ring = r0 * 0.52;
+    out.push(dot(x, y, ring));
+    for (var k = 1; k <= 7; k++) {
+      var rr = ring * 0.6 * Math.sqrt(k / 7);
+      var th = k * GOLDEN * Math.PI / 180;
+      out.push(dot(x + Math.cos(th) * rr, y + Math.sin(th) * rr, 0.9));
+    }
+    var off = rand() * 360 / petals;
+    for (var i = 0; i < petals; i++) {
+      var a = (i * 360 / petals + off) * Math.PI / 180;
+      var ux = Math.cos(a), uy = Math.sin(a);
+      var px = -uy, py = ux;
+      var l = r0 * (1.9 + rand() * 0.25);
+      var w = r0 * 0.24;
+      var bx = x + ux * (ring + r0 * 0.06), by = y + uy * (ring + r0 * 0.06);
+      var tx = x + ux * l, ty = y + uy * l;
+      var mx = x + ux * l * 0.62, my = y + uy * l * 0.62;
+      out.push('M' + fmt(bx) + ' ' + fmt(by)
+        + 'C' + fmt(mx + px * w) + ' ' + fmt(my + py * w)
+        + ' ' + fmt(tx + px * w * 0.8) + ' ' + fmt(ty + py * w * 0.8)
+        + ' ' + fmt(tx) + ' ' + fmt(ty)
+        + 'C' + fmt(tx - px * w * 0.8) + ' ' + fmt(ty - py * w * 0.8)
+        + ' ' + fmt(mx - px * w) + ' ' + fmt(my - py * w)
+        + ' ' + fmt(bx) + ' ' + fmt(by));
+    }
+    return out;
+  }
+
+  /* A floret off the raceme. Open form: a nodding bell, mouth flared,
+     stamens just showing. Closed form (bud=true): a slim pointed bud. */
+  function bell(x, y, deg, len, bud) {
+    var r = deg * Math.PI / 180;
+    var ux = Math.cos(r), uy = Math.sin(r);
+    var px = -uy, py = ux;
+    var tx = x + ux * len, ty = y + uy * len;
+    var mx = x + ux * len * 0.45, my = y + uy * len * 0.45;
+    if (bud) {
+      var w = len * 0.3;
+      return 'M' + fmt(x) + ' ' + fmt(y)
+        + 'Q' + fmt(mx + px * w) + ' ' + fmt(my + py * w) + ' ' + fmt(tx) + ' ' + fmt(ty)
+        + 'Q' + fmt(mx - px * w) + ' ' + fmt(my - py * w) + ' ' + fmt(x) + ' ' + fmt(y);
+    }
+    var w1 = len * 0.16, w2 = len * 0.34;
+    return 'M' + fmt(x) + ' ' + fmt(y)
+      + 'Q' + fmt(mx + px * w1) + ' ' + fmt(my + py * w1)
+      + ' ' + fmt(tx + px * w2) + ' ' + fmt(ty + py * w2)
+      + 'Q' + fmt(tx + ux * len * 0.14) + ' ' + fmt(ty + uy * len * 0.14)
+      + ' ' + fmt(tx - px * w2) + ' ' + fmt(ty - py * w2)
+      + 'Q' + fmt(mx - px * w1) + ' ' + fmt(my - py * w1)
+      + ' ' + fmt(x) + ' ' + fmt(y)
+      + 'M' + fmt(tx) + ' ' + fmt(ty)
+      + 'L' + fmt(tx + ux * len * 0.42) + ' ' + fmt(ty + uy * len * 0.42);
+  }
+
+  function path(parent, cls, d) {
     var el = document.createElementNS(NS, 'path');
     el.setAttribute('class', cls);
-    el.setAttribute('d', dAttr);
-    svg.appendChild(el);
+    el.setAttribute('d', d);
+    parent.appendChild(el);
     return el;
   }
 
-  // The garden: each plant is one group revealed together, so a half-drawn
-  // state still reads as a plant rather than scattered marks.
-  var GROUND = 600;
+  /* ---------------- build the garden ---------------- */
+
+  var GROUND = 1081;   // the foot of the plate: plants stand where the legs do
   var plants = [];
-  // Grouped around the object rather than scattered across the copy, and kept
-  // to stems and leaves — drawn flower heads read as scribble at this scale.
-  [648, 690, 726, 900, 938, 966].forEach(function (px, g) {
-    var lean = (g % 2 ? 1 : -1) * (11 + (g % 3) * 8);
-    var hgt = 104 + (g % 4) * 52;
-    var group = [node('ln', 'M' + px + ' ' + GROUND +
-      'C' + (px + lean * 0.2) + ' ' + (GROUND - hgt * 0.5) +
-      ',' + (px + lean * 1.6) + ' ' + (GROUND - hgt * 0.74) + ',' + (px + lean) + ' ' + (GROUND - hgt))];
-    [0.36, 0.62].forEach(function (t, k) {
-      var dir = (g + k) % 2 ? 1 : -1;
-      var lx = px + lean * t * 0.8, ly = GROUND - hgt * t;
-      group.push(node('ln leaf', 'M' + lx + ' ' + ly +
-        'q' + (19 * dir) + ' -14 ' + (29 * dir) + ' 2q' + (-14 * dir) + ' 10 ' + (-29 * dir) + ' -2Z'));
-    });
+  var rand = rng(20200520); // World Bee Day, the day Bee Home launched
+
+  // The Bee Home occupies x 448 to 1088 of this box. Planting is grouped in
+  // front of it and to either side rather than sprinkled evenly, so the
+  // object stays the subject and the flowers read as its setting.
+  [
+    ['spike', 186, 0.94], ['disc', 348, 1.1], ['umbel', 542, 1.2],
+    ['spike', 712, 0.84], ['umbel', 1034, 1.14], ['disc', 1208, 1.0],
+    ['spike', 1362, 0.79], ['umbel', 1470, 0.7]
+  ].forEach(function (p) {
+    var plant = grow(SPECIES[p[0]], p[1], GROUND, p[2], rand);
+    var group = [];
+    plant.stems.forEach(function (d) { group.push(path(garden, 'ln stem', d)); });
+    plant.leaves.forEach(function (d) { group.push(path(garden, 'ln leaf', d)); });
+    plant.heads.forEach(function (d) { group.push(path(garden, 'ln head', d)); });
     plants.push(group);
   });
 
-  // Flight lines. The last two arrive in the contrast colour and end at the
-  // cavity face of the model.
-  var flights = [];
-  for (var f = 0; f < 5; f++) {
-    var arrive = f >= 3;
-    var sy = 80 + f * 96;
-    var path = 'M-70 ' + sy +
-      'C' + (200 + (f % 3) * 80) + ' ' + (sy - 130 + (f % 4) * 70) +
-      ',' + (470 + (f % 3) * 50) + ' ' + (70 + (f % 5) * 80) +
-      ',' + (arrive ? 730 : 640 + (f % 3) * 40) + ' ' + (arrive ? 330 + f * 26 : 250 + f * 44);
-    flights.push({ el: node('ln ' + (arrive ? 'arrive' : 'flight'), path), arrive: arrive });
+  // A few blades of grass settle everything onto one ground line.
+  for (var g = 0; g < 32; g++) {
+    var gx = 60 + rand() * 1420;
+    var gh = 32 + rand() * 66;
+    var gl = (rand() - 0.5) * 52;
+    plants[g % plants.length].push(path(garden, 'ln grass',
+      'M' + fmt(gx) + ' ' + GROUND + 'q' + fmt(gl * 0.3) + ' ' + fmt(-gh * 0.6)
+      + ' ' + fmt(gl) + ' ' + fmt(-gh)));
   }
 
-  var strokes = plants.reduce(function (a, b) { return a.concat(b); }, [])
-    .concat(flights.map(function (f) { return f.el; }));
-  strokes.forEach(function (el) {
-    var len = el.getTotalLength();
-    el.style.strokeDasharray = len;
-    el.style.strokeDashoffset = len;
-    el._len = len;
-  });
+  /* ---------------- flight lines ---------------- */
 
-  function draw(el, k) { el.style.strokeDashoffset = el._len * (1 - Math.max(0, Math.min(1, k))); }
+  /* Drawn in CSS pixels over the whole stage and aimed at the model's
+     measured position, so they land on the object at any window size instead
+     of drifting off it. The pixel box matters: a dashed reveal inside a
+     non-uniformly stretched viewBox computes its dash length in one space and
+     paints it in another, which shatters each sweep into fragments. */
+  var flights = [];
+
+  function measure(els) {
+    els.forEach(function (el) {
+      var len = el.getTotalLength();
+      el._len = len;
+      el.style.strokeDasharray = len;
+      el.style.strokeDashoffset = reduce ? 0 : len;
+    });
+  }
+
+  function buildFlights() {
+    while (flightSvg.firstChild) flightSvg.removeChild(flightSvg.firstChild);
+    flights = [];
+
+    var s = stage.getBoundingClientRect();
+    var m = groundEl.getBoundingClientRect();
+    if (!s.width || !s.height || !m.width) return;
+
+    var W = Math.round(s.width);
+    var H = Math.round(s.height);
+    flightSvg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+
+    // Aim at the near edge of the cavity face, not the middle of the plate:
+    // the model's faces are filled in the page colour and would swallow the
+    // last third of any line that ended behind them.
+    var tx = m.left + m.width * 0.06 - s.left;
+    var ty = m.top + m.height * 0.2 - s.top;
+
+    // Sweeps run above the headline or below it and only turn towards the
+    // object once they are clear of the text, so a line never cuts a word in
+    // half on the way past.
+    var c = copyEl.getBoundingClientRect();
+
+    // On one column the headline sits above the object, so there is no free
+    // band to its left to fly through and every line uses the space below it.
+    var stacked = c.right > m.left;
+    var lane = [Math.max(H * 0.05, c.top - s.top - H * 0.06), c.bottom - s.top + H * 0.04];
+    var clear = stacked ? W * 0.3 : Math.max(c.right - s.left + W * 0.03, W * 0.4);
+    var r2 = rng(7);
+
+    // Four bees pass through and carry on off the far edge; two find the Bee
+    // Home and stop at its cavity face. Each line is authored rather than
+    // rolled, and its vertical positions are fractions of the free band above
+    // or below the headline -- so the drawing keeps its shape as the text
+    // reflows, and nothing ever runs through a word.
+    //
+    // Every y is a fraction of the free band, which is what keeps a line off
+    // the text however the headline reflows. Handles are pushed to the far
+    // ends of the band so each sweep has a real belly rather than ruling a
+    // flat line across the page, and the three that pass through are given
+    // deliberately different shapes so they never read as parallel contours.
+    //
+    //     band, entry, handle 1, handle 2, exit  (null exit = arrives)
+    var LINES = [
+      ['hi', 0.12, 0.92, 0.06, 0.66],
+      ['hi', 0.74, 0.16, 0.98, 0.34],
+      ['lo', 0.26, 0.9, 0.12, 0.72],
+      ['hi', 0.05, 0.42, 0.04, null],
+      ['hi', 0.94, 0.28, 0.46, null],
+    ];
+
+    // Stacked, the object fills most of the width and there is far less room
+    // for lines to move in. Three sweeps read as intent; six read as a
+    // scribble, so the passing bees are thinned out.
+    var arrivals = 0;
+    LINES.filter(function (line, i) { return !stacked || (i !== 1 && i !== 4); })
+      .forEach(function (line) {
+        var come = line[4] === null;
+        var band = function (f) {
+          return line[0] === 'hi' && !stacked ? lane[0] * f : lane[1] + (H - lane[1]) * f;
+        };
+        // Stacked, the only clear run at the object is up the left margin.
+        var d = come && stacked
+          ? 'M' + fmt(-W * 0.07) + ' ' + fmt(H * 0.98)
+            + 'C' + fmt(W * 0.1) + ' ' + fmt(H * 0.86)
+            + ',' + fmt(-W * 0.02) + ' ' + fmt(ty + H * 0.14)
+            + ',' + fmt(tx) + ' ' + fmt(ty)
+          : 'M' + fmt(-W * 0.07) + ' ' + fmt(band(line[1]))
+            + 'C' + fmt(W * (0.1 + r2() * 0.14)) + ' ' + fmt(band(line[2]))
+            + ',' + fmt(clear + W * r2() * 0.14) + ' ' + fmt(band(line[3]))
+            + ',' + fmt(come ? tx : W * 1.07) + ' '
+            + fmt(come ? ty + (arrivals++) * H * 0.15 : band(line[4]));
+        flights.push({ come: come, el: path(flightSvg, 'ln ' + (come ? 'come' : 'fly'), d) });
+      });
+    measure(flights.map(function (f) { return f.el; }));
+  }
+
+  measure(plants.reduce(function (a, b) { return a.concat(b); }, []));
+
+  function draw(el, k) {
+    el.style.strokeDashoffset = el._len * (1 - Math.max(0, Math.min(1, k)));
+  }
+
   function seg(p, a, b) { return Math.max(0, Math.min(1, (p - a) / (b - a))); }
+
+  /* ---------------- scroll ----------------
+
+     Order matters: the Bee Home stacks itself first, the garden comes up
+     around it, and only then do the bees find it. */
+
+  var STACK = [0.05, 0.42];
+  var GARDEN = [0.40, 0.68];
+  var FLY = [0.64, 0.97];
 
   function frame() {
     var span = section.offsetHeight - innerHeight;
-    var p = Math.max(0, Math.min(1, -section.getBoundingClientRect().top / span));
+    var p = span > 0 ? -section.getBoundingClientRect().top / span : 0;
+    p = Math.max(0, Math.min(1, p));
 
-    flights.forEach(function (f, i) {
-      if (f.arrive) return;
-      draw(f.el, seg(p, 0.04 + i * 0.04, 0.30 + i * 0.04));
+    var built = Math.max(1, Math.min(4, Math.ceil(seg(p, STACK[0], STACK[1]) * 4) || 1));
+    frames.forEach(function (img) {
+      img.style.opacity = Number(img.dataset.n) === built ? '1' : '0';
     });
-
-    // one storey per step, in place
-    var built = Math.min(4, Math.max(1, Math.ceil(seg(p, 0.30, 0.68) * 4) || 1));
-    frames.forEach(function (img) { img.style.opacity = Number(img.dataset.n) === built ? '1' : '0'; });
 
     plants.forEach(function (group, i) {
-      var t0 = 0.60 + (i % 4) * 0.035;
-      group.forEach(function (el) { draw(el, seg(p, t0, t0 + 0.14)); });
+      var t0 = GARDEN[0] + (i % 4) * 0.028;
+      var k = seg(p, t0, t0 + 0.16);
+      group.forEach(function (el) { draw(el, k); });
     });
 
     flights.forEach(function (f, i) {
-      if (!f.arrive) return;
-      draw(f.el, seg(p, 0.80 + (i - 3) * 0.05, 0.95 + (i - 3) * 0.05));
+      var t0 = FLY[0] + i * 0.028;
+      draw(f.el, seg(p, t0, t0 + 0.17));
     });
 
-    copy.style.opacity = String(1 - seg(p, 0.62, 0.9) * 0.3);
-    cue.style.opacity = String(1 - seg(p, 0.02, 0.12));
-    var st = p < 0.45 ? 0 : p < 0.75 ? 1 : 2;
-    steps.forEach(function (el, i) { el.classList.toggle('on', i === st); });
+    cue.style.opacity = String(1 - seg(p, 0.01, 0.09));
+    var on = p < GARDEN[0] ? 0 : p < FLY[0] ? 1 : 2;
+    phases.forEach(function (el, i) { el.classList.toggle('on', i === on); });
   }
 
+  var ticking = false;
+  function onScroll() {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(function () { ticking = false; frame(); });
+  }
+
+  buildFlights();
+
   if (reduce) {
-    strokes.forEach(function (el) { draw(el, 1); });
+    plants.forEach(function (group) { group.forEach(function (el) { draw(el, 1); }); });
+    flights.forEach(function (f) { draw(f.el, 1); });
     frames.forEach(function (img) { img.style.opacity = img.dataset.n === '4' ? '1' : '0'; });
+    phases[0].classList.add('on');
   } else {
-    addEventListener('scroll', frame, { passive: true });
-    addEventListener('resize', frame);
+    addEventListener('scroll', onScroll, { passive: true });
+    addEventListener('resize', function () { buildFlights(); frame(); });
     frame();
   }
 })();

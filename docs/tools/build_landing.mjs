@@ -41,9 +41,12 @@ const source = fs.readFileSync(builder, 'utf8');
 if (source.includes(SENTINEL)) throw new Error('sentinel collides with the builder source');
 const payload = source.split('</script').join(SENTINEL);
 
+// Replaced through a function, not a template: the bundle is full of `$1`
+// and `$&` from minified regex replacements, and a string replacement would
+// expand them against this match and quietly corrupt the module.
 html = html.replace(
   /<iframe src="\.\.\/\.\.\/viewer\/"([^>]*)><\/iframe>/,
-  `<iframe id="builderFrame"$1></iframe>
+  (whole, attrs) => `<iframe id="builderFrame"${attrs}></iframe>
       <script type="text/plain" id="builderSrc">${payload}</script>
       <script>
         // Mount on approach: booting a WebGL scene the moment the page loads
@@ -64,6 +67,7 @@ html = html.replace(
         })();
       </script>`,
 );
+if (html.includes('src="../../viewer/"')) throw new Error('builder iframe was not replaced');
 
 fs.writeFileSync(out, html);
 console.log(out, (fs.statSync(out).size / 1024 / 1024).toFixed(2), 'MB');
