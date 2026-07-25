@@ -3,12 +3,16 @@ import { Stage } from './scene.js';
 import {
   LETTERS, POSITIONS, allowedNext, canPlace, exportString, formatId, parseId, validateStack,
 } from './design.js';
+import { DEFAULT_WOOD, WOODS, finishSpec, woodByKey } from './woods.js';
 
 const state = {
   position: 'standing',
   heightMm: 400,
   stack: ['A', 'P', 'P', 'M'],
+  woods: ['birch', 'birch', 'walnut', 'birch'],
   variant: 'a',
+  mode: 'timber',
+  selected: -1,
 };
 
 let index = null;
@@ -27,6 +31,17 @@ async function boot() {
   await rebuild();
   stage.lookFrom();
   document.body.classList.add('ready');
+}
+
+/** Species for storey `i`, falling back as the stack grows. */
+function woodFor(i) {
+  return state.woods[i] ?? DEFAULT_WOOD;
+}
+
+function selectStorey(index) {
+  state.selected = index;
+  stage.setSelected(index);
+  syncControls();
 }
 
 /** Total height of the storey stack in millimetres. */
@@ -50,17 +65,18 @@ async function rebuild() {
   const lift = liftMm() / 1000;
 
   let y = lift;
-  for (const letter of state.stack) {
+  for (const [i, letter] of state.stack.entries()) {
     const entry = index.storeys[letter][state.variant];
     const geometry = await stage.load(entry.file);
-    stage.add(geometry, new THREE.Vector3(0, y, 0));
+    stage.add(geometry, new THREE.Vector3(0, y, 0), { wood: woodFor(i), storey: i });
     y += entry.size_mm[2] / 1000;
   }
 
   if (state.position !== 'fixed') {
     const base = index.guides.find((g) => g.name === 'base');
     const baseGeometry = await stage.load(base.file);
-    stage.add(baseGeometry, new THREE.Vector3(0, lift - base.size_mm[2] / 1000, 0));
+    stage.add(baseGeometry, new THREE.Vector3(0, lift - base.size_mm[2] / 1000, 0),
+      { wood: woodFor(0) });
   }
 
   // Legs and spike are cut to length rather than repeated: the source geometry
@@ -72,20 +88,28 @@ async function rebuild() {
   if (state.position === 'standing' && supportTop > 0) {
     const leg = index.guides.find((g) => g.name === 'leg');
     const geometry = await stage.load(leg.file);
+    const stretch = (supportTop * 1000) / leg.size_mm[2];
     for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
-      const mesh = stage.add(geometry, new THREE.Vector3(sx * 0.048, 0, sz * 0.06));
-      mesh.scale.y = (supportTop * 1000) / leg.size_mm[2];
+      const mesh = stage.add(geometry, new THREE.Vector3(sx * 0.048, 0, sz * 0.06),
+        { wood: woodFor(0) });
+      mesh.scale.y = stretch;
+      mesh.userData.lines.scale.y = stretch;
     }
   }
 
   if (state.position === 'grounded' && supportTop > 0) {
     const spike = index.guides.find((g) => g.name === 'spike');
     const geometry = await stage.load(spike.file);
-    const mesh = stage.add(geometry, new THREE.Vector3(0, 0, 0));
-    mesh.scale.y = (supportTop * 1000) / spike.size_mm[2];
+    const mesh = stage.add(geometry, new THREE.Vector3(0, 0, 0), { wood: woodFor(0) });
+    const stretch = (supportTop * 1000) / spike.size_mm[2];
+    mesh.scale.y = stretch;
+    mesh.userData.lines.scale.y = stretch;
   }
 
   stage.frame();
+  document.body.classList.toggle('drawing', state.mode === 'drawing');
+  stage.setMode(state.mode);
+  stage.setSelected(state.selected);
   refreshReadout();
 }
 
@@ -94,6 +118,7 @@ function refreshReadout() {
   el('exportString').textContent = exportString(state);
   el('storeyCount').textContent = String(state.stack.length);
   el('stackHeight').textContent = `${Math.round(stackHeight())} mm`;
+  el('finish').textContent = finishSpec(state.woods.slice(0, state.stack.length));
 
   const problems = validateStack(state.stack, rules);
   const warning = el('warning');
@@ -169,13 +194,67 @@ function buildControls() {
     button.addEventListener('click', async () => {
       if (button.disabled) return;
       state.stack.push(letter);
+      state.woods[state.stack.length - 1] = woodFor(state.stack.length - 2);
       syncControls();
       await rebuild();
     });
     palette.append(button);
   }
 
+  const modes = el('modes');
+  for (const [key, label] of [['drawing', 'Drawing'], ['timber', 'Timber']]) {
+    const button = document.createElement('button');
+    button.textContent = label;
+    button.dataset.mode = key;
+    button.className = 'chip';
+    button.addEventListener('click', () => {
+      state.mode = key;
+      document.body.classList.toggle('drawing', key === 'drawing');
+      stage.setMode(key);
+      stage.setSelected(state.selected);
+      syncControls();
+    });
+    modes.append(button);
+  }
+
+  const woods = el('woods');
+  for (const wood of WOODS) {
+    const button = document.createElement('button');
+    button.className = 'wood';
+    button.dataset.wood = wood.key;
+    button.title = `${wood.name} — ${wood.note}`;
+    button.innerHTML = `<span class="dot" style="background:${wood.tint}"></span><span>${wood.name}</span>`;
+    button.addEventListener('click', async () => {
+      applyWood(wood.key);
+      await rebuild();
+      syncControls();
+    });
+    woods.append(button);
+  }
+
+  el('applyAll').addEventListener('click', async () => {
+    const key = woodFor(Math.max(0, state.selected));
+    state.woods = state.stack.map(() => key);
+    await rebuild();
+    syncControls();
+  });
+
+  // Click a storey in the 3D view to select it; click empty space to deselect.
+  el('stage').addEventListener('pointerdown', (event) => {
+    if (event.button !== 0) return;
+    selectStorey(stage.pick(event));
+  });
+
   syncControls();
+}
+
+/** Apply a species to the selected storey, or to the whole stack if none. */
+function applyWood(key) {
+  if (state.selected >= 0) {
+    state.woods[state.selected] = key;
+  } else {
+    state.woods = state.stack.map(() => key);
+  }
 }
 
 function syncControls() {
@@ -194,15 +273,33 @@ function syncControls() {
     button.disabled = !allowed.has(button.dataset.letter);
   }
 
+  for (const button of el('modes').children) {
+    button.classList.toggle('active', button.dataset.mode === state.mode);
+  }
+
+  const activeWood = state.selected >= 0 ? woodFor(state.selected) : null;
+  for (const button of el('woods').children) {
+    button.classList.toggle('active', button.dataset.wood === activeWood);
+  }
+  el('woodScope').textContent = state.selected >= 0
+    ? `storey ${state.selected + 1} · ${state.stack[state.selected]}`
+    : 'whole stack';
+
   const list = el('stackList');
   list.textContent = '';
   state.stack.forEach((letter, i) => {
     const item = document.createElement('li');
-    item.textContent = letter;
-    if (i > 0 && !canPlace(state.stack.slice(0, i), letter, rules)) {
-      item.classList.add('bad');
-    }
+    const wood = woodByKey(woodFor(i));
+    item.innerHTML = `<span class="dot" style="background:${wood.tint}"></span>`
+      + `<span class="letter-tag">${letter}</span><span class="wood-name">${wood.name}</span>`;
+    if (i > 0 && !canPlace(state.stack.slice(0, i), letter, rules)) item.classList.add('bad');
     if (i === state.stack.length - 1) item.classList.add('roof');
+    if (i === state.selected) item.classList.add('selected');
+    item.tabIndex = 0;
+    item.addEventListener('click', () => selectStorey(i === state.selected ? -1 : i));
+    item.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectStorey(i); }
+    });
     list.prepend(item); // top storey first, matching the model
   });
   el('idInput').value = formatId(state);

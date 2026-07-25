@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { woodByKey } from './woods.js';
 
 /**
  * The 3D stage.
@@ -13,8 +14,16 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
  * which is cheaper and survives arbitrary geometry.
  */
 
-const WOOD = '#F1D6BA';
-const BACKDROP = '#2A2920';
+/**
+ * Two looks.
+ *
+ * `drawing` is what the original builder actually showed: hairline axonometric
+ * line art on bone, no shading, no material. `timber` is the addition — the
+ * same geometry shaded, so per-storey species selection has something to read
+ * against.
+ */
+const BACKDROP = { drawing: '#e9e9e1', timber: '#2a2920' };
+const LINE = { drawing: '#2a2920', timber: '#e9e9e1' };
 
 /**
  * Box-project UVs from vertex normals — the meshes carry no texture coords.
@@ -58,8 +67,9 @@ export class Stage {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
+    this.mode = 'timber';
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(BACKDROP);
+    this.scene.background = new THREE.Color(BACKDROP.timber);
 
     this.camera = new THREE.PerspectiveCamera(35, 1, 0.01, 100);
     this.camera.position.set(0.42, 0.3, 0.52);
@@ -104,7 +114,11 @@ export class Stage {
 
     this.loader = new GLTFLoader();
     this.cache = new Map();
-    this.material = this.buildMaterial();
+    this.materials = new Map();
+    this.edgeCache = new Map();
+    this.maps = this.loadMaps();
+    this.raycaster = new THREE.Raycaster();
+    this.selected = -1;
 
     this.resize();
     addEventListener('resize', () => this.resize());
@@ -114,27 +128,93 @@ export class Stage {
     });
   }
 
-  buildMaterial() {
+  /**
+   * In drawing mode the solids are still drawn — flat, in the background
+   * colour, nudged back by a polygon offset — so they hide the edges behind
+   * them. That is what turns a see-through wireframe into the occluded
+   * hidden-line axonometric the original builder showed.
+   */
+  occluder() {
+    if (!this._occluder) {
+      this._occluder = new THREE.MeshBasicMaterial({
+        color: BACKDROP.drawing,
+        polygonOffset: true,
+        polygonOffsetFactor: 1,
+        polygonOffsetUnits: 1,
+      });
+    }
+    return this._occluder;
+  }
+
+  loadMaps() {
     const textures = new THREE.TextureLoader();
-    const colorMap = textures.load('textures/WoodPlywood001_COL_2K.jpg');
+    const repeat = (texture) => {
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.RepeatWrapping;
+      texture.repeat.set(2, 2);
+      return texture;
+    };
+    const colorMap = repeat(textures.load('textures/WoodPlywood001_COL_2K.jpg'));
     colorMap.colorSpace = THREE.SRGBColorSpace;
-    colorMap.wrapS = THREE.RepeatWrapping;
-    colorMap.wrapT = THREE.RepeatWrapping;
-    colorMap.repeat.set(2, 2);
+    return { colorMap, normalMap: repeat(textures.load('textures/birch_normal.png')) };
+  }
 
-    const normalMap = textures.load('textures/birch_normal.png');
-    normalMap.wrapS = THREE.RepeatWrapping;
-    normalMap.wrapT = THREE.RepeatWrapping;
-    normalMap.repeat.set(2, 2);
+  /** One shared material per species — the tint multiplies the plywood map. */
+  materialFor(woodKey) {
+    if (!this.materials.has(woodKey)) {
+      const wood = woodByKey(woodKey);
+      this.materials.set(woodKey, new THREE.MeshStandardMaterial({
+        color: wood.tint,
+        map: this.maps.colorMap,
+        normalMap: this.maps.normalMap,
+        normalScale: new THREE.Vector2(0.35, 0.35),
+        roughness: wood.roughness,
+        metalness: 0,
+      }));
+    }
+    return this.materials.get(woodKey);
+  }
 
-    return new THREE.MeshStandardMaterial({
-      color: WOOD,
-      map: colorMap,
-      normalMap,
-      normalScale: new THREE.Vector2(0.35, 0.35),
-      roughness: 0.82,
-      metalness: 0,
-    });
+  setMode(mode) {
+    this.mode = mode;
+    this.scene.background = new THREE.Color(BACKDROP[mode]);
+    this.shadowFloor.visible = mode === 'timber';
+    for (const child of this.root.children) {
+      if (child.isLineSegments) {
+        child.material.color.set(LINE[mode]);
+        child.material.opacity = mode === 'drawing' ? 1 : 0.22;
+      } else if (child.isMesh) {
+        child.material = mode === 'drawing'
+          ? this.occluder()
+          : this.materialFor(child.userData.wood);
+        child.castShadow = mode === 'timber';
+        child.receiveShadow = mode === 'timber';
+      }
+    }
+  }
+
+  /** Which storey is under the pointer, or -1. */
+  pick(event) {
+    const rect = this.renderer.domElement.getBoundingClientRect();
+    const point = new THREE.Vector2(
+      ((event.clientX - rect.left) / rect.width) * 2 - 1,
+      -((event.clientY - rect.top) / rect.height) * 2 + 1,
+    );
+    this.raycaster.setFromCamera(point, this.camera);
+    const targets = this.root.children.filter((c) => c.isMesh);
+    const hit = this.raycaster.intersectObjects(targets, false)[0];
+    return hit ? hit.object.userData.storey ?? -1 : -1;
+  }
+
+  setSelected(index) {
+    this.selected = index;
+    for (const child of this.root.children) {
+      if (!child.isLineSegments) continue;
+      const isSelected = index >= 0 && child.userData.storey === index;
+      child.material.color.set(isSelected ? '#a5b7e6' : LINE[this.mode]);
+      child.material.opacity = isSelected ? 1 : (this.mode === 'drawing' ? 1 : 0.22);
+      child.material.linewidth = isSelected ? 2 : 1;
+    }
   }
 
   async load(file) {
@@ -163,17 +243,45 @@ export class Stage {
     return this.cache.get(file);
   }
 
-  add(geometry, position) {
-    const mesh = new THREE.Mesh(geometry, this.material);
+  /**
+   * Add one part. `storey` is the stack index it belongs to (-1 for mounting
+   * hardware), used for picking and for per-storey species.
+   */
+  add(geometry, position, { wood = 'birch', storey = -1 } = {}) {
+    const mesh = new THREE.Mesh(geometry, this.materialFor(wood));
     mesh.position.copy(position);
     mesh.castShadow = true;
     mesh.receiveShadow = true;
+    mesh.userData.storey = storey;
+    mesh.userData.wood = wood;
+    if (this.mode === 'drawing') mesh.material = this.occluder();
     this.root.add(mesh);
+
+    if (!this.edgeCache.has(geometry.uuid)) {
+      this.edgeCache.set(geometry.uuid, new THREE.EdgesGeometry(geometry, 20));
+    }
+    const lines = new THREE.LineSegments(
+      this.edgeCache.get(geometry.uuid),
+      new THREE.LineBasicMaterial({
+        color: LINE[this.mode],
+        transparent: true,
+        opacity: this.mode === 'drawing' ? 1 : 0.22,
+      }),
+    );
+    lines.position.copy(position);
+    lines.userData.storey = storey;
+    this.root.add(lines);
+
+    mesh.userData.lines = lines; // so callers scaling a part scale both
     return mesh;
   }
 
   clear() {
+    for (const child of this.root.children) {
+      if (child.isLineSegments) child.material.dispose();
+    }
     this.root.clear();
+    this.selected = -1;
   }
 
   /** Drop the model onto y=0 and aim the camera at the middle of it. */

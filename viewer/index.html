@@ -37,6 +37,21 @@
     </section>
 
     <section>
+      <h2>View</h2>
+      <div id="modes" class="row"></div>
+      <p class="hint">Drawing is what the original builder showed — hairline
+        axonometric on bone, no shading.</p>
+    </section>
+
+    <section>
+      <h2>Timber <span id="woodScope" class="value">whole stack</span></h2>
+      <div id="woods" class="woods"></div>
+      <p class="hint">Click a storey — in the list or in the model — to give it its
+        own species. Mixed stacks are what building from local offcuts looks like.</p>
+      <button id="applyAll" class="chip">Apply to whole stack</button>
+    </section>
+
+    <section>
       <h2>Detail</h2>
       <label class="toggle">
         <input id="variant" type="checkbox" />
@@ -59,6 +74,10 @@
     <div>
       <span>Bee Home ID</span>
       <code id="beeId">—</code>
+    </div>
+    <div>
+      <span>Finish</span>
+      <code id="finish">—</code>
     </div>
   </footer>
 

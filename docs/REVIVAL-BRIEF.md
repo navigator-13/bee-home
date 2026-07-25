@@ -263,7 +263,39 @@ a revived viewer look like the original:
 
 All four textures are in `docs/reference/textures/`.
 
-### The interface
+### The interface — now seen
+
+Screenshots of the actual builder surfaced from a SPACE10 Instagram highlight (supplied by
+Ivan, July 2026). They correct an assumption in an earlier draft of this note.
+
+**The builder was not dark and was not shaded.** The `#2A2920` clear colour recovered from
+the scene config belongs to `/shapediver`, a bare test harness. The real builder was:
+
+- A bone panel with generous rounded corners, floating on white, `Close` top-left.
+- The Bee Home drawn as a **hidden-line axonometric** — hairline black on bone, no fill, no
+  shading, no material of any kind.
+- Labelled callout pills sitting against the model: `Height`, `Floors`, `Position`.
+- A three-step rail top-left: `Step 1 Design` / `Step 2 Download` / `Step 3 Fabricate`,
+  inactive steps in grey.
+- `Shuffle the Bee Home floors` with a crossing-arrows icon, top right — a randomiser.
+- A data readout bottom-left: `Dimensions 120mm × 271mm × 160mm` and
+  `Identification 0100JCXLDHHGH`.
+- A black pill `Next` bottom-right.
+
+Sub-screens are one decision each, with an instruction sentence centred at the top:
+
+- *“Adjust the height of your Bee Home stand”* — a vertical slider, `Max` and `Min` pills at
+  the ends, a black pill knob carrying the live value (`30 mm`).
+- *“Choose the number of storeys for your Bee Home”* — a vertical rail of numbered circles
+  9 down to 2, the selected one filled black, with a hairline running across the panel at
+  that level.
+- The community screen — an orthographic globe scattered with pill counters (`100+`, `25+`,
+  `10+`), a legend for Bee Hosts / Maker Spaces / Bee Advocates, and a `Join community` pill.
+
+**Two things to note.** The `120mm × 271mm × 160mm` readout confirms the 120 × 160 footprint
+the meshes came out at. And `0100JCXLDHHGH` contains an `X`, which is not a valid A–P storey
+letter — so it is either a share code or a second identifier scheme, and the Bee Home ID in
+`ReadMe.pdf` is not the whole story. Unresolved.
 
 Site structure, from the recovered routes: three top-level sections — **Design**,
 **Learn**, **Explore** — plus `/fablab`, `/ar`, and internal `/admin`, `/jsondump`,
