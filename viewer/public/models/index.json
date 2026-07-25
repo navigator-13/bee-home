@@ -5,18 +5,18 @@
       "a": {
         "file": "models/A_a.glb",
         "size_mm": [
-          144.0,
-          192.0,
-          33.0
+          120.0,
+          160.0,
+          30.0
         ],
-        "triangles": 204
+        "triangles": 176
       },
       "b": {
         "file": "models/A_b.glb",
         "size_mm": [
           120.0,
           160.0,
-          32.0
+          30.0
         ],
         "triangles": 126
       }
@@ -25,9 +25,9 @@
       "a": {
         "file": "models/B_a.glb",
         "size_mm": [
-          138.01,
-          191.0,
-          36.0
+          120.0,
+          160.0,
+          30.0
         ],
         "triangles": 191
       },
@@ -36,7 +36,7 @@
         "size_mm": [
           120.0,
           160.0,
-          36.0
+          30.0
         ],
         "triangles": 128
       }
@@ -45,18 +45,18 @@
       "a": {
         "file": "models/C_a.glb",
         "size_mm": [
-          144.0,
-          192.0,
-          33.0
+          120.0,
+          160.0,
+          30.0
         ],
-        "triangles": 214
+        "triangles": 210
       },
       "b": {
         "file": "models/C_b.glb",
         "size_mm": [
           120.0,
           160.0,
-          33.0
+          30.0
         ],
         "triangles": 148
       }
@@ -65,17 +65,17 @@
       "a": {
         "file": "models/D_a.glb",
         "size_mm": [
-          144.0,
+          120.0,
           160.0,
           30.0
         ],
-        "triangles": 153
+        "triangles": 140
       },
       "b": {
         "file": "models/D_b.glb",
         "size_mm": [
           120.0,
-          167.5,
+          160.0,
           30.0
         ],
         "triangles": 64
@@ -87,7 +87,7 @@
         "size_mm": [
           120.0,
           160.0,
-          31.0
+          30.0
         ],
         "triangles": 222
       },
@@ -96,7 +96,7 @@
         "size_mm": [
           120.0,
           160.0,
-          31.0
+          30.0
         ],
         "triangles": 164
       }
@@ -105,20 +105,20 @@
       "a": {
         "file": "models/F_a.glb",
         "size_mm": [
-          144.0,
-          181.08,
-          33.0
+          120.0,
+          160.0,
+          30.0
         ],
-        "triangles": 223
+        "triangles": 210
       },
       "b": {
         "file": "models/F_b.glb",
         "size_mm": [
           120.0,
           160.0,
-          33.0
+          30.0
         ],
-        "triangles": 148
+        "triangles": 140
       }
     },
     "G": {
@@ -127,16 +127,16 @@
         "size_mm": [
           120.0,
           160.0,
-          33.0
+          30.0
         ],
-        "triangles": 255
+        "triangles": 211
       },
       "b": {
         "file": "models/G_b.glb",
         "size_mm": [
           120.0,
           160.0,
-          33.0
+          30.0
         ],
         "triangles": 124
       }
@@ -146,17 +146,17 @@
         "file": "models/H_a.glb",
         "size_mm": [
           120.0,
-          160.0,
-          33.0
+          140.0,
+          30.0
         ],
-        "triangles": 199
+        "triangles": 191
       },
       "b": {
         "file": "models/H_b.glb",
         "size_mm": [
           120.0,
-          160.0,
-          33.0
+          140.0,
+          30.0
         ],
         "triangles": 108
       }
@@ -165,9 +165,9 @@
       "a": {
         "file": "models/I_a.glb",
         "size_mm": [
-          132.0,
-          176.0,
-          33.0
+          120.0,
+          160.0,
+          30.0
         ],
         "triangles": 214
       },
@@ -176,9 +176,9 @@
         "size_mm": [
           120.0,
           160.0,
-          33.0
+          30.0
         ],
-        "triangles": 160
+        "triangles": 148
       }
     },
     "J": {
@@ -186,17 +186,17 @@
         "file": "models/J_a.glb",
         "size_mm": [
           120.0,
-          176.0,
-          33.0
+          160.0,
+          30.0
         ],
-        "triangles": 241
+        "triangles": 212
       },
       "b": {
         "file": "models/J_b.glb",
         "size_mm": [
           120.0,
           160.0,
-          33.0
+          30.0
         ],
         "triangles": 140
       }
@@ -207,7 +207,7 @@
         "size_mm": [
           120.0,
           160.0,
-          33.0
+          30.0
         ],
         "triangles": 144
       },
@@ -216,7 +216,7 @@
         "size_mm": [
           120.0,
           160.0,
-          33.0
+          30.0
         ],
         "triangles": 76
       }
@@ -226,19 +226,19 @@
         "file": "models/L_a.glb",
         "size_mm": [
           120.0,
-          176.0,
-          36.0
+          160.0,
+          30.0
         ],
-        "triangles": 213
+        "triangles": 196
       },
       "b": {
         "file": "models/L_b.glb",
         "size_mm": [
           120.0,
           160.0,
-          36.0
+          30.0
         ],
-        "triangles": 156
+        "triangles": 140
       }
     },
     "M": {
@@ -247,16 +247,16 @@
         "size_mm": [
           120.0,
           160.0,
-          33.0
+          30.0
         ],
-        "triangles": 156
+        "triangles": 144
       },
       "b": {
         "file": "models/M_b.glb",
         "size_mm": [
           120.0,
           160.0,
-          33.0
+          30.0
         ],
         "triangles": 76
       }
@@ -285,18 +285,18 @@
       "a": {
         "file": "models/O_a.glb",
         "size_mm": [
-          144.0,
-          192.0,
-          33.0
+          120.0,
+          160.0,
+          30.0
         ],
-        "triangles": 280
+        "triangles": 258
       },
       "b": {
         "file": "models/O_b.glb",
         "size_mm": [
           120.0,
           160.0,
-          32.0
+          30.0
         ],
         "triangles": 204
       }
@@ -305,11 +305,11 @@
       "a": {
         "file": "models/P_a.glb",
         "size_mm": [
-          144.62,
-          192.0,
-          33.0
+          120.0,
+          160.0,
+          30.0
         ],
-        "triangles": 227
+        "triangles": 215
       },
       "b": {
         "file": "models/P_b.glb",
@@ -318,7 +318,7 @@
           160.0,
           30.0
         ],
-        "triangles": 178
+        "triangles": 172
       }
     }
   },

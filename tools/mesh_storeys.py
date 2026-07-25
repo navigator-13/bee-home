@@ -35,11 +35,36 @@ TOL = 1e-2
 # --- geometry helpers -------------------------------------------------------
 
 def plane_key(normal, origin):
-    """Quantised (normal, offset) so coincident faces land in one group."""
+    """Quantised (normal, offset) so coplanar faces land in one group.
+
+    The normal is rounded *before* it is flipped into a canonical hemisphere.
+    Doing it the other way round is unstable: a normal of (0, 1e-9, -1) and one
+    of (0, 0, -1) describe the same plane but compare differently, so their
+    faces end up in separate groups, each holding only part of the plane's
+    edges. The loops then fail to close and the feature is dropped silently —
+    which is how entire roof overhangs went missing.
+    """
     n = normal / np.linalg.norm(normal)
-    if (n[0], n[1], n[2]) < (-n[0], -n[1], -n[2]):  # canonical direction
-        n = -n
-    return (*np.round(n, 4), round(float(np.dot(n, origin)), 3))
+    n = np.round(n, 4) + 0.0  # +0.0 normalises -0.0, which breaks comparisons
+    for component in n:
+        if abs(component) > 1e-6:
+            if component < 0:
+                n = -n
+            break
+    n = np.round(n, 4) + 0.0
+    return (*n, round(float(np.dot(n, origin)), 3))
+
+
+def true_bounds(brep):
+    """The real extent of a trimmed solid, from its vertices.
+
+    Brep.GetBoundingBox() in rhino3dm returns the *untrimmed* surface extent,
+    which for these parts is up to 144 x 192 x 33 mm against a true size of
+    120 x 160 x 30 mm. Sizing anything off it puts phantom overhangs in the
+    documentation and a 3 mm gap between every pair of stacked storeys.
+    """
+    points = np.array([[v.Location.X, v.Location.Y, v.Location.Z] for v in brep.Vertices])
+    return points.min(axis=0), points.max(axis=0)
 
 
 def basis_for(normal):
@@ -257,50 +282,41 @@ def main():
         geo = obj.Geometry
         if isinstance(geo, rhino3dm.Extrusion):
             geo = geo.ToBrep(False)
-        box = geo.GetBoundingBox()
-        solids.append((box, geo))
+        solids.append((true_bounds(geo), geo))
 
     # Two stacks of 16 storeys (sorted top-down) plus the mounting guides.
     stacks = defaultdict(list)
-    for box, geo in solids:
-        stacks[round(box.Min.X / 500)].append((box, geo))
+    for bounds, geo in solids:
+        stacks[round(bounds[0][0] / 500)].append((bounds, geo))
     stack_keys = sorted(k for k in stacks if len(stacks[k]) == 16)
 
     index = {"units": "mm", "storeys": {}, "guides": []}
     letters = "ABCDEFGHIJKLMNOP"
 
     for variant, key in zip(("a", "b"), stack_keys):
-        column = sorted(stacks[key], key=lambda item: item[0].Min.Y)
-        for letter, (box, geo) in zip(letters, column):
+        column = sorted(stacks[key], key=lambda item: item[0][0][1])
+        for letter, ((lo, hi), geo) in zip(letters, column):
             positions, normals = mesh_brep(geo)
             # Re-origin each storey to its own footprint centre at z=0.
             pts = np.array(positions).reshape(-1, 3)
-            shift = np.array([
-                (box.Min.X + box.Max.X) / 2, (box.Min.Y + box.Max.Y) / 2, box.Min.Z
-            ])
+            shift = np.array([(lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2, lo[2]])
             pts -= shift
             name = f"{letter}_{variant}"
             write_glb(f"{OUT_DIR}/{name}.glb", pts.flatten().tolist(), normals)
             index["storeys"].setdefault(letter, {})[variant] = {
                 "file": f"models/{name}.glb",
-                "size_mm": [
-                    round(box.Max.X - box.Min.X, 2),
-                    round(box.Max.Y - box.Min.Y, 2),
-                    round(box.Max.Z - box.Min.Z, 2),
-                ],
+                "size_mm": [round(float(hi[i] - lo[i]), 2) for i in range(3)],
                 "triangles": len(positions) // 9,
             }
-            print(f"{name}: {len(positions)//9} tris, h={box.Max.Z - box.Min.Z:.1f}mm")
+            print(f"{name}: {len(positions)//9} tris, h={hi[2] - lo[2]:.1f}mm")
 
     # The guides are the three mounting options, identifiable by size: a tall
     # spike, four short legs, and the base plates. `WEBSITE - Guides` labels
     # them Base / Spike / Legs in the source file.
     guides = [s for k, v in stacks.items() if len(v) != 16 for s in v]
     seen = set()
-    for box, geo in guides:
-        w = round(box.Max.X - box.Min.X, 1)
-        d = round(box.Max.Y - box.Min.Y, 1)
-        h = round(box.Max.Z - box.Min.Z, 1)
+    for (lo, hi), geo in guides:
+        w, d, h = (round(float(hi[i] - lo[i]), 1) for i in range(3))
         if h >= 150:
             name = "spike"
         elif w <= 20:
@@ -312,9 +328,7 @@ def main():
         seen.add(name)
         positions, normals = mesh_brep(geo)
         pts = np.array(positions).reshape(-1, 3)
-        pts -= np.array([
-            (box.Min.X + box.Max.X) / 2, (box.Min.Y + box.Max.Y) / 2, box.Min.Z
-        ])
+        pts -= np.array([(lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2, lo[2]])
         write_glb(f"{OUT_DIR}/{name}.glb", pts.flatten().tolist(), normals)
         index["guides"].append({
             "name": name, "file": f"models/{name}.glb", "size_mm": [w, d, h],
