@@ -1,0 +1,159 @@
+# Original Bee Home copy
+
+Extracted verbatim from `component---src-pages-index-tsx-397b098707f266e1a972.js`.
+
+This is the site's own voice — plain, warm, second person, specific about
+numbers. Adapt from it. Do not write a new one.
+
+- Solitary bees are great pollinators: a single solitary bee could provide as much pollination as 120 honeybees. With nearly 90 percent of the world's flowering plants depending on pollination â including a third of the worldâs food supply â solitary bees are vital for life on planet Earth.
+- Weâve unwittingly destroyed their homes and natural habitats when building our own homes, cities and landscaped our gardens. Weâve turned to pesticides, chemicals and monoculture in farming, causing wildflower meadows to rapidly vanish across the planet.
+- Our lives â and planet Earth as a whole â would be very different if solitary bees didnât exist. They're vital for flowers, trees, animals and people. In fact, a third of what we eat depends on these busy, buzzing insects and other pollinators.
+- Every female solitary bee is a queen. And since every queen gets 20 to 30 offspring, a single Bee Home could give life to hundreds of solitary bees ready to ensure the survival of flowers, trees, animals and us humans.
+- Design your very own Bee Home in a few minutes. Just select size, visual style and desired placement, like a rooftop, balcony or garden â or play around with the shuffle button. Your design will instantly update.
+- Place it anywhere, as long as itâs outside, facing the morning sun and within 300 meters of flowers. Make sure that your Bee Home is protected from strong winds and that the holes remain horizontal at all times.
+- Most makerspaces have computer-controlled tools, including a CNC milling machine, which is what youâll need to fabricate your Bee Home. Head to the Community section on this site to find makerspaces near you.
+- Solitary bees are friendly â they donât produce honey and therefore have nothing to protect. They only sting if trod on and are safe to keep around kids and pets.
+- A makerspace is an open workshop with access to a variety of fabrication tools. Think of a gym, but for makers, where you either have a membership or pay per visit.
+- Treat your Bee Home with natural oil. Remember not to treat in or around the bee holes â bees prefer natural wood and don't like strong smells from chemicals.
+- Tata Centre for Technology and Design,Machine Lab, Ground floor, Academic Section, Lecture Hall Complex 2(L2), IIT Powai, Near KreSit building. Mumbai 400076.
+- Anywhere between five to 30 years. It all depends on the durability of the wood, the specific location, and how well you clean and maintain your Bee Home.
+- Since bees are free-living beings, we cannot guarantee their arrival. Nonetheless, planting native wildflowers will definitely increase your chances.
+- At SPACE10 we believe in a future where anyone anywhere feels empowered to design, customise and fabricate their own sustainable products locally.
+- Download the design files for free and share them with a makerspace. We'll help you find a local space, and they'll help you create your Bee Home.
+- No. Assembling your Bee Home requires just your hands and a few minutes of your time. To mount it on a wall, simply use a drill and two screws.
+- Find a spot with firm soil and put the spike 20 cm into the ground. Place your Bee Home facing the morning sun, within 300 metres of flowers.
+- The design files for the Bee Home are free. Additional costs depend on the hardwood you want to use and the prices at your local makerspace.
+- SPACE10 is a research and design lab on a mission to enable a better everyday life for people and planet, and is proudly supported by IKEA.
+- Once assembled, place your Bee Home facing the morning sun. Plant some flowers in your local area to help the native bees thrive.
+- Thank you for uploading an image to your Bee Home profile. Once we have reviewed and approved this image it will on your profile.
+- Bee Home is an open invitation for everyone to give bees the home they deserve â and to make sure that planet Earth thrives.
+- Thank you for registering for the Bee Home community. We will review your submission and it should appear on the map shortly.
+- Makerspaces provide the means to fabricate open-source Bee Homes for the many. If you have a CNC machine, add your details.
+- Fix to a wall at least one metre from the ground. Place your Bee Home facing the morning sun, within 300 metres of flowers.
+- Thatâs why we at SPACE10 want to make âit easy for anyone anywhere to design a beautiful home for this vital species.
+- Yes. The bees seal their holes after laying eggs. Once hatched, the offspring will break the seal to leave the Bee Home.
+- Bee Home explores how an open-source approach can improve the way we design, fabricate and distribute physical products.
+- Explore the global Bee Home community of hosts, makers and advocates. Join the community by adding yourself to the map.
+- The 'deferred' extender only accepts the value 'true', because it is not supported to turn deferral off once enabled.
+- Find a stable spot with an even surface. Place your Bee Home facing the morning sun, within 300 metres of flowers.
+- Enter the email address associated with this Bee Home to add photos. We will send you a magic link to sign in.
+- This is so that people can contact you about fabricating Bee Homes. It will be visible on your profile.
+- This is so that you can be contacted about fabricating Bee Homes. It will be visible on your profile.
+- The argument passed when initializing an observable array must be an array, or null, or undefined.
+- The given address will show as an approximate marker on the map and be visible on your profile.
+- ArcGISTiledElevationTerrainProvider: Terrain data has more than 1 band. Using the first one.
+- No default bucket found. Did you set the 'storageBucket' property when initializing the app?
+- You want to design a Bee Home and help restore the relationship between people and planet.
+- This is in case anyone wants to find more information. It will be visible on your profile.
+- KML - altitudeMode clampToSeaFloor is currently not supported, treating as clampToGround.
+- Entity polylines must have clampToGround: true when using zIndex. zIndex will be ignored.
+- Error generating style shader: Invalid array length. Array length should be 2, 3, or 4.
+- KML - altitudeMode relativeToSeaFloor is currently not supported, treating as absolute.
+- Academic Bldg III, Philippine Science High School - Central Luzon Campus, Lily Hill St.
+- Add a link where people can find more information. It will be visible on your profile.
+- Finally, upload a few photos of your new Bee Home and place it on the community map.
+- Become part of the Bee Home community. Select a role and place yourself on the map.
+- Map tiles by Stamen Design, under CC BY 3.0. Data by OpenStreetMap, under CC BY SA.
+- The base internal format must be the same as the format for uncompressed textures.
+- Error generating style shader: Converting a variable to a string is not supported.
+- By clicking register, you agree to our privacy policy and data retention policy.
+- Undefined window object. This SDK only supports usage in a browser environment.
+- Design a Bee Home and help restore the relationship between people and planet.
+- GLTFExporter: Use MeshStandardMaterial or MeshBasicMaterial for best results.
+- Only one primitive per mesh is supported when using b3dm for classification.
+- Something went wrong with registering your Bee Home. Please try again later.
+- WARNING: OrbitControls.js encountered an unknown camera type - pan disabled.
+- This is so that people can contact you. It will be visible on your profile.
+- Something went wrong with getting the export file. Please try again later.
+- Performance can only start when Firebase app instance is the default one.
+- If one group of batch ids is defined, then all batch ids must be defined.
+- Bee Advocates are experts and want to share their knowledge with others.
+- Can't delete installation while there is a pending registration request.
+- Something went wrong with creating your account. Please try again later.
+- Sukhbaatar duureg, 1 Khoro, The Downtown building, 6th floor, room 601.
+- Only one node is supported for classification and it must have a mesh.
+- Error generating style shader: Regular expressions are not supported.
+- The input to useServiceWorker() must be a ServiceWorkerRegistration.
+- We will use this to send you a magic link to register your Bee Home.
+- Youâre a bee expert and want to share your knowledge with others.
+- But, because of human impact, bees are in danger of going extinct.
+- Take your Bee Home files to a local makerspace. Find one near you.
+- The notification permission was not granted and dismissed instead.
+- This email already exists. Check your mail box for a login link.
+- The notification permission was not granted and blocked instead.
+- The given address will show as an approximate marker on the map.
+- Undefined project identifier. Check Firebase app initialization.
+- Error in loaded EOP data: The columnNames property is required.
+- Only one mesh is supported when using b3dm for classification.
+- Unknown node. There is an unknown node in the supplied edges.
+- KML - gx:LatLonQuad Icon does not support texture projection.
+- You cannot apply bindings multiple times to the same element.
+- Thank you, an email has been sent registering your Bee Home.
+- Undefined app identifier. Check Firebase app initialization.
+- Error creating WebGL context with your selected attributes.
+- Error in loaded EOP data: The samples property is required.
+- No. If a bee has laid eggs, you risk killing the offspring.
+- Expected child path but got a URL, use refFromURL instead.
+- Blue Marble Next Generation July, 2004 imagery from NASA.
+- An error occurred while rendering. Rendering has stopped.
+- Max retry time for operation exceeded, please try again.
+- Expected full URL but got a child path, use ref instead.
+- The SecuredAPIKey does not have a validUntil parameter.
+- This object was destroyed, i.e., destroy() was called.
+- Your full name will be visible on your public profile.
+- The embedded glb is not aligned to a 4-byte boundary.
+- This method is available in a service worker context.
+- Undefined API key. Check Firebase app initialization.
+- We don't have any phone. Please contact us via mail.
+- Thanks! Your Bee Home email address is now verified.
+- Can't create secondary domain capable XhrIo object.
+- Tell us about your experience and passion for bees.
+- KML - NetworkLinkControl updates aren't supported.
+- The type size for compressed textures must be 1.
+- Do I need special tools to assemble my Bee Home?
+- Buffer data must be embedded in the binary gltf.
+- Could not process request. Application offline.
+- Expected valid full URL but got an invalid one.
+- Your full name will be visible on your profile.
+- What is a makerspace and where can I find one?
+- Only binary glTF is supported as a classifier.
+- How do I get the bees to come to my Bee Home?
+- Please enter a description of your expertise.
+- This method is available in a Window context.
+- Can I open the Bee Home to check on the bees?
+- What materials should I use for my Bee Home?
+- Didnât get an email? Click here to resend.
+- Your email will be visible on your profile.
+- You have the means to fabricate Bee Homes.
+- The APP ID or API key provided is invalid.
+- Only unsigned byte buffers are supported.
+- REGION is required in the feature table.
+- The mesh must have a batch id attribute.
+- Edificio Aynadamar. Avda. AndalucÃ­a 27.
+- The mesh must have a position attribute.
+- Surrogate pair missing trail surrogate.
+- The public VAPID key must be a string.
+- No.321, Jinpeng Street, Xihu District.
+- Thank you for designing your Bee Home.
+- Can I see if my Bee Home is occupied?
+- This will be visible on your profile.
+- File is using Zip64 (4gb+ file size).
+- Machine Technology Center Turku Ltd.
+- Tileset must have an asset property.
+- FabLab Region Rothenburg o.d.T. e.V.
+- Big endian system is not supported.
+- Please enter a valid email address.
+- Response is not valid JSON object.
+- Where should I place my Bee Home?
+- Response is missing data field.
+- What is the cost of a Bee Home?
+- Enter an address or landmark...
+- Please enter your phone number.
+- You must pass an array to race.
+- Union Station Kansas City, Inc.
+- How long will my Bee Home last?
+- Error while writing file data.
+- No.1 Yumen St. Zhongshan Dist.
+- Your sign in link has expired.
+- How do I maintain my Bee Home?
+- Error while reading file data.

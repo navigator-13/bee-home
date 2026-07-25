@@ -1,0 +1,399 @@
+<title>Bee Home &#8212; landing</title>
+
+<style>
+:root {
+  --paper: #f4f2e9;
+  --ink: #17150f;
+  --soft: #6f6a5c;
+  --rule: #ddd9c9;
+  --bee: #a5b7e6;
+  --mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  --sans: 'Helvetica Neue', Helvetica, 'Segoe UI', Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+.pad { max-width: 1180px; margin: 0 auto; padding: 0 40px; }
+
+.label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--soft);
+}
+
+.pill {
+  display: inline-block;
+  border: 1px solid var(--ink);
+  border-radius: 999px;
+  padding: 9px 20px;
+  font-size: 13px;
+  text-decoration: none;
+  color: var(--ink);
+  background: transparent;
+}
+
+.pill.solid { background: var(--ink); color: var(--paper); }
+
+/* ---------- the stage ---------- */
+
+#build { height: 560vh; position: relative; }
+
+.stage { position: sticky; top: 0; height: 100vh; overflow: hidden; }
+.stage svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* Everything drawn is a stroke; nothing is filled. Weights are set here so the
+   whole drawing stays one family rather than drifting per element. */
+.ln { fill: none; stroke: var(--ink); stroke-width: 1.6; vector-effect: non-scaling-stroke;
+      stroke-linecap: round; stroke-linejoin: round; }
+.ln.hair { stroke-width: 1.1; }
+.ln.flight { stroke: var(--ink); stroke-width: 1.3; opacity: 0.28; }
+.ln.arrive { stroke: var(--bee); stroke-width: 2; opacity: 0.95; }
+.ln.plant { stroke-width: 1.4; }
+
+.copy {
+  position: absolute;
+  left: 40px;
+  top: 50%;
+  transform: translateY(-50%);
+  max-width: 30ch;
+  z-index: 2;
+}
+
+.copy h1 {
+  font-size: clamp(30px, 4vw, 48px);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+  margin: 18px 0 0;
+  text-wrap: balance;
+}
+
+.copy p { color: var(--soft); font-size: 15px; margin: 18px 0 0; }
+.copy .cue { margin-top: 40px; display: block; }
+
+.stepper {
+  position: absolute;
+  left: 40px;
+  bottom: 40px;
+  display: flex;
+  gap: 26px;
+  z-index: 2;
+}
+
+.stepper span { font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em; color: #b6b0a0; }
+.stepper span.on { color: var(--ink); }
+
+/* ---------- page ---------- */
+
+.band { padding: 120px 0; border-top: 1px solid var(--rule); }
+.band:first-of-type { border-top: 0; }
+
+.lede {
+  font-size: clamp(22px, 2.6vw, 30px);
+  font-weight: 400;
+  line-height: 1.35;
+  max-width: 22ch;
+  margin: 16px 0 0;
+  text-wrap: balance;
+}
+
+.two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 72px; margin-top: 44px; }
+.two p { margin: 0 0 16px; max-width: 46ch; }
+.two p:last-child { margin-bottom: 0; }
+
+.facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px; margin-top: 48px; }
+.facts div { border-top: 1px solid var(--rule); padding-top: 18px; }
+.facts b { display: block; font-size: clamp(26px, 3.4vw, 40px); font-weight: 400; margin-bottom: 8px; }
+.facts p { margin: 0; font-size: 14px; color: var(--soft); }
+
+.actions { display: flex; gap: 12px; margin-top: 40px; flex-wrap: wrap; }
+
+.foot { padding: 60px 0 100px; border-top: 1px solid var(--rule); color: var(--soft); font-family: var(--mono); font-size: 11px; line-height: 1.9; }
+
+@media (max-width: 900px) {
+  .pad { padding: 0 22px; }
+  .copy { left: 22px; right: 22px; top: 12%; transform: none; max-width: none; }
+  .stepper { left: 22px; gap: 16px; }
+  .two { grid-template-columns: 1fr; gap: 28px; }
+  .facts { grid-template-columns: 1fr; gap: 22px; }
+  #build { height: 480vh; }
+}
+</style>
+
+<section id="build">
+  <div class="stage" id="stage">
+    <svg id="art" viewBox="0 0 1000 640" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
+    <div class="copy" id="copy">
+      <p class="label">Open source &#183; CC BY 4.0</p>
+      <h1>Bee Home is an open invitation to give bees the home they deserve.</h1>
+      <p>Design one in a few minutes. Download the files free. Have it made near you.</p>
+      <span class="label cue" id="cue">Scroll</span>
+    </div>
+    <div class="stepper" id="stepper">
+      <span data-step="0">Step 1 &nbsp;Design</span>
+      <span data-step="1">Step 2 &nbsp;Download</span>
+      <span data-step="2">Step 3 &nbsp;Fabricate</span>
+    </div>
+  </div>
+</section>
+
+<div class="pad">
+  <section class="band">
+    <p class="label">Design</p>
+    <h2 class="lede">Design your very own Bee Home in a few minutes.</h2>
+    <div class="two">
+      <p>Just select size, visual style and desired placement &#8212; a rooftop, a balcony or a
+        garden &#8212; or play around with the shuffle button. Your design will instantly update.</p>
+      <p>Every combination is one that can actually be cut and assembled. Storeys that would
+        not physically stack are simply unavailable.</p>
+    </div>
+    <div class="actions">
+      <a class="pill solid" href="#">Design your Bee Home</a>
+      <a class="pill" href="#">See the community</a>
+    </div>
+  </section>
+
+  <section class="band">
+    <p class="label">Download &amp; fabricate</p>
+    <h2 class="lede">Download the design files for free and share them with a makerspace.</h2>
+    <div class="two">
+      <p>We'll help you find a local space, and they'll help you create your Bee Home. Most
+        makerspaces have computer-controlled tools, including a CNC milling machine, which is
+        what you'll need to fabricate it.</p>
+      <p>A makerspace is an open workshop with access to a variety of fabrication tools. Think
+        of a gym, but for makers, where you either have a membership or pay per visit.</p>
+    </div>
+  </section>
+
+  <section class="band">
+    <p class="label">Place it</p>
+    <h2 class="lede">Facing the morning sun, within 300 metres of flowers.</h2>
+    <div class="two">
+      <p>Place it anywhere, as long as it's outside. Make sure your Bee Home is protected from
+        strong winds and that the holes remain horizontal at all times.</p>
+      <p>Assembling it requires just your hands and a few minutes of your time. To mount it on
+        a wall, simply use a drill and two screws.</p>
+    </div>
+    <div class="facts">
+      <div>
+        <b>120&#215;</b>
+        <p>A single solitary bee could provide as much pollination as 120 honeybees.</p>
+      </div>
+      <div>
+        <b>5&#8211;30 yrs</b>
+        <p>How long a Bee Home lasts, depending on the wood, the location, and how well you
+          clean and maintain it.</p>
+      </div>
+      <div>
+        <b>20&#8211;30</b>
+        <p>Offspring per queen &#8212; and every female solitary bee is a queen.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="band">
+    <p class="label">Plant for them</p>
+    <h2 class="lede">Since bees are free-living beings, we cannot guarantee their arrival.</h2>
+    <div class="two">
+      <p>Nonetheless, planting native wildflowers will definitely increase your chances. Tell
+        us roughly where you are and we'll name the cavity-nesting bees recorded nearby, what
+        they pollinate locally, and which seed to sow.</p>
+      <p>Solitary bees are friendly &#8212; they don't produce honey and therefore have nothing to
+        protect. They only sting if trod on, and are safe to keep around kids and pets.</p>
+    </div>
+  </section>
+
+  <p class="foot">
+    Concept pass. Copy adapted from the original beehome.design, recovered from the Wayback
+    Machine.<br />
+    Bee Home is CC BY 4.0 &#8212; SPACE10, Bakken &amp; B&aelig;ck, Tanita Klein.
+  </p>
+</div>
+
+<script>
+(function () {
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var svg = document.getElementById('art');
+  var NS = 'http://www.w3.org/2000/svg';
+
+  // --- axonometric helpers -------------------------------------------------
+  // One projection for the whole drawing: x runs right, z runs back-and-up.
+  var DX = 0.48, DY = 0.42;
+  function P(x, y, z) { return [x + z * DX, y - z * DY]; }
+  function d(pts) { return 'M' + pts.map(function (p) { return p[0].toFixed(1) + ' ' + p[1].toFixed(1); }).join('L'); }
+
+  function node(cls, path) {
+    var el = document.createElementNS(NS, 'path');
+    el.setAttribute('class', cls);
+    el.setAttribute('d', path);
+    svg.appendChild(el);
+    return el;
+  }
+
+  // A tray: front face, top face, right face, plus cavity openings on the front.
+  function tray(ox, oy, w, h, dep, cavities, showTop) {
+    var parts = [];
+    var fbl = P(ox, oy, 0), fbr = P(ox + w, oy, 0);
+    var ftl = P(ox, oy - h, 0), ftr = P(ox + w, oy - h, 0);
+    var btl = P(ox, oy - h, dep), btr = P(ox + w, oy - h, dep);
+    var bbr = P(ox + w, oy, dep);
+    parts.push(node('ln', d([fbl, fbr, ftr, ftl]) + 'Z'));           // front
+    parts.push(node('ln', d([ftr, btr, bbr, fbr]) + 'Z'));           // right
+    if (showTop) parts.push(node('ln', d([ftl, btl, btr, ftr]) + 'Z'));
+    for (var i = 0; i < cavities; i++) {
+      var cw = 10, gap = (w - 34) / Math.max(1, cavities - 1);
+      var cx = ox + 17 + i * gap - cw / 2, cy = oy - h * 0.34;
+      parts.push(node('ln hair', d([P(cx, cy, 0), P(cx + cw, cy, 0), P(cx + cw, cy - cw, 0), P(cx, cy - cw, 0)]) + 'Z'));
+    }
+    return parts;
+  }
+
+  function leg(ox, oy, z, len) {
+    var w = 6;
+    return node('ln', d([P(ox, oy, z), P(ox + w, oy, z), P(ox + w, oy + len, z), P(ox, oy + len, z)]) + 'Z');
+  }
+
+  // --- the drawing ---------------------------------------------------------
+  // Off-centre right, medium scale &#8212; it shares the frame with the copy rather
+  // than dominating it.
+  var BX = 590, GROUND = 470, W = 190, DEP = 96, TH = 30;
+
+  var legs = [
+    leg(BX + 14, GROUND, 10, 58), leg(BX + W - 28, GROUND, 10, 58),
+    leg(BX + 14, GROUND, DEP - 20, 58), leg(BX + W - 28, GROUND, DEP - 20, 58),
+  ];
+  var plinth = tray(BX - 8, GROUND, W + 16, 16, DEP + 12, 0, false);
+
+  var storeys = [];
+  var cavityCounts = [4, 3, 5, 3];
+  for (var s = 0; s < cavityCounts.length; s++) {
+    storeys.push(tray(BX, GROUND - 16 - s * TH, W, TH, DEP, cavityCounts[s], false));
+  }
+  var roof = tray(BX - 10, GROUND - 16 - cavityCounts.length * TH, W + 20, 22, DEP + 14, 0, true);
+
+  // Garden: stems with leaves and a few simple flowers, rooted along the ground.
+  var plants = [];
+  var spots = [-138, -104, -74, -40, W + 26, W + 58, W + 96, W + 132, W + 168];
+  spots.forEach(function (off, g) {
+    var px = BX + off;
+    var lean = (g % 2 ? 1 : -1) * (10 + (g % 3) * 8);
+    var hgt = 76 + (g % 4) * 40;
+    var tipx = px + lean, tipy = GROUND - hgt;
+    plants.push(node('ln plant',
+      'M' + px + ' ' + GROUND + 'C' + (px + lean * 0.3) + ' ' + (GROUND - hgt * 0.45) +
+      ',' + (px + lean * 1.4) + ' ' + (GROUND - hgt * 0.7) + ',' + tipx + ' ' + tipy));
+    // one closed leaf on the stem
+    var lx = px + lean * 0.4, ly = GROUND - hgt * 0.46, dir = g % 2 ? 1 : -1;
+    plants.push(node('ln hair',
+      'M' + lx + ' ' + ly + 'q' + (17 * dir) + ' -13 ' + (25 * dir) + ' 1q' + (-13 * dir) + ' 9 ' + (-25 * dir) + ' -1Z'));
+    if (g % 3 !== 1) {
+      // a simple open flower: a ring of closed petals round a small centre
+      for (var q = 0; q < 5; q++) {
+        var a = (q / 5) * Math.PI * 2 - Math.PI / 2;
+        var ux = Math.cos(a), uy = Math.sin(a), vx = -uy, vy = ux;
+        plants.push(node('ln hair',
+          'M' + tipx + ' ' + tipy +
+          'q' + (ux * 9 + vx * 7).toFixed(1) + ' ' + (uy * 9 + vy * 7).toFixed(1) +
+          ' ' + (ux * 16).toFixed(1) + ' ' + (uy * 16).toFixed(1) +
+          'q' + (-ux * 9 + vx * 7).toFixed(1) + ' ' + (-uy * 9 + vy * 7).toFixed(1) +
+          ' ' + (-ux * 16).toFixed(1) + ' ' + (-uy * 16).toFixed(1) + 'Z'));
+      }
+      plants.push(node('ln hair', 'M' + (tipx - 3) + ' ' + tipy + 'a3 3 0 1 0 6 0a3 3 0 1 0 -6 0'));
+    }
+  });
+
+  // Flight lines: long approach curves. The last three arrive in the contrast
+  // colour and terminate at a cavity mouth.
+  var flights = [];
+  var targets = [[BX + 22, GROUND - 16 - 2 * TH - TH * 0.46], [BX + 92, GROUND - 16 - TH * 0.46], [BX + 150, GROUND - 16 - 3 * TH - TH * 0.46]];
+  for (var f = 0; f < 7; f++) {
+    var arrive = f >= 4;
+    var tgt = targets[f % 3];
+    var sx = arrive ? -60 : -80 + (f % 3) * 40;
+    var sy = 110 + f * 62;
+    var c1x = 180 + (f % 4) * 90, c1y = sy - 120 + (f % 3) * 90;
+    var c2x = 420 + (f % 3) * 60, c2y = 90 + (f % 5) * 90;
+    var path = 'M' + sx + ' ' + sy + 'C' + c1x + ' ' + c1y + ',' + c2x + ' ' + c2y + ',' + tgt[0] + ' ' + tgt[1];
+    flights.push({ el: node('ln ' + (arrive ? 'arrive' : 'flight'), path), arrive: arrive });
+  }
+
+  // --- reveal on scroll ----------------------------------------------------
+  function prime(el) {
+    var len = el.getTotalLength();
+    el.style.strokeDasharray = len;
+    el.style.strokeDashoffset = len;
+    el._len = len;
+  }
+  function draw(el, k) {
+    el.style.strokeDashoffset = el._len * (1 - Math.max(0, Math.min(1, k)));
+  }
+
+  var all = [].concat(legs, plinth, roof, plants, storeys.reduce(function (a, b) { return a.concat(b); }, []),
+    flights.map(function (f) { return f.el; }));
+  all.forEach(prime);
+
+  var section = document.getElementById('build');
+  var copy = document.getElementById('copy');
+  var cue = document.getElementById('cue');
+  var stepEls = document.querySelectorAll('#stepper span');
+
+  function seg(p, a, b) { return Math.max(0, Math.min(1, (p - a) / (b - a))); }
+
+  function frame() {
+    var span = section.offsetHeight - innerHeight;
+    var p = Math.max(0, Math.min(1, -section.getBoundingClientRect().top / span));
+
+    // muted approach lines first, then the object builds from the ground up,
+    // then the garden, then the arrivals in the contrast colour.
+    flights.forEach(function (f, i) {
+      if (f.arrive) return;
+      draw(f.el, seg(p, 0.06 + i * 0.03, 0.34 + i * 0.03));
+    });
+
+    legs.forEach(function (el, i) { draw(el, seg(p, 0.26 + i * 0.012, 0.36 + i * 0.012)); });
+    plinth.forEach(function (el, i) { draw(el, seg(p, 0.33 + i * 0.01, 0.42 + i * 0.01)); });
+    storeys.forEach(function (parts, s) {
+      parts.forEach(function (el, i) {
+        var t0 = 0.40 + s * 0.055 + i * 0.004;
+        draw(el, seg(p, t0, t0 + 0.07));
+      });
+    });
+    roof.forEach(function (el, i) { draw(el, seg(p, 0.64 + i * 0.01, 0.72 + i * 0.01)); });
+
+    plants.forEach(function (el, i) {
+      var t0 = 0.60 + (i % 9) * 0.016;
+      draw(el, seg(p, t0, t0 + 0.10));
+    });
+
+    flights.forEach(function (f, i) {
+      if (!f.arrive) return;
+      draw(f.el, seg(p, 0.80 + (i - 4) * 0.05, 0.94 + (i - 4) * 0.05));
+    });
+
+    copy.style.opacity = String(1 - seg(p, 0.60, 0.86) * 0.35);
+    cue.style.opacity = String(1 - seg(p, 0.02, 0.14));
+    var step = p < 0.42 ? 0 : p < 0.72 ? 1 : 2;
+    stepEls.forEach(function (el, i) { el.classList.toggle('on', i === step); });
+  }
+
+  if (reduce) { all.forEach(function (el) { draw(el, 1); }); }
+  else {
+    addEventListener('scroll', frame, { passive: true });
+    addEventListener('resize', frame);
+    frame();
+  }
+})();
+</script>

@@ -1,0 +1,683 @@
+<title>Bee Home &#8212; a home for solitary bees</title>
+<style>
+  :root{
+    --ground:#F4F2E9;
+    --ink:#17150F;
+    --peri:#A5B7E6;
+    --hair:rgba(23,21,15,.28);
+    --pad:clamp(24px, 7vw, 120px);
+  }
+  html{scroll-behavior:auto;}
+  body{
+    margin:0;
+    background:var(--ground);
+    color:var(--ink);
+    font:16px/1.6 "Helvetica Neue", Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+  #page{overflow-x:clip; width:100%; position:relative;}
+  a{color:inherit; text-decoration:none;}
+  .mono{
+    font-family:ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+    font-size:11px;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    font-weight:400;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    position:fixed; top:0; left:0; right:0; z-index:40;
+    display:flex; justify-content:space-between; align-items:baseline;
+    padding:22px var(--pad) 0;
+    pointer-events:none;
+  }
+  header .mono{opacity:.85;}
+
+  /* ---------- scroll stage ---------- */
+  .stage{height:620vh; position:relative;}
+  .scene{
+    position:sticky; top:0; height:100vh; overflow:hidden;
+  }
+  .scene svg{
+    position:absolute; inset:0; width:100%; height:100%;
+    display:block;
+  }
+
+  /* overlay text phases */
+  .phase{
+    position:absolute;
+    left:var(--pad);
+    top:34%;
+    max-width:400px;
+    opacity:0;
+    will-change:opacity, transform;
+  }
+  .phase .mono{display:block; margin-bottom:18px; opacity:.7;}
+  .phase p{margin:0; font-size:17px; line-height:1.65;}
+
+  .hero{
+    position:absolute;
+    left:var(--pad);
+    top:27%;
+    max-width:560px;
+    will-change:opacity, transform;
+  }
+  .hero .mono{display:block; margin-bottom:26px; opacity:.7;}
+  .hero h1{
+    margin:0 0 26px;
+    font-size:clamp(52px, 7.4vw, 100px);
+    line-height:.98;
+    font-weight:500;
+    letter-spacing:-.015em;
+  }
+  .hero p{margin:0; font-size:18px; line-height:1.6; max-width:420px;}
+
+  .cue{
+    position:absolute; left:var(--pad); bottom:34px;
+    display:flex; align-items:center; gap:16px;
+  }
+  .cue .mono{opacity:.6;}
+  .cue-line{
+    width:1px; height:44px; background:var(--ink); opacity:.55;
+    transform-origin:top;
+    animation:cuepulse 2.6s ease-in-out infinite;
+  }
+  @keyframes cuepulse{
+    0%{transform:scaleY(.25);} 55%{transform:scaleY(1);} 100%{transform:scaleY(.25);}
+  }
+
+  /* ---------- sections below ---------- */
+  .sect{
+    padding:clamp(90px, 12vw, 160px) var(--pad);
+    max-width:1240px;
+    box-sizing:border-box;
+  }
+  .sect > .label{display:block; margin-bottom:56px; opacity:.7;}
+
+  .rail{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:0 48px;
+    border-top:1px solid var(--ink);
+  }
+  .rail-step{position:relative; padding-top:26px;}
+  .rail-step::before{
+    content:"";
+    position:absolute; top:-4px; left:0;
+    width:7px; height:7px; border-radius:50%;
+    background:var(--ink);
+  }
+  .rail-step .mono{display:block; margin-bottom:16px;}
+  .rail-step p{margin:0; font-size:15.5px; line-height:1.65; max-width:36ch;}
+
+  .btnrow{display:flex; gap:14px; flex-wrap:wrap; margin-top:64px;}
+  .pill{
+    display:inline-block;
+    border:1px solid var(--ink);
+    border-radius:999px;
+    padding:13px 30px 12px;
+    font-family:ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size:11px; letter-spacing:.2em; text-transform:uppercase;
+    transition:background .2s ease, color .2s ease;
+  }
+  .pill:hover{background:var(--ink); color:var(--ground);}
+
+  .stats{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    border-top:1px solid var(--hair);
+    border-bottom:1px solid var(--hair);
+  }
+  .stat{
+    padding:34px 28px 34px 0;
+    border-left:1px solid var(--hair);
+    padding-left:28px;
+  }
+  .stat:first-child{border-left:none; padding-left:0;}
+  .stat b{
+    display:block;
+    font-size:clamp(34px, 3.4vw, 46px);
+    font-weight:400;
+    letter-spacing:-.01em;
+    margin-bottom:12px;
+  }
+  .stat span{display:block; opacity:.7; line-height:2;}
+
+  .qa{border-top:1px solid var(--ink);}
+  .qa-row{
+    display:grid;
+    grid-template-columns:minmax(180px, 340px) 1fr;
+    gap:24px 64px;
+    padding:34px 0;
+    border-bottom:1px solid var(--hair);
+  }
+  .qa-row h3{margin:0; font-size:17px; font-weight:500; letter-spacing:-.005em;}
+  .qa-row p{margin:0; font-size:15.5px; line-height:1.65; max-width:62ch;}
+
+  .closing p.big{
+    margin:0 0 70px;
+    font-size:clamp(24px, 2.6vw, 34px);
+    line-height:1.4;
+    font-weight:400;
+    letter-spacing:-.008em;
+    max-width:24em;
+  }
+  .credits{
+    border-top:1px solid var(--ink);
+    padding-top:26px;
+    display:flex; justify-content:space-between; gap:24px; flex-wrap:wrap;
+  }
+  .credits .mono{opacity:.7; line-height:2.1;}
+  .foot-loop{display:block; margin:-6px 0 34px;}
+
+  /* ---------- responsive ---------- */
+  @media (max-width:900px){
+    .rail{grid-template-columns:1fr; gap:44px 0;}
+    .rail-step{padding-top:22px;}
+    .stats{grid-template-columns:1fr 1fr;}
+    .stat{border-left:none; padding-left:0; border-top:1px solid var(--hair);}
+    .stat:first-child, .stat:nth-child(2){border-top:none;}
+    .qa-row{grid-template-columns:1fr;}
+  }
+  @media (max-width:700px){
+    .hero{top:20%;}
+    .hero p{max-width:88vw;}
+    .phase{top:16%; max-width:78vw;}
+    .phase p{font-size:15.5px;}
+  }
+
+  /* ---------- reduced motion ---------- */
+  @media (prefers-reduced-motion: reduce){
+    .cue-line{animation:none;}
+    .stage{height:auto;}
+    .scene{position:relative; height:100vh;}
+  }
+</style>
+
+<div id="page">
+
+  <header>
+    <span class="mono">Bee Home</span>
+    <span class="mono">Open source &#8212; CC BY 4.0</span>
+  </header>
+
+  <div class="stage" id="stage">
+    <div class="scene">
+      <svg id="scenesvg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+        <!-- intro bee flight lines (periwinkle) -->
+        <g id="g-intro" fill="none" stroke="#A5B7E6" stroke-width="2.1" stroke-linecap="round">
+          <path id="fl1" pathLength="1" d="M -340 336 C -60 250, 184 198, 342 266 C 474 324, 434 468, 320 452 C 216 436, 256 302, 422 264 C 614 220, 764 318, 962 286 C 1122 260, 1182 154, 1332 158 C 1474 162, 1568 124, 1820 96"/>
+          <path id="fl2" pathLength="1" d="M -340 646 C -36 602, 204 560, 402 606 C 560 642, 648 706, 700 646 C 744 594, 660 528, 596 570 C 536 610, 592 686, 744 656 C 906 624, 1010 508, 1200 470 C 1372 436, 1500 420, 1800 372"/>
+          <path id="fl3" pathLength="1" d="M -340 148 C -10 190, 244 118, 434 148 C 584 172, 630 262, 548 302 C 480 336, 402 258, 470 202 C 540 146, 668 118, 826 138 C 992 158, 1076 108, 1226 100 C 1364 94, 1470 172, 1800 206"/>
+          <circle id="bd1" r="3.4" fill="#A5B7E6" stroke="none" opacity="0"/>
+          <circle id="bd2" r="3.4" fill="#A5B7E6" stroke="none" opacity="0"/>
+          <circle id="bd3" r="3.4" fill="#A5B7E6" stroke="none" opacity="0"/>
+        </g>
+
+        <!-- the bee home, built by script -->
+        <g id="g-house" fill="none" stroke="#17150F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></g>
+
+        <!-- garden, built by script -->
+        <g id="g-garden" fill="none" stroke="#17150F" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"></g>
+
+        <!-- entering flight lines, built by script -->
+        <g id="g-enter" fill="none" stroke="#A5B7E6" stroke-width="2.1" stroke-linecap="round"></g>
+
+        <text id="figcap" x="826" y="812" fill="#17150F" opacity="0"
+          font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace"
+          font-size="10.5" letter-spacing="2.3">FIG. 01 &#8212; FIVE STOREYS, CNC-MILLED TIMBER</text>
+      </svg>
+
+      <div class="hero" id="hero">
+        <span class="mono">Space10 &#8212; open source project, 2020</span>
+        <h1>Bee Home</h1>
+        <p>An open invitation for everyone to give bees the home they deserve &#8212; and to make sure that planet Earth thrives.</p>
+      </div>
+
+      <div class="phase" id="phA">
+        <span class="mono">The pollinator</span>
+        <p>Solitary bees are great pollinators: a single solitary bee could provide as much pollination as 120 honeybees.</p>
+      </div>
+
+      <div class="phase" id="phB">
+        <span class="mono">Step 1 &#8212; Design</span>
+        <p>Design your very own Bee Home in a few minutes. Just select size, visual style and desired placement, like a rooftop, balcony or garden &#8212; or play around with the shuffle button. Your design will instantly update.</p>
+      </div>
+
+      <div class="phase" id="phC">
+        <span class="mono">Placement</span>
+        <p>Place it anywhere, as long as it&#8217;s outside, facing the morning sun and within 300 metres of flowers. Make sure that your Bee Home is protected from strong winds and that the holes remain horizontal at all times.</p>
+      </div>
+
+      <div class="phase" id="phD">
+        <span class="mono">Moving in</span>
+        <p>Every female solitary bee is a queen. And since every queen gets 20 to 30 offspring, a single Bee Home could give life to hundreds of solitary bees.</p>
+      </div>
+
+      <div class="cue" id="cue">
+        <span class="cue-line"></span>
+        <span class="mono">Scroll</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ---------- how it works ---------- -->
+  <section class="sect">
+    <span class="label mono">How it works</span>
+    <div class="rail">
+      <div class="rail-step">
+        <span class="mono">Step 1 &#8212; Design</span>
+        <p>Select size, visual style and desired placement, like a rooftop, balcony or garden &#8212; or play around with the shuffle button. Your design will instantly update.</p>
+      </div>
+      <div class="rail-step">
+        <span class="mono">Step 2 &#8212; Download</span>
+        <p>Download the design files for free and share them with a makerspace. We&#8217;ll help you find a local space, and they&#8217;ll help you create your Bee Home.</p>
+      </div>
+      <div class="rail-step">
+        <span class="mono">Step 3 &#8212; Fabricate</span>
+        <p>Most makerspaces have computer-controlled tools, including a CNC milling machine, which is what you&#8217;ll need to fabricate your Bee Home.</p>
+      </div>
+    </div>
+    <div class="btnrow">
+      <a class="pill" href="#">Download design files</a>
+      <a class="pill" href="#">Find a makerspace</a>
+    </div>
+  </section>
+
+  <!-- ---------- numbers ---------- -->
+  <section class="sect">
+    <div class="stats">
+      <div class="stat"><b>120</b><span class="mono">Honeybees&#8217; worth of pollination, from one solitary bee</span></div>
+      <div class="stat"><b>20&#8211;30</b><span class="mono">Offspring for every queen</span></div>
+      <div class="stat"><b>300 m</b><span class="mono">Greatest distance to the nearest flowers</span></div>
+      <div class="stat"><b>5&#8211;30</b><span class="mono">Years a Bee Home can last</span></div>
+    </div>
+  </section>
+
+  <!-- ---------- good to know ---------- -->
+  <section class="sect">
+    <span class="label mono">Good to know</span>
+    <div class="qa">
+      <div class="qa-row">
+        <h3>Are solitary bees safe to keep around?</h3>
+        <p>Solitary bees are friendly &#8212; they don&#8217;t produce honey and therefore have nothing to protect. They only sting if trod on and are safe to keep around kids and pets.</p>
+      </div>
+      <div class="qa-row">
+        <h3>Will bees definitely move in?</h3>
+        <p>Since bees are free-living beings, we cannot guarantee their arrival. Nonetheless, planting native wildflowers will definitely increase your chances.</p>
+      </div>
+      <div class="qa-row">
+        <h3>How long does a Bee Home last?</h3>
+        <p>Anywhere between five to 30 years. It all depends on the durability of the wood, the specific location, and how well you clean and maintain your Bee Home.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- closing ---------- -->
+  <section class="sect closing">
+    <p class="big">At SPACE10 we believe in a future where anyone anywhere feels empowered to design, customise and fabricate their own sustainable products locally.</p>
+    <svg class="foot-loop" width="230" height="64" viewBox="0 0 230 64" aria-hidden="true">
+      <path d="M 2 46 C 44 24, 92 16, 118 32 C 140 46, 122 62, 104 54 C 86 46, 100 24, 138 22 C 172 20, 200 30, 228 24"
+        fill="none" stroke="#A5B7E6" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    <div class="credits">
+      <span class="mono">Space10, Copenhagen &#8212; released World Bee Day 2020</span>
+      <span class="mono">Design: Tanita Klein &#183; Digital: Bakken &amp; B&#230;ck &#183; CC BY 4.0</span>
+    </div>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var NS = "http://www.w3.org/2000/svg";
+  var CC = Math.cos(Math.PI/6), SS = 0.5;
+  var OX = 968, OY = 508;
+  var LEG = 70;
+
+  function pt(x, y, z){
+    return [ OX + (x - y) * CC, OY + (x + y) * SS - z ];
+  }
+  function n(v){ return (Math.round(v * 10) / 10); }
+  function M(p){ return "M" + n(p[0]) + " " + n(p[1]); }
+  function L(p){ return "L" + n(p[0]) + " " + n(p[1]); }
+
+  function mk(name, attrs, parent){
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function path(d, parent, extra){
+    var a = { d: d, pathLength: "1" };
+    if (extra) for (var k in extra) a[k] = extra[k];
+    return mk("path", a, parent);
+  }
+
+  var gHouse = document.getElementById("g-house");
+  var gGarden = document.getElementById("g-garden");
+  var gEnter = document.getElementById("g-enter");
+
+  /* ============ the bee home ============ */
+  var W = 160, D = 110, TH = 30, GAP = 2.5;
+
+  function boxPaths(g, x0, y0, x1, y1, z0, z1){
+    // top face perimeter
+    path(M(pt(x0,y0,z1)) + L(pt(x1,y0,z1)) + L(pt(x1,y1,z1)) + L(pt(x0,y1,z1)) + "Z", g);
+    // visible vertical edges
+    path(M(pt(x1,y0,z0)) + L(pt(x1,y0,z1)), g);
+    path(M(pt(x1,y1,z0)) + L(pt(x1,y1,z1)), g);
+    path(M(pt(x0,y1,z0)) + L(pt(x0,y1,z1)), g);
+    // visible bottom edges
+    path(M(pt(x1,y0,z0)) + L(pt(x1,y1,z0)), g);
+    path(M(pt(x1,y1,z0)) + L(pt(x0,y1,z0)), g);
+  }
+  function cavity(g, xc, zc, s){
+    var h = s / 2;
+    path(M(pt(xc-h, D, zc-h)) + L(pt(xc+h, D, zc-h)) + L(pt(xc+h, D, zc+h)) + L(pt(xc-h, D, zc+h)) + "Z", g);
+  }
+
+  var houseGroups = [];   // [{el, win}]
+  var cavCenters = [];    // screen coords per storey
+
+  // legs group &#8212; only the three visible posts, side posts clipped
+  // where they pass behind the bottom tray (poor man's hidden-line removal)
+  var gLegs = mk("g", {}, gHouse);
+  function post(g, lx, ly, s, zTop){
+    var z0 = -LEG, z1 = zTop;
+    path(M(pt(lx+s,ly,z0)) + L(pt(lx+s,ly,z1)), g);
+    path(M(pt(lx+s,ly+s,z0)) + L(pt(lx+s,ly+s,z1)), g);
+    path(M(pt(lx,ly+s,z0)) + L(pt(lx,ly+s,z1)), g);
+    path(M(pt(lx+s,ly,z0)) + L(pt(lx+s,ly+s,z0)), g);
+    path(M(pt(lx+s,ly+s,z0)) + L(pt(lx,ly+s,z0)), g);
+  }
+  post(gLegs, 144, 10, 6, -16);
+  post(gLegs, 10, 94, 6, -17);
+  post(gLegs, 144, 94, 6, 0);
+
+  // four trays with cavities
+  var cavSpec = [
+    { count: 5, s: 10 },
+    { count: 7, s: 8 },
+    { count: 4, s: 11 },
+    { count: 6, s: 8.5 }
+  ];
+  var trayGroups = [];
+  for (var t = 0; t < 4; t++){
+    var g = mk("g", {}, gHouse);
+    var z0 = t * (TH + GAP), z1 = z0 + TH;
+    boxPaths(g, 0, 0, W, D, z0, z1);
+    var spec = cavSpec[t];
+    var centers = [];
+    for (var i = 0; i < spec.count; i++){
+      var xc = W * (i + 1) / (spec.count + 1);
+      var zc = z0 + TH / 2;
+      cavity(g, xc, zc, spec.s);
+      centers.push(pt(xc, D, zc));
+    }
+    cavCenters.push(centers);
+    trayGroups.push(g);
+  }
+  // overhanging top tray
+  var gTop = mk("g", {}, gHouse);
+  var tz0 = 4 * (TH + GAP) + 1.5;
+  boxPaths(gTop, -14, -12, W + 14, D + 12, tz0, tz0 + 22);
+
+  /* ============ the garden ============ */
+  // stems placed on the ground plane (z = -LEG), around and in front of the house
+  var stems = [
+    // left spread
+    { gx: -46, gy: 300, h: 96,  b: -14, type: "flower" },
+    { gx: -6,  gy: 250, h: 56,  b: 10,  type: "grass"  },
+    { gx: 20,  gy: 214, h: 114, b: -10, type: "umbel"  },
+    { gx: -30, gy: 184, h: 48,  b: 12,  type: "grass"  },
+    { gx: 48,  gy: 176, h: 82,  b: -12, type: "leaf"   },
+    // front of the house
+    { gx: 24,  gy: 146, h: 64,  b: 10,  type: "flower" },
+    { gx: 76,  gy: 152, h: 42,  b: -8,  type: "grass"  },
+    { gx: 118, gy: 148, h: 94,  b: 12,  type: "umbel"  },
+    { gx: 158, gy: 142, h: 56,  b: -10, type: "leaf"   },
+    { gx: 196, gy: 134, h: 74,  b: 8,   type: "flower" },
+    { gx: 98,  gy: 184, h: 38,  b: 6,   type: "grass"  },
+    { gx: 174, gy: 174, h: 104, b: -10, type: "umbel"  },
+    // right spread
+    { gx: 224, gy: 96,  h: 62,  b: 12,  type: "leaf"   },
+    { gx: 248, gy: 126, h: 86,  b: -8,  type: "flower" },
+    { gx: 258, gy: 58,  h: 42,  b: 8,   type: "grass"  },
+    { gx: 290, gy: 84,  h: 96,  b: -12, type: "umbel"  },
+    { gx: 282, gy: 22,  h: 52,  b: 10,  type: "leaf"   },
+    { gx: 312, gy: 48,  h: 68,  b: -8,  type: "flower" }
+  ];
+
+  // point on the stem cubic at parameter t
+  function stemPoint(bx, by, b, h, tipx, tipy, t){
+    var mt = 1 - t;
+    var x = mt*mt*mt*bx + 3*mt*mt*t*(bx + b*0.2) + 3*mt*t*t*(bx + b*0.9) + t*t*t*tipx;
+    var y = mt*mt*mt*by + 3*mt*mt*t*(by - h*0.35) + 3*mt*t*t*(by - h*0.7) + t*t*t*tipy;
+    return [x, y];
+  }
+  function leafShape(g, qx, qy, dir){
+    path("M" + n(qx) + " " + n(qy) +
+         "Q" + n(qx + dir*12) + " " + n(qy - 9) + " " + n(qx + dir*21) + " " + n(qy - 4) +
+         "Q" + n(qx + dir*10) + " " + n(qy + 3) + " " + n(qx) + " " + n(qy), g);
+  }
+  function stemGroup(s){
+    var g = mk("g", {}, gGarden);
+    var base = pt(s.gx, s.gy, -LEG);
+    var bx = base[0], by = base[1];
+    var tipx = bx + s.b, tipy = by - s.h;
+    if (s.type === "grass"){
+      // two blades bending the same way, one shorter
+      path("M" + n(bx) + " " + n(by) + "Q" + n(bx + s.b*0.4) + " " + n(by - s.h*0.6) + " " + n(bx + s.b*2) + " " + n(by - s.h), g);
+      path("M" + n(bx+6) + " " + n(by) + "Q" + n(bx+6 + s.b*0.3) + " " + n(by - s.h*0.42) + " " + n(bx+6 + s.b*1.4) + " " + n(by - s.h*0.68), g);
+      return g;
+    }
+    // main stem
+    path("M" + n(bx) + " " + n(by) +
+         "C" + n(bx + s.b*0.2) + " " + n(by - s.h*0.35) + " " +
+               n(bx + s.b*0.9) + " " + n(by - s.h*0.7) + " " +
+               n(tipx) + " " + n(tipy), g);
+    // leaves, attached exactly on the stem curve
+    var q1 = stemPoint(bx, by, s.b, s.h, tipx, tipy, 0.42);
+    leafShape(g, q1[0], q1[1], s.b >= 0 ? -1 : 1);
+    if (s.h > 70){
+      var q2 = stemPoint(bx, by, s.b, s.h, tipx, tipy, 0.66);
+      leafShape(g, q2[0], q2[1], s.b >= 0 ? 1 : -1);
+    }
+    if (s.type === "flower"){
+      // simple daisy: centre + six petal loops
+      mk("circle", { cx: n(tipx), cy: n(tipy), r: 2.6, pathLength: "1" }, g);
+      for (var k = 0; k < 6; k++){
+        var a = (Math.PI * 2 / 6) * k + 0.5;
+        var ca = Math.cos(a), sa = Math.sin(a);
+        var pa = Math.cos(a + Math.PI/2), pb = Math.sin(a + Math.PI/2);
+        var x0 = tipx + ca*4.2, y0 = tipy + sa*4.2;
+        var xt = tipx + ca*12.5, yt = tipy + sa*12.5;
+        path("M" + n(x0) + " " + n(y0) +
+             "Q" + n(xt + pa*3.4) + " " + n(yt + pb*3.4) + " " + n(tipx + ca*13.5) + " " + n(tipy + sa*13.5) +
+             "Q" + n(xt - pa*3.4) + " " + n(yt - pb*3.4) + " " + n(x0) + " " + n(y0), g);
+      }
+    } else if (s.type === "umbel"){
+      // cow-parsley head: three stalks fanning up, tiny seed circles
+      var ends = [[-14, -7], [0, -13], [13, -7]];
+      for (var u = 0; u < 3; u++){
+        var ex = tipx + ends[u][0], ey = tipy + ends[u][1];
+        path("M" + n(tipx) + " " + n(tipy) + "Q" + n(tipx + ends[u][0]*0.45) + " " + n(tipy - 8) + " " + n(ex) + " " + n(ey), g);
+        mk("circle", { cx: n(ex), cy: n(ey), r: 2.2, pathLength: "1" }, g);
+      }
+    }
+    return g;
+  }
+  var gardenGroups = stems.map(stemGroup);
+
+  /* ============ entering flight lines ============ */
+  var c1 = cavCenters[2][1];  // third storey
+  var c2 = cavCenters[0][3];  // first storey
+  var c3 = cavCenters[3][1];  // fourth storey
+
+  function enterPath(d){
+    return path(d, gEnter, {});
+  }
+  var e1 = enterPath(
+    "M -160 214 C 220 118, 430 320, 606 296 " +
+    "C 742 278, 764 416, 652 408 C 556 402, 616 274, 788 292 " +
+    "C " + n(c1[0]-150) + " " + n(c1[1]+88) + " " + n(c1[0]-52) + " " + n(c1[1]+30) + " " + n(c1[0]) + " " + n(c1[1]));
+  var e2 = enterPath(
+    "M -160 662 C 180 700, 400 596, 566 646 " +
+    "C 668 676, 664 566, 590 584 C 524 600, 560 676, 690 648 " +
+    "C " + n(c2[0]-170) + " " + n(c2[1]+70) + " " + n(c2[0]-54) + " " + n(c2[1]+31) + " " + n(c2[0]) + " " + n(c2[1]));
+  var e3 = enterPath(
+    "M 470 -80 C 560 100, 430 216, 520 292 " +
+    "C 596 356, 690 236, 796 250 " +
+    "C " + n(c3[0]-140) + " " + n(c3[1]+82) + " " + n(c3[0]-50) + " " + n(c3[1]+29) + " " + n(c3[0]) + " " + n(c3[1]));
+
+  var bdE = [0,1,2].map(function(){ return mk("circle", { r: 3.4, fill: "#A5B7E6", stroke: "none", opacity: 0 }, gEnter); });
+
+  /* ============ scroll choreography ============ */
+  function clamp01(v){ return v < 0 ? 0 : (v > 1 ? 1 : v); }
+  function map(p, a, b){ return clamp01((p - a) / (b - a)); }
+  function easeOut(t){ return 1 - Math.pow(1 - t, 3); }
+
+  function setDraw(pathEl, t){
+    if (t >= 1){ pathEl.style.strokeDasharray = "none"; pathEl.style.strokeDashoffset = "0"; }
+    else { pathEl.style.strokeDasharray = "1 1"; pathEl.style.strokeDashoffset = String(1 - t); }
+    pathEl.style.opacity = t > 0 ? "" : "0";
+  }
+  function drawGroup(g, t){
+    var kids = g.querySelectorAll("path, circle");
+    for (var i = 0; i < kids.length; i++) setDraw(kids[i], t);
+    g.style.opacity = t > 0 ? "1" : "0";
+  }
+
+  var fl = [document.getElementById("fl1"), document.getElementById("fl2"), document.getElementById("fl3")];
+  var bd = [document.getElementById("bd1"), document.getElementById("bd2"), document.getElementById("bd3")];
+  var flLen = fl.map(function(p){ return p.getTotalLength(); });
+  var eLines = [e1, e2, e3];
+  var eLen = eLines.map(function(p){ return p.getTotalLength(); });
+
+  var flWin = [[0.055, 0.20], [0.085, 0.235], [0.115, 0.27]];
+  var eWin  = [[0.795, 0.915], [0.82, 0.945], [0.845, 0.975]];
+
+  var storeyWin = [
+    [0.295, 0.36],   // legs
+    [0.34, 0.405],
+    [0.385, 0.45],
+    [0.43, 0.495],
+    [0.475, 0.545],
+    [0.525, 0.605]   // top tray
+  ];
+  var storeyEls = [gLegs].concat(trayGroups).concat([gTop]);
+
+  var hero = document.getElementById("hero");
+  var cue = document.getElementById("cue");
+  var figcap = document.getElementById("figcap");
+  var phases = [
+    { el: document.getElementById("phA"), a: 0.10,  b: 0.265, hold: false },
+    { el: document.getElementById("phB"), a: 0.315, b: 0.60,  hold: false },
+    { el: document.getElementById("phC"), a: 0.635, b: 0.79,  hold: false },
+    { el: document.getElementById("phD"), a: 0.825, b: 1.2,   hold: true  }
+  ];
+
+  function beeTip(pathEl, dot, t){
+    if (t <= 0.005 || t >= 0.995){
+      dot.style.opacity = "0";
+      return;
+    }
+    var len = pathEl.getTotalLength();
+    var q = pathEl.getPointAtLength(t * len);
+    dot.setAttribute("cx", q.x);
+    dot.setAttribute("cy", q.y);
+    dot.style.opacity = String(Math.min(1, t * 14));
+  }
+
+  function render(p){
+    // hero + cue
+    var heroT = 1 - map(p, 0.03, 0.095);
+    hero.style.opacity = String(heroT);
+    hero.style.transform = "translateY(" + n((1 - heroT) * -26) + "px)";
+    cue.style.opacity = String(1 - map(p, 0.015, 0.05));
+
+    // intro flight lines with ghosting after
+    var ghost = 1 - 0.8 * map(p, 0.30, 0.42);
+    for (var i = 0; i < 3; i++){
+      var t = map(p, flWin[i][0], flWin[i][1]);
+      setDraw(fl[i], t);
+      fl[i].style.opacity = t > 0 ? String(ghost) : "0";
+      beeTip(fl[i], bd[i], t);
+    }
+
+    // house
+    for (var s = 0; s < storeyEls.length; s++){
+      var st = map(p, storeyWin[s][0], storeyWin[s][1]);
+      drawGroup(storeyEls[s], st);
+      storeyEls[s].style.transform = "translateY(" + n(-(1 - easeOut(st)) * 12) + "px)";
+    }
+    figcap.style.opacity = String(0.62 * map(p, 0.615, 0.66));
+
+    // garden
+    for (var gi = 0; gi < gardenGroups.length; gi++){
+      var a = 0.615 + (gi % 9) * 0.014 + Math.floor(gi / 9) * 0.006;
+      var gt = map(p, a, a + 0.085);
+      drawGroup(gardenGroups[gi], gt);
+    }
+
+    // entering lines
+    for (var e = 0; e < 3; e++){
+      var et = map(p, eWin[e][0], eWin[e][1]);
+      setDraw(eLines[e], et);
+      beeTip(eLines[e], bdE[e], et);
+    }
+
+    // text phases
+    for (var ph = 0; ph < phases.length; ph++){
+      var o = phases[ph];
+      var tin = map(p, o.a, o.a + 0.045);
+      var tout = o.hold ? 1 : 1 - map(p, o.b - 0.035, o.b);
+      var op = Math.min(tin, tout);
+      o.el.style.opacity = String(op);
+      o.el.style.transform = "translateY(" + n((1 - easeOut(tin)) * 18) + "px)";
+    }
+  }
+
+  var stage = document.getElementById("stage");
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // On narrow screens, crop the drawing in around the house so it keeps
+  // a sensible size (HTML text overlays are independent of the viewBox).
+  var svgEl = document.getElementById("scenesvg");
+  function fitViewBox(){
+    if (window.innerWidth < 720) svgEl.setAttribute("viewBox", "470 120 1000 800");
+    else svgEl.setAttribute("viewBox", "0 0 1440 900");
+  }
+  fitViewBox();
+  window.addEventListener("resize", fitViewBox);
+
+  if (reduce){
+    render(1);
+    hero.style.opacity = "1";
+    hero.style.transform = "none";
+    cue.style.display = "none";
+    // keep hero and final scene coexisting quietly
+    document.getElementById("phD").style.opacity = "0";
+  } else {
+    var ticking = false;
+    function onScroll(){
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(function(){
+        ticking = false;
+        var rect = stage.getBoundingClientRect();
+        var total = stage.offsetHeight - window.innerHeight;
+        var p = total > 0 ? clamp01(-rect.top / total) : 1;
+        render(p);
+      });
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    onScroll();
+  }
+})();
+</script>
