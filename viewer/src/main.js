@@ -35,6 +35,10 @@ const plate = {
   view: params.get('plate'),                       // iso | front | plan
   explodeMm: Number(params.get('explode') || 0),   // vertical fan, per storey
   clean: params.get('clean') === '1',
+  // Build the whole stack so the camera framing stays fixed, then reveal only
+  // the first N storeys. Without this an assembly sequence zooms between
+  // frames instead of growing in place.
+  show: params.get('show') ? Number(params.get('show')) : null,
 };
 
 async function boot() {
@@ -51,9 +55,11 @@ async function boot() {
   if (params.get('woods')) state.woods = params.get('woods').split(',');
   if (plate.view) state.mode = 'drawing';
   if (plate.clean) document.body.classList.add('clean');
+  if (params.get('alpha') === '1') document.body.classList.add('alpha');
 
   stage = new Stage(el('stage'));
   stage.plateWhite = plate.clean;
+  stage.plateAlpha = params.get('alpha') === '1';
   buildControls();
   await rebuild();
   if (plate.view === 'iso' || !plate.view) stage.lookFrom();
@@ -138,6 +144,12 @@ async function rebuild() {
   }
 
   stage.frame();
+  if (plate.show !== null) {
+    for (const child of stage.root.children) {
+      const i = child.userData.storey;
+      if (typeof i === 'number' && i >= 0 && i >= plate.show) child.visible = false;
+    }
+  }
   if (plate.view && plate.view !== 'iso') stage.setProjection(plate.view);
   document.body.classList.toggle('drawing', state.mode === 'drawing');
   stage.setMode(state.mode);

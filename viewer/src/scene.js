@@ -61,7 +61,7 @@ function projectUvs(geometry, scale = 6) {
 
 export class Stage {
   constructor(canvas) {
-    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
     this.renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.shadowMap.enabled = true;
@@ -179,7 +179,9 @@ export class Stage {
     this.mode = mode;
     // Plates go into a printed PDF, so they need paper white rather than the
     // bone the on-screen drawing mode uses.
-    this.scene.background = new THREE.Color(this.plateWhite ? '#ffffff' : BACKDROP[mode]);
+    // Plates are composited onto the page, so they render on transparency.
+    this.scene.background = this.plateAlpha ? null
+      : new THREE.Color(this.plateWhite ? '#ffffff' : BACKDROP[mode]);
     this.shadowFloor.visible = mode === 'timber';
     for (const child of this.root.children) {
       if (child.isLineSegments) {

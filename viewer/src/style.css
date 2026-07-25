@@ -373,3 +373,6 @@ body.clean { background: #fff; }
 body.clean .panel,
 body.clean .masthead,
 body.clean .readout { display: none; }
+
+/* Plate captures with alpha need the page itself transparent too. */
+body.clean.alpha { background: transparent; }
