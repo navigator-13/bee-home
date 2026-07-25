@@ -1,0 +1,527 @@
+<title>Bee Home — three directions</title>
+
+<style>
+@font-face {
+  font-family: 'S10 Beehome';
+  src: url(data:font/woff2;base64,$FONT) format('woff2');
+  font-display: block;
+}
+
+/* The frame is neutral on purpose — each direction below commits to its own
+   world, and the gallery wall shouldn't argue with the work hanging on it.
+   Frame tokens follow the viewer's theme; the direction slabs never do, so
+   they stay comparable. */
+:root {
+  --frame: #191917;
+  --frame-fg: #eceae2;
+  --frame-muted: #8b8a7e;
+  --frame-line: #33322c;
+  --mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  --sans: 'Helvetica Neue', Helvetica, 'Segoe UI', Arial, sans-serif;
+  --display: 'S10 Beehome', var(--sans);
+}
+
+@media (prefers-color-scheme: light) {
+  :root { --frame: #eceae2; --frame-fg: #1d1d1a; --frame-muted: #6b6a5e; --frame-line: #d2d0c6; }
+}
+:root[data-theme='light'] { --frame: #eceae2; --frame-fg: #1d1d1a; --frame-muted: #6b6a5e; --frame-line: #d2d0c6; }
+:root[data-theme='dark'] { --frame: #191917; --frame-fg: #eceae2; --frame-muted: #8b8a7e; --frame-line: #33322c; }
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--frame);
+  color: var(--frame-fg);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+.pad { max-width: 1080px; margin: 0 auto; padding: 0 26px; }
+
+/* ---------- frame ---------- */
+
+.intro { padding: 80px 0 54px; }
+
+.kicker {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--frame-muted);
+  margin: 0 0 22px;
+}
+
+.intro h1 {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(40px, 8vw, 88px);
+  line-height: 0.96;
+  margin: 0;
+  text-wrap: balance;
+}
+
+.intro p { max-width: 62ch; margin: 24px 0 0; }
+.intro p.dim { color: var(--frame-muted); font-size: 14px; }
+
+.killed {
+  margin: 34px 0 0;
+  padding: 16px 20px;
+  border-left: 2px solid #a8543a;
+  background: rgba(168, 84, 58, 0.09);
+  max-width: 62ch;
+  font-size: 14px;
+}
+
+.killed b { color: #d08a6c; font-weight: 600; }
+
+/* ---------- direction slabs ---------- */
+
+.slab { padding: 74px 0 78px; }
+
+.slab-head {
+  display: flex;
+  gap: 16px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.slab-ref {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: 40px;
+  align-items: center;
+  margin-top: 34px;
+}
+
+.grid.flip > .art { order: 2; }
+
+.art { position: relative; overflow: hidden; }
+.art img { display: block; width: 100%; height: auto; }
+
+.copy p { margin: 0 0 15px; max-width: 52ch; }
+.copy p:last-child { margin-bottom: 0; }
+
+dl.spec { margin: 22px 0 0; display: grid; grid-template-columns: 88px minmax(0,1fr); gap: 7px 16px; font-size: 13px; }
+dl.spec dt { font-family: var(--mono); font-size: 10px; letter-spacing: 0.13em; text-transform: uppercase; opacity: 0.6; padding-top: 3px; }
+dl.spec dd { margin: 0; }
+
+.chips { display: flex; gap: 5px; flex-wrap: wrap; }
+.chips i { width: 26px; height: 26px; border-radius: 50%; display: block;
+  box-shadow: inset 0 0 0 1px rgba(127, 127, 127, 0.45); }
+
+/* ---------- A · the nest section ---------- */
+
+#nest { background: #100e0b; color: #e4d5c0; }
+#nest .slab-ref { color: #b07d4e; }
+#nest h2 {
+  font-family: var(--sans);
+  font-weight: 800;
+  font-size: clamp(34px, 6vw, 62px);
+  letter-spacing: -0.035em;
+  line-height: 0.92;
+  margin: 0;
+  text-transform: uppercase;
+}
+#nest .lede { color: #8d7b64; }
+#nest .art { border-radius: 999px 999px 6px 6px; }
+#nest .art::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 42%, transparent 26%, #100e0b 84%);
+}
+#nest .cells { display: grid; gap: 3px; margin-top: 26px; }
+#nest .cell {
+  border: 1px solid #3a2e22;
+  border-radius: 40px 40px 6px 6px;
+  padding: 13px 20px;
+  font-size: 13px;
+  color: #c2ab8e;
+}
+#nest .cell:nth-child(even) { margin-left: 34px; border-radius: 6px 6px 40px 40px; }
+
+/* ---------- B · bee vision ---------- */
+
+#vision { background: #0d1030; color: #e7e9ff; }
+#vision .slab-ref { color: #9de24a; }
+#vision h2 {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(38px, 7vw, 74px);
+  line-height: 0.98;
+  margin: 0;
+  color: #fff;
+}
+#vision .lede { color: #a3a7dd; }
+#vision .swap {
+  position: relative;
+  cursor: ew-resize;
+  touch-action: none;
+  user-select: none;
+  border: 1px solid #2b2f66;
+}
+#vision .swap img { display: block; width: 100%; }
+#vision .swap .top { position: absolute; inset: 0; width: 50%; overflow: hidden; }
+#vision .swap .top img { width: 200%; max-width: none; }
+#vision .swap .handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  background: #9de24a;
+  pointer-events: none;
+}
+#vision .swap .handle::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 30px;
+  height: 30px;
+  margin: -15px 0 0 -15px;
+  border: 2px solid #9de24a;
+  border-radius: 50%;
+  background: rgba(13, 16, 48, 0.6);
+}
+#vision .swaplabels {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #8286c4;
+  margin-top: 9px;
+}
+
+/* ---------- D · stock & toolpath ---------- */
+
+#stock { background: #f2f2ef; color: #16161a; }
+#stock .slab-ref { color: #ff2d1a; }
+#stock h2 {
+  font-family: var(--mono);
+  font-weight: 500;
+  font-size: clamp(28px, 4.6vw, 48px);
+  letter-spacing: -0.02em;
+  line-height: 1.02;
+  margin: 0;
+  text-transform: uppercase;
+}
+#stock .lede, #stock .copy { font-family: var(--mono); font-size: 12.5px; line-height: 1.75; }
+#stock .lede { color: #67675e; }
+#stock .art { background: #fff; border: 1px solid #d9d9d3; padding: 14px; }
+.toolpaths { width: 100%; height: auto; display: block; }
+.tp { fill: none; vector-effect: non-scaling-stroke; }
+.tp.cut { stroke: #ff2d1a; stroke-width: 1.6; }
+.tp.pocket { stroke: #ff2df0; stroke-width: 1; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .drawing .tp { stroke-dasharray: 4000; stroke-dashoffset: 4000; animation: draw 2.4s ease-out forwards; }
+  .drawing .tp.pocket { animation-delay: 0.5s; animation-duration: 3s; }
+}
+@keyframes draw { to { stroke-dashoffset: 0; } }
+
+#stock .layerkey { font-family: var(--mono); font-size: 10.5px; color: #67675e; margin-top: 12px; display: flex; gap: 20px; flex-wrap: wrap; }
+#stock .layerkey span::before { content: ''; display: inline-block; width: 16px; height: 2px; margin-right: 7px; vertical-align: 3px; }
+#stock .layerkey .c::before { background: #ff2d1a; }
+#stock .layerkey .p::before { background: #ff2df0; }
+
+/* ---------- hybrid ---------- */
+
+#hybrid { background: #0d1030; color: #e7e9ff; padding-bottom: 90px; }
+#hybrid .slab-ref { color: #9de24a; }
+#hybrid h2 { font-family: var(--display); font-weight: 400; font-size: clamp(32px, 5.4vw, 58px); margin: 0; color: #fff; line-height: 1.02; }
+#hybrid .split { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin-top: 34px; border: 1px solid #2b2f66; }
+#hybrid .half { padding: 26px 24px; }
+#hybrid .half:first-child { border-right: 1px solid #2b2f66; }
+#hybrid .half.light { background: #f2f2ef; color: #16161a; font-family: var(--mono); font-size: 12.5px; }
+#hybrid .half h3 { font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; margin: 0 0 12px; opacity: 0.65; font-weight: 500; }
+#hybrid .half.dark h3 { color: #9de24a; opacity: 1; }
+#hybrid .half.light h3 { color: #ff2d1a; opacity: 1; }
+#hybrid .half p { margin: 0 0 12px; font-size: 13.5px; }
+#hybrid .half.light p { font-size: 12.5px; line-height: 1.7; }
+
+/* ---------- verdict ---------- */
+
+.verdict { padding: 66px 0 100px; }
+.verdict h2 { font-family: var(--display); font-weight: 400; font-size: clamp(28px, 4.4vw, 44px); margin: 0 0 22px; }
+.verdict ol { margin: 0; padding: 0; list-style: none; counter-reset: rank; }
+.verdict li {
+  counter-increment: rank;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 16px;
+  padding: 16px 0;
+  border-top: 1px solid var(--frame-line);
+  max-width: 74ch;
+}
+.verdict li::before {
+  content: counter(rank);
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--frame-muted);
+  padding-top: 4px;
+}
+.verdict li b { font-weight: 600; }
+.verdict li span { display: block; color: var(--frame-muted); font-size: 13.5px; margin-top: 3px; }
+
+.ask { margin-top: 30px; padding: 18px 22px; border: 1px solid var(--frame-line); max-width: 64ch; font-size: 14px; }
+
+@media (max-width: 860px) {
+  .grid { grid-template-columns: 1fr; gap: 26px; }
+  .grid.flip > .art { order: 0; }
+  #hybrid .split { grid-template-columns: 1fr; }
+  #hybrid .half:first-child { border-right: 0; border-bottom: 1px solid #2b2f66; }
+  .slab { padding: 52px 0 56px; }
+  .intro { padding: 48px 0 34px; }
+}
+</style>
+
+<div class="pad intro">
+  <p class="kicker">Bee Home revival · report 02 · visual directions</p>
+  <h1>Three ways<br />to look at it</h1>
+  <p>
+    Each block below is built in its own direction rather than described in one — the palette,
+    the type, the imagery and the motion are the proposal. The frame around them is deliberately
+    neutral so they can be compared rather than harmonised.
+  </p>
+  <p class="dim">
+    Two of the three visuals are made from real project material: the bee-vision image is the
+    original launch photograph run through a red-blind, UV-shifted transform, and the toolpaths
+    are all 792 actual cutting curves lifted out of <code>BEEHOME GEOMETRIES.3dm</code>.
+  </p>
+  <p class="killed">
+    <b>C · Field Guide is dropped</b>, as you asked. For the record it was the weakest of the four
+    anyway: pressed plants and a warm serif is where every sustainability project lands, and it
+    was the one direction that would have made this look like something rather than like itself.
+  </p>
+</div>
+
+<!-- ============ A ============ -->
+<section class="slab" id="nest">
+  <div class="pad">
+    <div class="slab-head">
+      <span class="slab-ref">Direction A</span>
+    </div>
+    <h2>The nest<br />section</h2>
+    <div class="grid">
+      <div class="art"><img src="$IMG_TUNNEL" alt="A darkened, vignetted crop of a Bee Home showing stacked tunnel mouths" /></div>
+      <div class="copy">
+        <p class="lede">
+          Take the one thing that is genuinely distinctive and make it the whole structure: the
+          tunnel. A solitary bee experiences this object as a dark corridor with a bright mouth.
+        </p>
+        <p>
+          Scrolling moves you <em>down</em> a borehole. Content sits in chambers that alternate
+          left and right the way brood cells alternate along a nesting tube — so the asymmetry
+          is structural rather than styled. Light comes from one side only and falls off fast.
+        </p>
+        <p>
+          The 3D lives at the bottom of the shaft: you arrive at the builder having travelled
+          through the thing you are about to design.
+        </p>
+        <div class="cells">
+          <div class="cell">Chamber 01 — why solitary bees</div>
+          <div class="cell">Chamber 02 — the design</div>
+          <div class="cell">Chamber 03 — build yours</div>
+        </div>
+        <dl class="spec">
+          <dt>Palette</dt>
+          <dd><div class="chips"><i style="background:#100e0b"></i><i style="background:#3a2e22"></i><i style="background:#b07d4e"></i><i style="background:#e4d5c0"></i></div></dd>
+          <dt>Type</dt>
+          <dd>Heavy grotesque, tight tracking, all caps. Weight does the work; there is no second voice.</dd>
+          <dt>Motion</dt>
+          <dd>Depth parallax on scroll, light travelling down the shaft.</dd>
+          <dt>Risk</dt>
+          <dd>Oppressive across a whole site, and dark backgrounds fight the pale timber the product is made of.</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ B ============ -->
+<section class="slab" id="vision">
+  <div class="pad">
+    <div class="slab-head">
+      <span class="slab-ref">Direction B</span>
+    </div>
+    <h2>Bee vision</h2>
+    <div class="grid flip">
+      <div class="art">
+        <div class="swap" id="swap">
+          <img src="$IMG_BEE" alt="The Bee Home launch photograph rendered in approximate bee colour vision — cold blue-green, no warmth" />
+          <div class="top"><img src="$IMG_HUMAN" alt="The same photograph in ordinary human colour — warm timber against sand" /></div>
+          <div class="handle" id="handle"></div>
+        </div>
+        <div class="swaplabels"><span>Human vision</span><span>Bee vision</span></div>
+      </div>
+      <div class="copy">
+        <p class="lede">
+          The studio researched how bees interpret colour and then put almost none of it on
+          screen. This direction makes that research the identity.
+        </p>
+        <p>
+          Bees are red-blind and see into the ultraviolet. Drag the image: that is the same
+          photograph, with the red receptor removed and the short wavelengths pushed up. The
+          warm timber the whole project is built from is, to its intended occupant, cold.
+        </p>
+        <p>
+          So the palette is violet, ultramarine and chartreuse, with wood as the only warm note
+          on the page — and every warm thing reads as a deliberate address to humans rather than
+          to bees. Scroll transitions flip photographs between the two ways of seeing.
+        </p>
+        <dl class="spec">
+          <dt>Palette</dt>
+          <dd><div class="chips"><i style="background:#0d1030"></i><i style="background:#2b2f66"></i><i style="background:#9de24a"></i><i style="background:#a5b7e6"></i><i style="background:#f1d6ba"></i></div></dd>
+          <dt>Type</dt>
+          <dd>The recovered S10 Beehome display face — this headline is set in it — over a plain grotesque, with mono for data.</dd>
+          <dt>Motion</dt>
+          <dd>Vision-swap wipes, UV bloom on hover, spectra that slide as you scroll.</dd>
+          <dt>Risk</dt>
+          <dd>Can tip into science-museum. The wood photography has to stay generous and physical to hold it down.</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ D ============ -->
+<section class="slab" id="stock">
+  <div class="pad">
+    <div class="slab-head">
+      <span class="slab-ref">Direction D</span>
+    </div>
+    <h2>Stock &amp; toolpath</h2>
+    <div class="grid">
+      <div class="art">
+        $TOOLPATHS
+        <div class="layerkey">
+          <span class="c">CUT-OUTSIDE_T6MM_30.00MM</span>
+          <span class="p">POCKET-INSIDE_T6MM_20.00MM</span>
+        </div>
+      </div>
+      <div class="copy">
+        <p class="lede">
+          Honeycomb, but earned. Not hexagon wallpaper — the actual nesting of parts on a sheet
+          of stock.
+        </p>
+        <p>
+          Those are all 792 real cutting curves from the project's own Rhino file, in the project's
+          own layer colours. The vocabulary is already sitting there: red for outside cuts,
+          magenta for pockets, layer names that state material thickness and depth to two
+          decimal places. Nothing needs inventing.
+        </p>
+        <p>
+          On scroll the toolpaths draw themselves in cut order. Layout is asymmetric because
+          nesting is asymmetric — parts pack around each other and the leftover is visible, which
+          is the honest picture of making something from a sheet.
+        </p>
+        <dl class="spec">
+          <dt>Palette</dt>
+          <dd><div class="chips"><i style="background:#f2f2ef"></i><i style="background:#16161a"></i><i style="background:#ff2d1a"></i><i style="background:#ff2df0"></i></div></dd>
+          <dt>Type</dt>
+          <dd>Monospace throughout — the machine's own voice. Set small, set tight, never apologised for.</dd>
+          <dt>Motion</dt>
+          <dd>Paths drawing on scroll; a live nesting preview as storeys are added.</dd>
+          <dt>Risk</dt>
+          <dd>Cold, and it speaks to people who already own machines — the exact audience the project needs to stop speaking to exclusively.</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ HYBRID ============ -->
+<section class="slab" id="hybrid">
+  <div class="pad">
+    <div class="slab-head"><span class="slab-ref">B + D</span></div>
+    <h2>The hybrid, which is the one I'd build</h2>
+    <p style="max-width:60ch;margin:20px 0 0;color:#a3a7dd">
+      The two halves answer different questions, and the site has exactly two questions to
+      answer. Split it at the point where a visitor stops being an audience and starts being a
+      maker — the moment they open the builder.
+    </p>
+    <div class="split">
+      <div class="half dark">
+        <h3>Before the builder · B</h3>
+        <p>Why bees, why this, why you. Violet and UV, vision-swap photography, the display face
+          at scale. Emotional, strange, memorable.</p>
+        <p>Everything here is arguing that the world looks different to the animal you are
+          building for.</p>
+      </div>
+      <div class="half light">
+        <h3>From the builder on · D</h3>
+        <p>Configure, nest, cut, assemble, maintain. Bone and mono and hairlines — which is also
+          exactly what the original builder looked like, so this half is a restoration rather
+          than an invention.</p>
+        <p>The switch is the reward. Crossing into it should feel like the lights coming on in a
+          workshop.</p>
+      </div>
+    </div>
+    <p style="max-width:60ch;margin:26px 0 0;color:#a3a7dd">
+      It also solves a practical problem: the builder is the one screen we have real reference
+      for, and D <em>is</em> that reference. Nothing has to be invented where evidence exists,
+      and invention goes where there is none.
+    </p>
+  </div>
+</section>
+
+<div class="pad verdict">
+  <h2>Ranked, with reasons</h2>
+  <ol>
+    <li><b>B + D hybrid</b><span>Ownable, evidence-backed where evidence exists, and the split falls on a real seam in the user's intent rather than an arbitrary one.</span></li>
+    <li><b>B alone</b><span>The strongest single idea. Loses the fabrication honesty that makes the project more than a nice object.</span></li>
+    <li><b>D alone</b><span>The most authentic and the most narrowing. Good for the repo, weak for the public front door.</span></li>
+    <li><b>A</b><span>The best photography direction of the three and the hardest to sustain. Worth keeping in reserve for one section — the nest explainer — rather than the whole site.</span></li>
+  </ol>
+  <p class="ask">
+    Next step is yours: pick one and I'll build it as a real page — working scroll behaviour, the
+    builder embedded, on the recovered assets. A is also still cheap to sketch if you want to see
+    it running before deciding.
+  </p>
+</div>
+
+<script>
+(function () {
+  var swap = document.getElementById('swap');
+  var handle = document.getElementById('handle');
+  if (!swap) return;
+  var top = swap.querySelector('.top');
+  function set(clientX) {
+    var r = swap.getBoundingClientRect();
+    var pct = Math.max(0, Math.min(1, (clientX - r.left) / r.width));
+    top.style.width = (pct * 100) + '%';
+    top.querySelector('img').style.width = (100 / Math.max(pct, 0.0001)) + '%';
+    handle.style.left = (pct * 100) + '%';
+  }
+  var dragging = false;
+  swap.addEventListener('pointerdown', function (e) { dragging = true; swap.setPointerCapture(e.pointerId); set(e.clientX); });
+  swap.addEventListener('pointermove', function (e) { if (dragging) set(e.clientX); });
+  swap.addEventListener('pointerup', function () { dragging = false; });
+  swap.addEventListener('pointercancel', function () { dragging = false; });
+
+  // Draw the toolpaths when they scroll into view.
+  var stock = document.querySelector('#stock .art');
+  if (stock && 'IntersectionObserver' in window) {
+    new IntersectionObserver(function (entries, obs) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) { entry.target.classList.add('drawing'); obs.unobserve(entry.target); }
+      });
+    }, { threshold: 0.25 }).observe(stock);
+  }
+})();
+</script>
