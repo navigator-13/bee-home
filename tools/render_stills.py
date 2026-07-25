@@ -55,9 +55,9 @@ TEXTURE = "docs/reference/textures/WoodPlywood001_COL_2K.jpg"
 # it, and is checked under both the studio key and the workshop window, since
 # the workshop light is cooler and drags the same tint several degrees back.
 WOODS = {
-    "birch": (0.560, 0.430, 0.288),   # pale northern ply, the default
-    "ash": (0.505, 0.408, 0.300),     # a shade cooler and greyer
-    "beech": (0.610, 0.452, 0.282),   # a shade warmer, still pale
+    "birch": (0.560, 0.424, 0.186),   # pale northern ply, the default
+    "ash": (0.505, 0.402, 0.205),     # a shade cooler and greyer
+    "beech": (0.610, 0.446, 0.180),   # a shade warmer, still pale
     "walnut": (0.150, 0.092, 0.068),  # dark accent band
     "charred": (0.032, 0.030, 0.031),
 }
@@ -314,14 +314,21 @@ def slab(width, depth, height, location):
     > Object reads the *local* space, so a unit cube stretched to bench size
     still measures one unit across and every wood shader on it collapses to a
     single flat colour — which is why the bench had no grain on it at all.
+
+    The cube is added at the origin and moved afterwards, and `transform_apply`
+    is told explicitly which channels to bake. Adding it at `location` and
+    trusting the operator's defaults bakes the offset into the mesh *as well as*
+    leaving it on the object, so everything built this way lands at twice the x
+    and y it was asked for. That put every wall of the workshop metres out of
+    place and left the offcuts hovering above the bench.
     """
-    bpy.ops.mesh.primitive_cube_add(size=1, location=location)
+    bpy.ops.mesh.primitive_cube_add(size=1, location=(0, 0, 0))
     obj = bpy.context.object
     obj.scale = (width, depth, height)
     bpy.ops.object.select_all(action="DESELECT")
     obj.select_set(True)
     bpy.context.view_layer.objects.active = obj
-    bpy.ops.object.transform_apply(scale=True)
+    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
     obj.location = (location[0], location[1], location[2] - height / 2)
     return obj
 
@@ -406,142 +413,165 @@ def env_workshop(dress=True):
     read as a place.
     """
     scene = bpy.context.scene
-    scene.view_settings.exposure = -0.55
+    scene.view_settings.exposure = -2.50
 
     # Ambient comes from a real room. The set is enclosed, so the HDRI is doing
     # bounce and colour rather than anything the camera sees directly.
-    hdri_world("artist_workshop", strength=0.75, rotation=math.radians(-35),
-               camera_color=(0.05, 0.05, 0.055))
+    hdri_world("artist_workshop", strength=0.9, rotation=math.radians(-35),
+               camera_color=(0.09, 0.088, 0.085))
 
     floor = plane(22, location=(0, 0, -0.92))
     floor.data.materials.append(
         pbr_material("shop_floor", "concrete_floor_02", scale=0.28, bump=0.8))
 
-    planks = pbr_material("shop_planks", "wood_table_001", scale=0.55,
-                          tint=(0.72, 0.68, 0.62), bump=1.1)
+    # Raw sawn pine, knocked back a touch off its own warmth so the wall stays
+    # behind the subject. The first pass used a French-polished table scan,
+    # which came back as near-black mahogany and swallowed the whole back of
+    # the room.
+    planks = pbr_material("shop_planks", "raw_plank_wall", scale=0.50,
+                          tint=(0.86, 0.87, 0.90), bump=1.2)
     plaster = pbr_material("shop_plaster", "beige_wall_001", scale=0.30,
-                           tint=(0.80, 0.80, 0.79), bump=0.6)
+                           tint=(0.92, 0.91, 0.89), bump=0.6)
 
-    back = slab(9.4, 0.12, 3.62, (0.2, 2.30, 2.70))
+    # The back wall sits close — a bench in a shop is pushed against something,
+    # and at f/10 a wall five metres off is just a large empty area of the frame.
+    back = slab(9.4, 0.12, 3.62, (0.1, 1.62, 2.70))
     back.data.materials.append(planks)
-    right = slab(0.12, 6.4, 3.62, (3.15, 0.4, 2.70))
+    right = slab(0.12, 5.2, 3.62, (2.55, 0.0, 2.70))
     right.data.materials.append(plaster)
-    ceiling = plane(14, location=(0, 0.6, 2.70))
-    ceiling.data.materials.append(flat_material("ceiling", (0.60, 0.60, 0.585), 0.92))
+    ceiling = plane(12, location=(0, 0.2, 2.70))
+    ceiling.data.materials.append(flat_material("ceiling", (0.68, 0.68, 0.665), 0.92))
 
     # The left wall carries the window. Built as four pieces around the opening
     # rather than boolean-cut: the reveal is what makes window light fall off
     # across a bench instead of washing it flat, and a hole in a plane has no
     # reveal at all.
     for w, d, h, at in (
-        (0.11, 1.90, 1.04, (-2.30, 0.20, 0.12)),     # under the sill
-        (0.11, 1.90, 1.10, (-2.30, 0.20, 2.70)),     # over the head
-        (0.11, 2.60, 3.62, (-2.30, -2.05, 2.70)),    # near jamb, on to the camera
-        (0.11, 2.30, 3.62, (-2.30, 2.30, 2.70)),     # far jamb, back to the wall
+        (0.11, 2.05, 1.04, (-2.05, 0.02, 0.12)),     # under the sill
+        (0.11, 2.05, 1.10, (-2.05, 0.02, 2.70)),     # over the head
+        (0.11, 1.40, 3.62, (-2.05, -1.70, 2.70)),    # near jamb, on to the camera
+        (0.11, 1.60, 3.62, (-2.05, 1.85, 2.70)),     # far jamb, back to the wall
     ):
         piece = slab(w, d, h, at)
         piece.data.materials.append(plaster)
 
-    frame_mat = flat_material("window_frame", (0.155, 0.152, 0.145), 0.55)
-    for w, d, h, at in ((0.075, 0.045, 1.48, (-2.28, 0.20, 1.60)),
-                        (0.075, 1.90, 0.045, (-2.28, 0.20, 0.94))):
+    frame_mat = flat_material("window_frame", (0.185, 0.180, 0.170), 0.55)
+    for w, d, h, at in ((0.075, 0.045, 1.48, (-2.03, 0.02, 1.60)),
+                        (0.075, 2.05, 0.045, (-2.03, 0.02, 0.94))):
         bar = slab(w, d, h, at)
         bar.data.materials.append(frame_mat)
 
     # Key: the window itself. Large, close and square to the bench, so the
     # falloff along the bench top is real inverse-square rather than a gradient.
-    bpy.ops.object.light_add(type="AREA", location=(-2.24, 0.20, 0.86))
+    bpy.ops.object.light_add(type="AREA", location=(-1.99, 0.02, 0.86))
     key = bpy.context.object
     key.data.shape = "RECTANGLE"
-    key.data.size, key.data.size_y = 1.44, 1.86
-    key.data.energy = 300.0
-    key.data.color = (0.885, 0.925, 1.0)
+    key.data.size, key.data.size_y = 1.44, 2.01
+    key.data.energy = 900.0
+    key.data.color = (0.945, 0.960, 1.0)
     key.rotation_euler = (0, math.radians(-90), 0)
 
-    # A wide, soft sun through the same opening. It is what throws the pale
-    # window-shaped patch onto the back wall, which is the cheapest way to say
-    # "there is a window over there" without putting one in shot.
-    bpy.ops.object.light_add(type="SUN", location=(-2.0, 0.2, 1.4))
+    # A wide, soft sun through the same opening, angled to rake along the back
+    # wall rather than straight across the room. That rake is what lights the
+    # wall at all: in a sealed set every photon has to come through the window,
+    # and a key square to the bench leaves everything behind it black.
+    bpy.ops.object.light_add(type="SUN", location=(-1.8, 0.0, 1.4))
     sun = bpy.context.object
-    sun.data.energy = 1.7
-    sun.data.angle = math.radians(14)
+    sun.data.energy = 3.1
+    sun.data.angle = math.radians(9)
     sun.data.color = (1.0, 0.965, 0.905)
-    sun.rotation_euler = (math.radians(72), 0, math.radians(-70))
+    sun.rotation_euler = (math.radians(64), 0, math.radians(-42))
+
+    # A dim, very broad overhead — the rooflight every workshop has, and the
+    # thing that stops the upper wall and the tops of the shelves going to black.
+    bpy.ops.object.light_add(type="AREA", location=(-0.2, 0.5, 2.55))
+    top = bpy.context.object
+    top.data.shape = "RECTANGLE"
+    top.data.size, top.data.size_y = 3.4, 2.6
+    top.data.energy = 95.0
+    top.data.color = (0.965, 0.975, 1.0)
 
     # Bounce off the right-hand wall, keeping the shadow side open. Weak: the
     # shadow side wants to stay a stop or so down, not disappear.
-    bpy.ops.object.light_add(type="AREA", location=(2.5, -0.10, 0.55))
+    bpy.ops.object.light_add(type="AREA", location=(2.45, -0.10, 0.55))
     bounce = bpy.context.object
     bounce.data.shape = "RECTANGLE"
     bounce.data.size, bounce.data.size_y = 2.6, 1.8
-    bounce.data.energy = 34.0
+    bounce.data.energy = 55.0
     bounce.data.color = (1.0, 0.975, 0.945)
     bounce.rotation_euler = (0, math.radians(90), 0)
 
     # --- the bench ----------------------------------------------------------
-    bench = slab(2.95, 1.08, 0.058, (0.10, 0.07, 0.0))
+    # Shorter and deeper than before. The old one was three metres of plank on
+    # four thin posts, which reads as a shelf; a bench is a heavy thing.
+    bench = slab(2.10, 0.98, 0.062, (-0.15, 0.10, 0.0))
     bench.data.materials.append(
         pbr_material("bench_top", "plywood", scale=1.15, tint=(0.82, 0.76, 0.66),
                      rough_scale=1.05, bump=0.7))
-    frame_wood = pbr_material("bench_frame", "wood_table_001", scale=1.6,
-                              tint=(0.50, 0.44, 0.37))
-    for x in (-1.18, 1.32):
-        for y in (-0.30, 0.40):
-            leg = slab(0.088, 0.088, 0.86, (x, y, -0.058))
+    frame_wood = pbr_material("bench_frame", "wood_planks_grey", scale=1.3,
+                              tint=(1.85, 1.72, 1.52))
+    for x in (-1.06, 0.76):
+        for y in (-0.26, 0.46):
+            leg = slab(0.098, 0.098, 0.86, (x, y, -0.062))
             leg.data.materials.append(frame_wood)
-        rail = slab(0.075, 0.78, 0.070, (x, 0.05, -0.52))
+        rail = slab(0.080, 0.80, 0.085, (x, 0.10, -0.60))
         rail.data.materials.append(frame_wood)
-    stretcher = slab(2.60, 0.070, 0.075, (0.07, 0.05, -0.55))
+    for y in (-0.26, 0.46):
+        apron = slab(1.90, 0.055, 0.130, (-0.15, y, -0.075))
+        apron.data.materials.append(frame_wood)
+    stretcher = slab(1.86, 0.075, 0.085, (-0.15, 0.10, -0.62))
     stretcher.data.materials.append(frame_wood)
 
     if not dress:
         return bench
 
     # --- the shop behind ----------------------------------------------------
-    load_prop("wooden_bookshelf_worn", (1.72, 1.94, -0.92), rotation=(0, 0, math.pi))
-    for slug, at in (("planter_pot_clay", (1.36, 1.90, 0.30)),
-                     ("ceramic_vase_02", (2.02, 1.92, 0.30)),
-                     ("can_rusted", (1.70, 1.88, 0.86)),
-                     ("cleaner_tin_01", (1.94, 1.90, 0.86))):
+    # Everything back here is a vertical: shelving, a ladder, a hung saw. A bench
+    # is all horizontals, and without something standing up behind it the frame
+    # has no structure above the worktop.
+    load_prop("wooden_bookshelf_worn", (1.62, 1.26, -0.92), rotation=(0, 0, math.pi))
+    for slug, at in (("planter_pot_clay", (1.22, 1.24, 0.30)),
+                     ("ceramic_vase_02", (1.94, 1.26, 0.30)),
+                     ("can_rusted", (1.58, 1.22, 0.86)),
+                     ("cleaner_tin_01", (1.86, 1.24, 0.86)),
+                     ("jug_01", (1.30, 1.24, 0.86))):
         load_prop(slug, at)
-    load_prop("wooden_ladder", (-1.62, 1.72, -0.92), rotation=(0, 0, math.radians(-14)))
-    load_prop("cardboard_box_01", (0.55, 1.78, -0.92), rotation=(0, 0, math.radians(22)))
-    load_prop("wooden_stool_01", (-0.75, -1.05, -0.92), rotation=(0, 0, math.radians(30)))
+    load_prop("wooden_ladder", (-1.95, 1.10, -0.92), rotation=(0, 0, math.radians(-16)))
+    load_prop("wooden_stool_01", (-0.55, -1.15, -0.92), rotation=(0, 0, math.radians(30)))
+    load_prop("cardboard_box_01", (2.15, 0.30, -0.92), rotation=(0, 0, math.radians(-18)))
 
     # A batten with the saw hung off it — the one tool that reads instantly in
     # silhouette from across a room.
-    batten = slab(1.30, 0.030, 0.055, (-0.55, 2.205, 1.24))
+    batten = slab(1.45, 0.032, 0.058, (-0.62, 1.545, 1.05))
     batten.data.materials.append(frame_wood)
-    load_prop("handsaw_wood", (-0.62, 2.14, 1.16),
+    load_prop("handsaw_wood", (-0.66, 1.50, 0.97),
               rotation=(math.radians(90), 0, math.radians(90)), sit=False)
 
     # --- the bench, dressed -------------------------------------------------
-    load_prop("desk_lamp_arm_01", (-1.12, 0.40, 0.0), rotation=(0, 0, math.radians(118)))
-    load_prop("vintage_hand_drill", (-0.74, 0.26, 0.0),
+    load_prop("vintage_hand_drill", (-0.78, 0.32, 0.0),
               rotation=(math.radians(90), 0, math.radians(28)))
-    load_prop("hand_plane_no4", (0.52, 0.30, 0.0), rotation=(0, 0, math.radians(-24)))
-    load_prop("wooden_hammer_01", (-0.46, 0.34, 0.0),
+    load_prop("hand_plane_no4", (0.36, 0.34, 0.0), rotation=(0, 0, math.radians(-24)))
+    load_prop("wooden_hammer_01", (-0.48, 0.40, 0.0),
               rotation=(math.radians(90), 0, math.radians(-58)))
-    load_prop("flathead_screwdriver", (0.20, 0.36, 0.0),
+    load_prop("flathead_screwdriver", (0.10, 0.42, 0.0),
               rotation=(math.radians(90), 0, math.radians(12)))
-    load_prop("measuring_tape_01", (0.30, -0.16, 0.0), rotation=(0, 0, math.radians(-40)))
-    load_prop("jug_01", (1.14, 0.36, 0.0), rotation=(0, 0, math.radians(-20)))
-    load_prop("small_oil_can_01", (1.36, 0.14, 0.0), rotation=(0, 0, math.radians(52)))
-    load_prop("can_rusted", (-1.42, 0.30, 0.0))
-    basket = load_prop("wicker_basket_01", (1.02, -0.14, 0.0), rotation=(0, 0, math.radians(16)))
+    load_prop("measuring_tape_01", (0.26, -0.14, 0.0), rotation=(0, 0, math.radians(-40)))
+    load_prop("small_oil_can_01", (0.72, 0.40, 0.0), rotation=(0, 0, math.radians(52)))
+    load_prop("can_rusted", (-1.02, 0.42, 0.0))
+    load_prop("wicker_basket_01", (0.70, -0.06, 0.0), rotation=(0, 0, math.radians(16)))
 
     pale = wood_material("shop_pale", WOODS["birch"], roughness=0.72, scale=5.0)
     steel = steel_material("shop_steel")
-    try_square((-1.02, -0.20, 0.0), math.radians(24),
+    try_square((-0.86, -0.22, 0.0), math.radians(24),
                wood_material("square_stock", WOODS["walnut"], roughness=0.5, scale=8.0),
                steel)
 
     # A rule and a pencil: the two things always within reach, and both are
     # long thin horizontals, which is exactly what a bench full of blocks needs.
-    rule = slab(0.310, 0.028, 0.0022, (-0.16, -0.28, 0.0022))
+    rule = slab(0.310, 0.028, 0.0022, (-0.30, -0.26, 0.0022))
     rule.rotation_euler = (0, 0, math.radians(-7))
     rule.data.materials.append(steel)
-    pencil = slab(0.152, 0.0075, 0.0075, (0.03, -0.33, 0.0075))
+    pencil = slab(0.152, 0.0075, 0.0075, (-0.12, -0.31, 0.0075))
     pencil.rotation_euler = (0, 0, math.radians(11))
     pencil.data.materials.append(flat_material("pencil", (0.30, 0.215, 0.085), 0.42))
 
@@ -549,16 +579,16 @@ def env_workshop(dress=True):
     # reads as a diagram; this is a bench.
     rng = random.Random(21)
     for i in range(9):
-        length = rng.uniform(0.09, 0.26)
+        length = rng.uniform(0.09, 0.24)
         off = slab(length, rng.uniform(0.022, 0.048), 0.011,
-                   (0.86 + rng.uniform(-0.10, 0.16), -0.30 + i * 0.036 + rng.uniform(-0.012, 0.012),
+                   (0.42 + rng.uniform(-0.12, 0.12), -0.30 + i * 0.034 + rng.uniform(-0.012, 0.012),
                     0.011 + i * 0.0006))
         off.rotation_euler = (0, 0, rng.uniform(-0.9, 0.9))
         off.data.materials.append(pale)
     # and a handful more standing in the basket
     for i in range(5):
         off = slab(rng.uniform(0.05, 0.09), 0.030, 0.14,
-                   (1.02 + rng.uniform(-0.05, 0.05), -0.14 + rng.uniform(-0.04, 0.04), 0.14))
+                   (0.70 + rng.uniform(-0.05, 0.05), -0.06 + rng.uniform(-0.04, 0.04), 0.14))
         off.rotation_euler = (rng.uniform(-0.22, 0.22), rng.uniform(-0.18, 0.18),
                               rng.uniform(0, math.tau))
         off.data.materials.append(pale)
@@ -569,7 +599,7 @@ def env_workshop(dress=True):
     for i in range(int(26 * dense)):
         obj = bpy.data.objects.new("shaving", curl)
         bpy.context.collection.objects.link(obj)
-        obj.location = (0.44 + rng.gauss(0, 0.20), 0.06 + rng.gauss(0, 0.17), 0.012)
+        obj.location = (0.24 + rng.gauss(0, 0.20), 0.14 + rng.gauss(0, 0.16), 0.012)
         obj.rotation_euler = (rng.uniform(-0.5, 0.5), rng.uniform(0, math.tau),
                               rng.uniform(0, math.tau))
         s = rng.uniform(0.7, 1.5)
@@ -587,7 +617,7 @@ def env_workshop(dress=True):
         else:
             obj = bpy.data.objects.new("dust", dust_mesh)
             bpy.context.collection.objects.link(obj)
-        obj.location = (0.40 + rng.gauss(0, 0.34), 0.05 + rng.gauss(0, 0.26), 0.0016)
+        obj.location = (0.18 + rng.gauss(0, 0.32), 0.10 + rng.gauss(0, 0.24), 0.0016)
         obj.rotation_euler = (rng.uniform(0, 1), rng.uniform(0, 1), rng.uniform(0, math.tau))
         obj.scale = (rng.uniform(0.6, 2.2), rng.uniform(0.6, 2.2), 0.35)
     return bench
@@ -974,10 +1004,10 @@ def shot_workshop_bench(index):
     """Three-quarter across the bench: subject sharp, the shop reading behind."""
     reset(*size(2000, 1400, 130))
     env_workshop()
-    subject, _ = build(index, ["A", "B", "C", "M"], ["birch", "beech", "walnut"],
+    subject, _ = build(index, ["A", "B", "C", "M"], ["birch", "beech"],
                        origin=(-0.06, 0.04), lift=0.0, yaw=math.radians(16))
-    frame(subject, azimuth=-30, elevation=17, lens=52, margin=2.45, fstop=10.0,
-          target=(0.5, 0.42, 0.42))
+    frame(subject, azimuth=-36, elevation=19, lens=52, margin=2.20, fstop=10.0,
+          target=(0.5, 0.44, 0.44))
     render(f"{OUT}/workshop-bench.png")
 
 

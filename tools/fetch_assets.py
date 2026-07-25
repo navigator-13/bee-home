@@ -53,10 +53,11 @@ MODELS = [
 
 # PBR sets for the surfaces the camera actually lands on.
 TEXTURES = {
-    "plywood": "2k",          # the bench top
-    "wood_table_001": "2k",   # plank wall behind
+    "plywood": "2k",            # the bench top
+    "raw_plank_wall": "2k",     # the shop's back wall
+    "wood_planks_grey": "2k",   # bench frame and battens, weathered pale
     "concrete_floor_02": "2k",
-    "beige_wall_001": "2k",   # studio sweep tooth
+    "beige_wall_001": "2k",     # plaster: window wall, and the studio wall
 }
 
 

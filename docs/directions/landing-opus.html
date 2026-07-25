@@ -311,25 +311,6 @@ figcaption b { color: var(--ink); font-weight: 400; }
   flex-wrap: wrap;
 }
 
-.eyes { display: flex; }
-
-.eyes button {
-  padding: 9px 16px;
-  border: 1px solid var(--ink);
-  border-left-width: 0;
-  background: transparent;
-  color: var(--ink);
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  cursor: pointer;
-}
-
-.eyes button:first-child { border-left-width: 1px; }
-.eyes button.on { background: var(--ink); color: var(--paper); }
-.eyes button:focus-visible { outline: 2px solid var(--bee); outline-offset: 2px; }
-
 .visionNote {
   margin: 14px 0 0;
   font-size: clamp(13px, 1vw, 16px);
@@ -351,7 +332,20 @@ figcaption b { color: var(--ink); font-weight: 400; }
   transition: background 0.5s ease, border-color 0.5s ease;
 }
 
-.mount svg { display: block; width: 100%; height: auto; }
+.mount .plate { position: relative; aspect-ratio: 2 / 3; }
+.mount .plate svg { display: block; width: 100%; height: 100%; }
+
+/* The photographs: as-you-see-it under, as-she-sees-it over, cross-faded by
+   scroll. */
+.mount .ph {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.mount .ph.uv { opacity: 0; }
 
 .mount .ln { transition: stroke 0.5s ease; }
 .mount .uv { opacity: 0; stroke: var(--bee); stroke-width: 2;
@@ -371,14 +365,14 @@ figcaption b { color: var(--ink); font-weight: 400; }
   transition: color 0.5s ease;
 }
 
-/* Her eyes: the plate flips. */
-.bee-mode .mount { background: var(--ink); border-color: var(--ink); }
-.bee-mode .mount .ln { stroke: var(--paper); }
-.bee-mode .mount .ln.leaf { fill: var(--ink); }
-.bee-mode .mount .uv { opacity: 1; }
-.bee-mode .mountLabel { border-color: #4a4940; }
-.bee-mode .mountLabel b { color: var(--paper); }
-.bee-mode .mountLabel i { color: #8d8c81; }
+/* Her eyes: the plate flips, one mount at a time as it scrolls past. */
+.mount.bee { background: var(--ink); border-color: var(--ink); }
+.mount.bee .ln { stroke: var(--paper); }
+.mount.bee .ln.leaf { fill: var(--ink); }
+.mount.bee .uv { opacity: 1; }
+.mount.bee .mountLabel { border-color: #4a4940; }
+.mount.bee .mountLabel b { color: var(--paper); }
+.mount.bee .mountLabel i { color: #8d8c81; }
 
 .regionAside {
   display: grid;
@@ -619,13 +613,9 @@ figcaption b { color: var(--ink); font-weight: 400; }
           <label class="label" for="regionPick">Where are you?</label>
           <select id="regionPick"></select>
         </div>
-        <div class="eyes" role="group" aria-label="Whose eyes">
-          <button id="eyeYou" class="on">Your eyes</button>
-          <button id="eyeBee">Her eyes</button>
-        </div>
       </div>
-      <p class="visionNote" id="visionNote" hidden>Bees see ultraviolet. Many flowers
-        print landing guides in it &#8212; invisible to you, signage to her.</p>
+      <p class="visionNote">Keep scrolling. Bees see ultraviolet &#8212; many flowers
+        print landing guides in it. Invisible to you, signage to her.</p>
 
       <!-- The herbarium: each plant pressed onto its own mount, grown by the
            same L-system that draws the hero garden. -->
@@ -933,13 +923,18 @@ figcaption b { color: var(--ink); font-weight: 400; }
 
   // The Bee Home occupies x 448 to 1088 of this box. Planting is grouped in
   // front of it and to either side rather than sprinkled evenly, so the
-  // object stays the subject and the flowers read as its setting.
+  // object stays the subject and the flowers read as its setting. The fourth
+  // number is each plant's own ground: the meadow rises and falls a little
+  // instead of standing on one ruled horizon.
+  var GROUNDS = [];
   [
-    ['spike', 186, 0.94], ['disc', 348, 1.1], ['umbel', 542, 1.2],
-    ['spike', 712, 0.84], ['umbel', 1034, 1.14], ['disc', 1208, 1.0],
-    ['spike', 1362, 0.79], ['umbel', 1470, 0.7]
+    ['spike', 186, 0.94, 16], ['disc', 348, 1.1, -14], ['umbel', 542, 1.2, 4],
+    ['spike', 712, 0.84, 26], ['umbel', 1034, 1.14, 12], ['disc', 1208, 1.0, -18],
+    ['spike', 1362, 0.79, -4], ['umbel', 1470, 0.7, 20]
   ].forEach(function (p) {
-    var plant = grow(SPECIES[p[0]], p[1], GROUND, p[2], rand);
+    var ground = GROUND + p[3];
+    GROUNDS.push(ground);
+    var plant = grow(SPECIES[p[0]], p[1], ground, p[2], rand);
     var group = [];
     plant.stems.forEach(function (d) { group.push(path(garden, 'ln stem', d)); });
     plant.leaves.forEach(function (d) { group.push(path(garden, 'ln leaf', d)); });
@@ -947,13 +942,16 @@ figcaption b { color: var(--ink); font-weight: 400; }
     plants.push(group);
   });
 
-  // A few blades of grass settle everything onto one ground line.
+  // Grass follows the same undulation: each blade stands on the ground line
+  // of the plant it belongs to, drifted a little.
   for (var g = 0; g < 32; g++) {
+    var gi = g % plants.length;
     var gx = 60 + rand() * 1420;
     var gh = 32 + rand() * 66;
     var gl = (rand() - 0.5) * 52;
-    plants[g % plants.length].push(path(garden, 'ln grass',
-      'M' + fmt(gx) + ' ' + GROUND + 'q' + fmt(gl * 0.3) + ' ' + fmt(-gh * 0.6)
+    var gy = GROUNDS[gi] + (rand() - 0.5) * 18;
+    plants[gi].push(path(garden, 'ln grass',
+      'M' + fmt(gx) + ' ' + fmt(gy) + 'q' + fmt(gl * 0.3) + ' ' + fmt(-gh * 0.6)
       + ' ' + fmt(gl) + ' ' + fmt(-gh)));
   }
 
@@ -996,7 +994,10 @@ figcaption b { color: var(--ink); font-weight: 400; }
     // Land on the bore face, and on a different storey each time. Aimed at the
     // silhouette edge instead, the lines stopped beside the object rather than
     // at it -- they never found the home.
-    var HOMES = [[0.23, 0.28], [0.32, 0.37], [0.18, 0.46]];
+    var HOMES = [
+      [0.23, 0.28], [0.34, 0.34], [0.18, 0.44], [0.30, 0.49],
+      [0.24, 0.56], [0.40, 0.40], [0.15, 0.35],
+    ];
     function home(i) {
       var f = HOMES[i % HOMES.length];
       return [m.left + m.width * f[0] - s.left, m.top + m.height * f[1] - s.top];
@@ -1017,11 +1018,9 @@ figcaption b { color: var(--ink); font-weight: 400; }
     var clear = stacked ? W * 0.3 : Math.max(c.right - s.left + W * 0.03, W * 0.4);
     var r2 = rng(7);
 
-    // Four bees pass through and carry on off the far edge; two find the Bee
-    // Home and stop at its cavity face. Each line is authored rather than
-    // rolled, and its vertical positions are fractions of the free band above
-    // or below the headline -- so the drawing keeps its shape as the text
-    // reflows, and nothing ever runs through a word.
+    // This is their home: nearly every bee lands on it. Seven arrive at the
+    // bore face, each on its own hole, and two pass through -- traffic, not
+    // decoration.
     //
     // Bees do not all arrive from the same side, so the lines enter off every
     // edge. Two coordinate systems are in play, and which one a point uses is
@@ -1037,24 +1036,24 @@ figcaption b { color: var(--ink); font-weight: 400; }
     //
     //     entry edge and position | two handles | exit (null = arrives home)
     var L = 'l', T = 't', R = 'r';
+    // An arriving line carries its own final approach: the last control point
+    // is an offset from the bore it lands on, so the line turns and settles
+    // onto the face instead of ruling itself across the whole object. That is
+    // the difference between traffic and tangle.
     var LINES = [
-      [L, 'hi', 0.12, ['hi', 0.92], ['hi', 0.06], [R, 'hi', 0.66]],
-      [L, 'hi', 0.74, ['hi', 0.16], ['hi', 0.98], [R, 'hi', 0.34]],
-      [L, 'lo', 0.26, ['lo', 0.9], ['lo', 0.12], [R, 'lo', 0.72]],
-      [T, 'x', 0.66, ['x', 0.6, 'y', 0.14], ['x', 1.02, 'y', 0.3], [R, 'y', 0.46]],
-      [R, 'y', 0.05, ['x', 0.9, 'y', 0.18], ['x', 0.62, 'y', 0.06], [T, 'x', 0.56]],
-      [T, 'x', 0.88, ['x', 0.84, 'y', 0.2], ['x', 1.04, 'y', 0.52], [R, 'y', 0.62]],
-      [L, 'hi', 0.05, ['hi', 0.42], ['hi', 0.04], null],
-      [L, 'hi', 0.94, ['hi', 0.28], ['hi', 0.46], null],
-      // Swings well clear of the object before turning back, or the whole
-      // approach would be hidden behind it.
-      [T, 'x', 0.94, ['x', 0.9, 'y', 0.16], ['x', 0.44, 'y', 0.24], null],
+      [L, 'hi', 0.12, ['hi', 0.92], null, [-0.16, 0.015]],
+      [L, 'hi', 0.74, ['hi', 0.16], [R, 'hi', 0.34]],
+      [L, 'lo', 0.26, ['lo', 0.9], null, [-0.13, -0.03]],
+      [T, 'x', 0.7, ['x', 0.66, 'y', 0.14], null, [-0.05, -0.14]],
+      [T, 'x', 0.88, ['x', 0.84, 'y', 0.2], [R, 'y', 0.62]],
+      [L, 'hi', 0.05, ['hi', 0.42], null, [-0.19, 0.05]],
+      [L, 'hi', 0.94, ['hi', 0.3], null, [-0.11, 0.09]],
     ];
 
     // Stacked, the object fills most of the width, the headline owns the top
-    // of the screen and there is far less room to move in. Four sweeps read as
-    // intent there; nine read as a scribble.
-    var NARROW = [0, 1, 2, 6];
+    // of the screen and there is far less room to move in. Five lines read as
+    // intent there; seven read as a scribble.
+    var NARROW = [0, 1, 2, 3, 5];
 
     // Nothing flies below the planting: at ground level the sweeps and the
     // stems are the same weight and the two just turn into mud.
@@ -1080,16 +1079,28 @@ figcaption b { color: var(--ink); font-weight: 400; }
     var arrivals = 0;
     LINES.filter(function (line, i) { return !stacked || NARROW.indexOf(i) >= 0; })
       .forEach(function (line) {
-        var come = line[5] === null;
+        var come = line[4] === null;
         var from = enter(line[0], line[1], line[2]);
-        var h1 = handle(line[3], false);
-        var h2 = handle(line[4], true);
-        var to = come ? home(arrivals++) : enter(line[5][0], line[5][1], line[5][2]);
-        // Stacked, the only clear run at the object is up the left margin.
+        // An arrival's first handle sits past the far edge of the text, so
+        // the line holds its lane the whole way across the copy and only
+        // then turns down to the bore. Dropped earlier, it cut the headline.
+        var h1 = handle(line[3], come);
+        var to;
+        var h2;
+        if (come) {
+          to = home(arrivals++);
+          h2 = [to[0] + W * line[5][0], to[1] + H * line[5][1]];
+        } else {
+          to = enter(line[4][0], line[4][1], line[4][2]);
+          h2 = handle(line[3], true);
+        }
+        // Stacked, the clear runs at the object are the left margin and under
+        // the copy; fan the arrivals so they do not braid into one rope.
         if (come && stacked) {
-          from = [-W * 0.07, H * 0.98];
-          h1 = [W * 0.12, H * 0.88];
-          h2 = [to[0] - W * 0.3, to[1] + H * 0.12];
+          var n = arrivals - 1;
+          from = [-W * 0.07, H * (0.98 - n * 0.06)];
+          h1 = [W * (0.1 + n * 0.06), H * (0.9 - n * 0.07)];
+          h2 = [to[0] - W * (0.2 - n * 0.03), to[1] + H * (0.1 + n * 0.02)];
         }
         flights.push({
           come: come,
@@ -1116,9 +1127,11 @@ figcaption b { color: var(--ink); font-weight: 400; }
      Order matters: the Bee Home stacks itself first, the garden comes up
      around it, and only then do the bees find it. */
 
-  var STACK = [0.05, 0.42];
-  var GARDEN = [0.40, 0.68];
-  var FLY = [0.64, 0.97];
+  var STACK = [0.05, 0.40];
+  // The garden takes its time: each plant gets a long draw and they overlap,
+  // so the meadow comes up in waves rather than snapping in as one row.
+  var GARDEN = [0.36, 0.78];
+  var FLY = [0.66, 0.97];
 
   function frame() {
     var span = section.offsetHeight - innerHeight;
@@ -1131,13 +1144,13 @@ figcaption b { color: var(--ink); font-weight: 400; }
     });
 
     plants.forEach(function (group, i) {
-      var t0 = GARDEN[0] + (i % 4) * 0.028;
-      var k = seg(p, t0, t0 + 0.16);
+      var t0 = GARDEN[0] + i * 0.032;
+      var k = seg(p, t0, t0 + 0.20);
       group.forEach(function (el) { draw(el, k); });
     });
 
     flights.forEach(function (f, i) {
-      var t0 = FLY[0] + i * 0.018;
+      var t0 = FLY[0] + i * 0.022;
       draw(f.el, seg(p, t0, t0 + 0.17));
     });
 
@@ -1306,11 +1319,16 @@ figcaption b { color: var(--ink); font-weight: 400; }
     return h >>> 0;
   }
 
-  /* One pressed specimen: the plant grown into a 200x300 mount, plus the
-     ultraviolet layer -- nectar guides at every flower head, drawn only in
-     "her eyes". The guides are rings and approach ticks, which is roughly
-     what UV photography of real flowers shows: a target, not a picture. */
-  function specimen(name, latin, formIndex) {
+  /* One pressed specimen. The real thing is a pair of photographs dropped in
+     assets/pressed/ -- <slug>-rgb.png as you see it, <slug>-uv.png as she
+     does -- cross-faded by scroll. Until an image lands, the mount falls back
+     to the drawn plant so the section never renders holes. The brief for the
+     photographs is docs/ASSET-BRIEF.md. */
+  function slug(latin) {
+    return latin.toLowerCase().replace(/[^a-z -]/g, '').replace(/ +/g, '-');
+  }
+
+  function drawnFallback(mount, name, formIndex) {
     var form = FORMS[name] || FALLBACK[formIndex % FALLBACK.length];
     var rand = rng(hash(name));
     var plant = grow(SPECIES[form], 100, 288, 1.12, rand);
@@ -1321,12 +1339,10 @@ figcaption b { color: var(--ink); font-weight: 400; }
     plant.stems.forEach(function (d) { path(svg, 'ln stem', d); });
     plant.leaves.forEach(function (d) { path(svg, 'ln leaf', d); });
     plant.heads.forEach(function (d) { path(svg, 'ln head', d); });
-
     plant.anchors.forEach(function (a) {
       if (a.kind === 'bell') {
         path(svg, 'ln uv', dot(a.x, a.y, 3.4));
       } else {
-        // A ring around the head and four ticks pointing in at the centre.
         path(svg, 'ln uv', dot(a.x, a.y, form === 'umbel' ? 15 : 11));
         for (var t = 0; t < 4; t++) {
           var th = (t * 90 + 45) * Math.PI / 180;
@@ -1336,16 +1352,60 @@ figcaption b { color: var(--ink); font-weight: 400; }
         }
       }
     });
+    mount.classList.add('drawn');
+    mount.querySelector('.plate').appendChild(svg);
+  }
 
+  function specimen(name, latin, formIndex) {
     var mount = document.createElement('figure');
     mount.className = 'mount';
-    mount.appendChild(svg);
+    var plate = document.createElement('div');
+    plate.className = 'plate';
+    mount.appendChild(plate);
+
+    var s = slug(latin);
+    var rgb = document.createElement('img');
+    rgb.className = 'ph rgb';
+    rgb.alt = name + ', pressed';
+    rgb.src = '../assets/pressed/' + s + '-rgb.png';
+    var uv = document.createElement('img');
+    uv.className = 'ph uv';
+    uv.alt = '';
+    uv.src = '../assets/pressed/' + s + '-uv.png';
+    rgb.addEventListener('error', function () {
+      rgb.remove(); uv.remove();
+      drawnFallback(mount, name, formIndex);
+    });
+    plate.appendChild(rgb);
+    plate.appendChild(uv);
+
     var label = document.createElement('figcaption');
     label.className = 'mountLabel';
     label.innerHTML = '<b>' + name + '</b><i>' + latin + '</i>';
     mount.appendChild(label);
     return mount;
   }
+
+  /* The ultraviolet arrives on scroll: as a mount crosses the lower third of
+     the window it flips from your eyes to hers, each a beat after the last. */
+  var mounts = [];
+
+  function updateHerbarium() {
+    var vh = innerHeight;
+    mounts.forEach(function (mount, i) {
+      var r = mount.getBoundingClientRect();
+      if (r.bottom < 0 || r.top > vh) return;
+      var u = (vh - r.top) / (vh * 0.85);
+      var k = seg(u, 0.62 + i * 0.05, 0.86 + i * 0.05);
+      mount.classList.toggle('bee', k > 0.45);
+      var uvImg = mount.querySelector('img.uv');
+      if (uvImg) uvImg.style.opacity = String(k);
+    });
+  }
+
+  addEventListener('scroll', function () {
+    requestAnimationFrame(updateHerbarium);
+  }, { passive: true });
 
   function rows(list, items) {
     list.innerHTML = items.map(function (item) {
@@ -1357,12 +1417,16 @@ figcaption b { color: var(--ink); font-weight: 400; }
   function showRegion() {
     var r = REGIONS[pick.selectedIndex];
     herbarium.textContent = '';
+    mounts = [];
     r.plants.forEach(function (p, i) {
-      herbarium.appendChild(specimen(p[0], p[1], i));
+      var mount = specimen(p[0], p[1], i);
+      herbarium.appendChild(mount);
+      mounts.push(mount);
     });
     rows(beesList, r.bees);
     rows(cropsList, r.crops);
     seedNote.textContent = r.seed;
+    updateHerbarium();
   }
 
   REGIONS.forEach(function (r) {
@@ -1372,20 +1436,6 @@ figcaption b { color: var(--ink); font-weight: 400; }
   });
   pick.addEventListener('change', showRegion);
   showRegion();
-
-  /* Your eyes / her eyes. */
-  var eyeYou = document.getElementById('eyeYou');
-  var eyeBee = document.getElementById('eyeBee');
-  var visionNote = document.getElementById('visionNote');
-
-  function setEyes(bee) {
-    herbarium.classList.toggle('bee-mode', bee);
-    eyeYou.classList.toggle('on', !bee);
-    eyeBee.classList.toggle('on', bee);
-    visionNote.hidden = !bee;
-  }
-  eyeYou.addEventListener('click', function () { setEyes(false); });
-  eyeBee.addEventListener('click', function () { setEyes(true); });
 
   var ticking = false;
   function onScroll() {

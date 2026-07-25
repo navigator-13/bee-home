@@ -109,9 +109,14 @@ const shim = `
 })();
 `;
 
+// Function replacements, never strings: the minified bundle is full of `$&`
+// and `$'` from regex code, and a string replacement expands those against
+// the match -- which injects the matched <script> tag, closing tag and all,
+// into the middle of the module. That is how the builder shipped as a page
+// of raw source once.
 html = html
-  .replace(entry[0], `<script type="module">${guard(shim + '\n' + js)}</script>`)
-  .replace(sheet[0], `<style>${css}</style>`);
+  .replace(entry[0], () => `<script type="module">${guard(shim + '\n' + js)}</script>`)
+  .replace(sheet[0], () => `<style>${css}</style>`);
 
 const out = path.join(dist, 'builder.inline.html');
 fs.writeFileSync(out, html);

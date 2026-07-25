@@ -30,16 +30,16 @@ html = html.replace(/src="((?:\.\.\/)[^"]+\.(?:png|jpg|webp))"/g, (whole, rel) =
   return `src="data:${mime};base64,${fs.readFileSync(abs).toString('base64')}"`;
 });
 
-// The builder is handed over as inert text and mounted with srcdoc, because a
-// 1 MB document does not survive being written into an HTML attribute by
-// hand. Its own closing tags have to be hidden from the parser on the way in.
+// The builder travels as base64. Raw source in a text/plain script looked
+// fine from disk but did not survive the artifact host re-serialising the
+// page: the payload spilled out as visible text where the builder should
+// have been. Base64 has no '<' in its alphabet, so no HTML parser anywhere
+// can break it open, and any entity re-encoding a sanitiser applies leaves
+// it untouched.
 if (!fs.existsSync(builder)) {
   throw new Error('build the viewer first: cd viewer && npx vite build && node tools/bundle_single_file.mjs');
 }
-const SENTINEL = '@@BEEHOME_SCRIPT_END@@';
-const source = fs.readFileSync(builder, 'utf8');
-if (source.includes(SENTINEL)) throw new Error('sentinel collides with the builder source');
-const payload = source.split('</script').join(SENTINEL);
+const payload = fs.readFileSync(builder).toString('base64');
 
 // Replaced through a function, not a template: the bundle is full of `$1`
 // and `$&` from minified regex replacements, and a string replacement would
@@ -56,7 +56,10 @@ html = html.replace(
           var frame = document.getElementById('builderFrame');
           var src = document.getElementById('builderSrc');
           var mount = function () {
-            frame.srcdoc = src.textContent.split('${SENTINEL}').join('</scr' + 'ipt');
+            var bin = atob(src.textContent.replace(/\\s+/g, ''));
+            var bytes = new Uint8Array(bin.length);
+            for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+            frame.srcdoc = new TextDecoder('utf-8').decode(bytes);
             src.remove();
           };
           if (!window.IntersectionObserver) return mount();
