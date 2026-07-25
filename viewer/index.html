@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bee Home — builder</title>
+<link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <canvas id="stage"></canvas>
+
+  <header class="masthead">
+    <h1>Bee&nbsp;Home</h1>
+    <p>Reconstructed builder · geometry from <code>BEEHOME&nbsp;GEOMETRIES.3dm</code></p>
+  </header>
+
+  <aside class="panel">
+    <section>
+      <h2>Position</h2>
+      <div id="positions" class="row"></div>
+    </section>
+
+    <section id="heightRow">
+      <h2>Height <span id="heightValue" class="value">400 mm</span></h2>
+      <input id="height" type="range" min="150" max="1400" step="10" value="400" />
+    </section>
+
+    <section>
+      <h2>Storeys <span class="value"><span id="storeyCount">4</span> · <span id="stackHeight">—</span></span></h2>
+      <ol id="stackList" class="stack"></ol>
+      <div id="palette" class="palette"></div>
+      <p class="hint">Greyed letters can’t sit on the current top storey.</p>
+      <div class="row">
+        <button id="remove" class="chip">Remove top</button>
+        <button id="reset" class="chip">Reset</button>
+      </div>
+    </section>
+
+    <section>
+      <h2>Detail</h2>
+      <label class="toggle">
+        <input id="variant" type="checkbox" />
+        <span>Plain variant (<code>_b</code> geometry)</span>
+      </label>
+    </section>
+
+    <p id="warning" class="warning" hidden></p>
+  </aside>
+
+  <footer class="readout">
+    <label>
+      <span>Bee Home ID</span>
+      <input id="idInput" spellcheck="false" />
+    </label>
+    <div>
+      <span>Grasshopper export</span>
+      <code id="exportString">—</code>
+    </div>
+    <div>
+      <span>Bee Home ID</span>
+      <code id="beeId">—</code>
+    </div>
+  </footer>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

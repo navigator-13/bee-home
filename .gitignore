@@ -5,3 +5,7 @@ __pycache__/
 # use to the original licensee, so it is kept locally for reference only and
 # never committed or redistributed.
 docs/reference/fonts/NeueHaasUnicaW1G-*
+
+# viewer build output and deps
+viewer/node_modules/
+viewer/dist/
