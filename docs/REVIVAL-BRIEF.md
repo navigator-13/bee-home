@@ -3,7 +3,7 @@
 Working notes for rebuilding the Bee Home 3D visualiser / builder that used to live at
 `beehome.design`. Sources: the files in this repo, third-party coverage of the launch
 (May 2020), and — most usefully — the **archived front-end itself**, recovered from the
-Wayback Machine into `docs/reference/`. See §7 for the inventory.
+Wayback Machine into `docs/reference/`. See §6 for the inventory.
 
 Because the original bundles were recovered, most of what follows is read directly off
 the shipped code rather than inferred. Where something is still inference, it says so.
@@ -57,7 +57,7 @@ A `REFERENCE` text object in the file names them:
 So the original viewer was fed OBJ exports of these layers. Contents:
 
 **`WEBSITE - Model`** — 40 solids: 32 in two vertical stacks of 16, plus 8 guide solids.
-The recovered front-end (§7) tells us exactly what these became. Its model manifest lists,
+The recovered front-end (§6) tells us exactly what these became. Its model manifest lists,
 for every letter A–P, **two** OBJ files — `/models/X_default.obj` and
 `/models/X_holes.obj` — plus `ground.obj`, `legs.obj` and `spike.obj`. That is 32 + 3,
 and it lines up with the two stacks of 16:
@@ -227,7 +227,7 @@ from the Makery process shoot — is the best in-repo reference for material and
 | --- | --- |
 | `S10Beehome-Display.woff2` | **The custom display face.** 16 KB — small enough that it's almost certainly a display cut with a limited character set. This is the mark Bakken & Bæck describe as drawn from "the shape of bees and the rounded form of their nests and tunnels". Committed to `docs/reference/fonts/`. |
 | `markers.woff2` | A small icon/symbol font (7 KB) used for UI markers. Committed. |
-| `NeueHaasUnicaW1G-Regular.woff/woff2` | The body face — **Neue Haas Unica**, Linotype/Monotype, licensed via MyFonts in May 2020. **Not committed** — see §7. |
+| `NeueHaasUnicaW1G-Regular.woff/woff2` | The body face — **Neue Haas Unica**, Linotype/Monotype, licensed via MyFonts in May 2020. **Not committed** — see §6. |
 
 **Palette**, counted off the shipped CSS-in-JS. The striking thing is what isn't there:
 no yellow, no black, no honey. It's a warm bone-and-charcoal neutral base with a single
