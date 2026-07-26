@@ -246,53 +246,6 @@ body.drawing .rail li.hot,
 body.drawing .rail li.selected { border-color: #7386bd; color: var(--ink); }
 
 
-/* --- export bar ---
-   Sits under the stage, outside the drawer: the thing you leave with should
-   not be foldable away with the controls. */
-
-.exportBar {
-  position: fixed;
-  right: 20px;
-  bottom: 20px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  z-index: 5;
-  opacity: 0;
-  transition: opacity 0.6s ease 0.15s;
-}
-
-body.ready .exportBar { opacity: 1; }
-
-.exportBar p {
-  margin: 0;
-  max-width: 34ch;
-  text-align: right;
-  font-size: 10px;
-  line-height: 1.5;
-  color: var(--grey);
-}
-
-.exportBar .chip {
-  flex: 0 0 auto;
-  padding: 9px 16px;
-  font-size: 11px;
-  border-color: var(--bone);
-  color: var(--bone);
-}
-
-.exportBar .chip:hover { background: var(--bone); color: var(--ink); }
-
-body.drawing .exportBar p { color: var(--grey-warm); }
-body.drawing .exportBar .chip { border-color: var(--ink); color: var(--ink); }
-body.drawing .exportBar .chip:hover { background: var(--ink); color: var(--bone); }
-
-@media (max-width: 820px) {
-  .exportBar { left: 14px; right: 14px; bottom: 14px; justify-content: flex-end; }
-  .exportBar p { display: none; }
-}
-
-
 /* --- storey preview ---
    Hovering a storey shows that part alone, turning slowly, in the empty
    bottom-left corner. The rail tells you which storey; this tells you what
@@ -582,7 +535,6 @@ body.clean .rail,
 body.clean .viewToggle,
 body.clean .panelTab,
 body.clean .preview,
-body.clean .exportBar,
 body.clean .readout { display: none; }
 
 /* Plate captures with alpha need the page itself transparent too. */

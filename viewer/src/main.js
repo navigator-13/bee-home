@@ -7,7 +7,9 @@ import { DEFAULT_WOOD, WOODS, finishSpec, woodByKey } from './woods.js';
 
 const state = {
   position: 'standing',
-  heightMm: 400,
+  // Low by default. A Bee Home on short legs sits in the planting rather than
+  // above it, which is both how they are usually set and a better first look.
+  heightMm: 180,
   stack: ['A', 'P', 'P', 'M'],
   woods: ['birch', 'birch', 'walnut', 'birch'],
   variant: 'a',
@@ -105,13 +107,19 @@ function stackHeight() {
   );
 }
 
-/** How far the stack is lifted off the ground by its mounting. */
+/**
+ * How far the stack is lifted off the ground by its mounting.
+ *
+ * This used to be `heightMm - stackHeight()`, reading the slider as a total
+ * height. Every storey added ate into the mounting, and past about eight
+ * storeys the remainder went negative: the lift clamped to zero and the legs
+ * and spike silently disappeared, which is why the position buttons looked
+ * like they had stopped working on a tall stack. The slider is the mounting
+ * height, full stop, and the stack sits on top of whatever it says.
+ */
 function liftMm() {
   if (state.position === 'fixed') return 0;
-  const guide = state.position === 'grounded' ? 'spike' : 'leg';
-  const shortfall = state.heightMm - stackHeight();
-  const natural = index.guides.find((g) => g.name === guide).size_mm[2];
-  return Math.max(0, Math.min(shortfall, natural * 4));
+  return Math.max(0, state.heightMm);
 }
 
 async function rebuild() {
@@ -194,7 +202,7 @@ async function rebuild() {
  * thing: the live scene is captured to three measured views and laid out as
  * two A4 pages, and the print dialog does the PDF.
  */
-function openSpecSheet() {
+function buildPackHtml() {
   const views = stage.captureViews();
   const id = formatId(state);
   const gh = exportString(state);
@@ -223,9 +231,7 @@ function openSpecSheet() {
     parts.push(`<tr><td>—</td><td>Ground spike</td><td>30 × 30 × ${Math.round(support - base.size_mm[2])}</td><td>${woodByKey(woodFor(0)).name}</td></tr>`);
   }
 
-  const w = window.open('', '_blank');
-  if (!w) return;
-  w.document.write(`<!doctype html><html><head><meta charset="utf-8">
+  return `<!doctype html><html><head><meta charset="utf-8">
 <title>Bee Home ${id} — build pack</title>
 <style>
   @page { size: A4; margin: 14mm; }
@@ -312,8 +318,31 @@ function openSpecSheet() {
   drawings generated from the design geometry, not to scale · beehome.design</p>
 </div>
 <script>addEventListener('load', () => setTimeout(() => print(), 150));<\/script>
-</body></html>`);
-  w.document.close();
+</body></html>`;
+}
+
+/**
+ * Hand the build pack over as a file.
+ *
+ * window.open is blocked inside the embedded builder, which is why the button
+ * did nothing on the page: the builder runs in an iframe. So the document is
+ * built here and downloaded as a file -- and when there is a parent page, it
+ * is posted up instead, so the button that lives outside the iframe can do
+ * the download from a context that is allowed to.
+ */
+function downloadBuildPack() {
+  const html = buildPackHtml();
+  const name = `bee-home-${formatId(state)}.html`;
+  if (window.parent !== window) {
+    window.parent.postMessage({ type: 'beehome:buildpack', name, html }, '*');
+    return;
+  }
+  const url = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 function refreshReadout() {
@@ -415,7 +444,10 @@ function buildControls() {
     stage.setSelected(state.selected);
   });
 
-  el('specSheet').addEventListener('click', openSpecSheet);
+  // The page around the builder can ask for the pack too.
+  addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'beehome:request-buildpack') downloadBuildPack();
+  });
 
   // The drawer starts closed where it would cover the model. Opening it is a
   // choice; the model never has to share a phone screen by default.
