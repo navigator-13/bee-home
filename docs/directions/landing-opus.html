@@ -438,48 +438,78 @@ figcaption b { color: var(--ink); font-weight: 400; }
   color: var(--soft);
 }
 
-/* The bee toggle. Click it and the whole drift crosses into bee vision; it
-   wiggles on hover, the way one does before it settles. */
+/* The bee toggle. She is the control -- no pill, no border, no box. She sits
+   at the foot of the drift beside the paragraph that explains what she sees,
+   tilted off square like something that landed there rather than something
+   that was laid out. Hover and she wiggles, the way one does before settling. */
+.driftFoot {
+  display: flex;
+  align-items: flex-start;
+  gap: clamp(20px, 3vw, 44px);
+}
+
 .eyeSwap {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 6px 14px 6px 6px;
-  border: 1px solid var(--ink);
-  border-radius: 999px;
-  background: transparent;
+  flex: none;
+  display: block;
+  width: max-content;
+  padding: 0;
+  border: 0;
+  background: none;
   color: var(--ink);
   font-family: var(--mono);
   font-size: 11px;
   letter-spacing: 0.06em;
+  line-height: 1.4;
+  text-align: center;
   cursor: pointer;
-  align-self: flex-end;
-  transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .eyeBee {
-  width: 34px;
-  height: 34px;
+  display: block;
+  width: clamp(104px, 11.5vw, 176px);
+  margin: 0 auto;
+  height: auto;
   object-fit: contain;
-  transform-origin: 60% 60%;
+  transform: rotate(-13deg);
+  transform-origin: 60% 65%;
+  transition: transform 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.2);
 }
 
-.eyeSwap:hover .eyeBee {
+.eyeSwapLabel {
+  display: block;
+  margin-top: 12px;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 2px;
+  color: #6f6e63;
+  transition: color 0.3s ease, border-color 0.3s ease;
+}
+
+.eyeSwap:hover .eyeBee, .eyeSwap:focus-visible .eyeBee {
   animation: wiggle 0.5s ease-in-out infinite;
 }
 
-@keyframes wiggle {
-  0%, 100% { transform: rotate(-6deg); }
-  50% { transform: rotate(8deg); }
-}
-
-.eyeSwap[aria-pressed="true"] {
-  background: var(--ink);
+.eyeSwap:hover .eyeSwapLabel, .eyeSwap:focus-visible .eyeSwapLabel {
+  color: var(--ink);
   border-color: var(--ink);
-  color: var(--paper);
 }
 
-.eyeSwap:focus-visible { outline: 2px solid var(--bee); outline-offset: 3px; }
+@keyframes wiggle {
+  0%, 100% { transform: rotate(-19deg) scale(1.03); }
+  50%      { transform: rotate(-4deg)  scale(1.03); }
+}
+
+/* Pressed, she has turned to face the other way -- the drift is in her eyes
+   now, so the label reads as the way back rather than the way in. */
+.eyeSwap[aria-pressed="true"] .eyeBee { transform: rotate(9deg) scaleX(-1); }
+.eyeSwap[aria-pressed="true"] .eyeSwapLabel { color: var(--bee); border-color: var(--bee); }
+.eyeSwap:focus-visible { outline: none; }
+
+@media (max-width: 760px) {
+  .driftFoot { flex-direction: column; align-items: center; gap: 22px; }
+}
+
 
 /* The explainer, popped when the toggle is first pressed. */
 .eyePop {
@@ -810,16 +840,8 @@ figcaption b { color: var(--ink); font-weight: 400; }
     </figure>
 
     <div class="region">
-      <div class="regionBar">
-        <div>
-          <label class="label" for="regionPick">Where are you?</label>
-          <select id="regionPick"></select>
-        </div>
-        <button class="eyeSwap" id="eyeSwap" aria-pressed="false">
-          <img src="../assets/bees/web/osmia-bicornis.webp" alt="" class="eyeBee" />
-          <span id="eyeSwapLabel">See in bee vision</span>
-        </button>
-      </div>
+      <label class="label" for="regionPick">Where are you?</label>
+      <select id="regionPick"></select>
     </div>
   </section>
 
@@ -833,6 +855,11 @@ figcaption b { color: var(--ink); font-weight: 400; }
     <svg class="driftFlight" id="driftFlight" aria-hidden="true"></svg>
     <div class="pad">
     <div class="driftField" id="herbarium"></div>
+    <div class="driftFoot">
+      <button class="eyeSwap" id="eyeSwap" aria-pressed="false">
+        <img src="../assets/bees/web/osmia-bicornis.webp" alt="" class="eyeBee" />
+        <span class="eyeSwapLabel" id="eyeSwapLabel">See in bee vision</span>
+      </button>
     <p class="driftNote">
       Bees see ultraviolet, and many flowers print landing guides in it. These
       plates are bee-vision simulations, mapping the bee's ultraviolet, blue and
@@ -840,6 +867,7 @@ figcaption b { color: var(--ink); font-weight: 400; }
       &#8212; a legend, not what she sees. Where no ultraviolet pattern is
       documented for a species we have left it plain rather than invent one.
     </p>
+    </div>
   </div>
 </section>
 
