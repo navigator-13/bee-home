@@ -944,17 +944,93 @@ figcaption b { color: var(--ink); font-weight: 400; }
 
   function fmt(n) { return Math.round(n * 10) / 10; }
 
-  /* One pass of Catmull-Rom over a recorded run of turtle points. */
+  /*
+   * Catmull-Rom, centripetal (alpha = 1/2), as cubic Beziers.
+   *
+   * The uniform version this replaces divides by a fixed step regardless of
+   * how far apart the points actually are. Feed it a run where the spacing
+   * jumps -- a couple of sparse route points, then a dense curl -- and the
+   * handles balloon at the join: the curve shoots past its own control
+   * point and doubles back, leaving a spur with a blunt end hanging in
+   * space. Knot spacing raised to alpha scales the handles with the gap
+   * instead, which is the whole point of the centripetal variant: it cannot
+   * cusp and it cannot self-intersect within a segment.
+   */
+  function crBezier(pts) {
+    var segs = [];
+    for (var i = 0; i < pts.length - 1; i++) {
+      var p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
+      var t01 = Math.pow(Math.hypot(p1[0] - p0[0], p1[1] - p0[1]), 0.5) || 1e-4;
+      var t12 = Math.pow(Math.hypot(p2[0] - p1[0], p2[1] - p1[1]), 0.5) || 1e-4;
+      var t23 = Math.pow(Math.hypot(p3[0] - p2[0], p3[1] - p2[1]), 0.5) || 1e-4;
+      var c1 = [], c2 = [];
+      for (var k = 0; k < 2; k++) {
+        var m1 = (p2[k] - p1[k]) + t12 * ((p1[k] - p0[k]) / t01 - (p2[k] - p0[k]) / (t01 + t12));
+        var m2 = (p2[k] - p1[k]) + t12 * ((p3[k] - p2[k]) / t23 - (p3[k] - p1[k]) / (t12 + t23));
+        c1[k] = p1[k] + m1 / 3;
+        c2[k] = p2[k] - m2 / 3;
+      }
+      segs.push([p1, c1, c2, p2]);
+    }
+    return segs;
+  }
+
   function spline(pts) {
     var d = 'M' + fmt(pts[0][0]) + ' ' + fmt(pts[0][1]);
     if (pts.length === 2) return d + 'L' + fmt(pts[1][0]) + ' ' + fmt(pts[1][1]);
-    for (var i = 0; i < pts.length - 1; i++) {
-      var p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
-      d += 'C' + fmt(p1[0] + (p2[0] - p0[0]) / 6) + ' ' + fmt(p1[1] + (p2[1] - p0[1]) / 6)
-        + ' ' + fmt(p2[0] - (p3[0] - p1[0]) / 6) + ' ' + fmt(p2[1] - (p3[1] - p1[1]) / 6)
-        + ' ' + fmt(p2[0]) + ' ' + fmt(p2[1]);
-    }
+    crBezier(pts).forEach(function (s) {
+      d += 'C' + fmt(s[1][0]) + ' ' + fmt(s[1][1]) + ' ' + fmt(s[2][0]) + ' ' + fmt(s[2][1])
+        + ' ' + fmt(s[3][0]) + ' ' + fmt(s[3][1]);
+    });
     return d;
+  }
+
+  /* The same curve, as points, so something else can ride along it. */
+  function curvePoints(pts, per) {
+    var out = [];
+    crBezier(pts).forEach(function (s, i) {
+      for (var j = i ? 1 : 0; j <= per; j++) {
+        var t = j / per, u = 1 - t;
+        var a = u * u * u, b = 3 * u * u * t, c = 3 * u * t * t, e = t * t * t;
+        out.push([
+          a * s[0][0] + b * s[1][0] + c * s[2][0] + e * s[3][0],
+          a * s[0][1] + b * s[1][1] + c * s[2][1] + e * s[3][1],
+        ]);
+      }
+    });
+    return out;
+  }
+
+  /*
+   * Walk a polyline at a fixed step, handing back position and heading.
+   *
+   * The heading is taken across several steps rather than from the segment
+   * the point happens to sit on. A rider swinging tens of pixels off the
+   * line turns any kink in the heading into a visible step in its own track,
+   * so the heading has to be at least as smooth as the curve it steers.
+   */
+  function march(pts, step) {
+    var out = [], carry = 0;
+    for (var i = 0; i < pts.length - 1; i++) {
+      var ax = pts[i][0], ay = pts[i][1];
+      var dx = pts[i + 1][0] - ax, dy = pts[i + 1][1] - ay;
+      var seg = Math.hypot(dx, dy);
+      if (seg < 1e-6) continue;
+      for (var s = carry; s < seg; s += step) out.push([ax + dx * s / seg, ay + dy * s / seg, 0, 0]);
+      carry = (carry - seg) % step;
+      if (carry < 0) carry += step;
+    }
+    var last = pts[pts.length - 1];
+    if (out.length) out.push([last[0], last[1], 0, 0]);
+    var span = 4;
+    for (var j = 0; j < out.length; j++) {
+      var a = out[Math.max(0, j - span)], b = out[Math.min(out.length - 1, j + span)];
+      var hx = b[0] - a[0], hy = b[1] - a[1];
+      var h = Math.hypot(hx, hy) || 1;
+      out[j][2] = hx / h;
+      out[j][3] = hy / h;
+    }
+    return out;
   }
 
   /* Turtle interpretation. Paths come back grouped by role so a scroll can
@@ -1198,64 +1274,92 @@ figcaption b { color: var(--ink); font-weight: 400; }
   }
 
   /**
-   * One flight, drawn the way a bee actually moves.
+   * One bee's trail: a prolate trochoid ridden along a route.
    *
-   * Displacing a curve sideways with a sine gives a wobble, not a loop -- the
-   * line never crosses itself, so it reads as a broken wire rather than
-   * flight. A real loop means the path turns through a full 360 degrees and
-   * comes back over its own track.
+   * A trochoid is what a point fixed to a rolling circle traces. Roll radius
+   * R sets the wavelength, the rider's offset d sets how far it swings, and
+   * the ratio k = d/R decides the character of the curve outright:
    *
-   * So the base curve is only a route. Points are sampled along it, and where
-   * a loop is called for the sampled point is replaced by a full turn: a
-   * circle tangent to the direction of travel, entered and left along the
-   * line, which necessarily crosses itself at the neck. A Catmull-Rom spline
-   * through the whole sequence smooths it into one continuous stroke.
+   *     k < 1   a wave -- the point never outruns the roll
+   *     k = 1   a cusp at every low point
+   *     k > 1   the point swings backwards faster than the circle advances,
+   *             so the curve reverses, crosses its own track and closes a
+   *             real loop, once per turn, forever
+   *
+   * That last case is the reference sheet exactly: not a straight line with
+   * a loop stuck on it, but one continuous curl that keeps looping the whole
+   * way. Loops come out of the parameters, so there is nothing to place by
+   * hand and nothing to splice, which is also what kills the old spur at the
+   * joins -- there are no joins left.
+   *
+   * The envelope multiplies d along the run. It opens early, so the trail is
+   * at its curliest out in the open where there is room, and closes to zero
+   * at the last point, so the bee stops swinging and arrives at the hole on
+   * a clean tangent. Where the envelope drops k*env below 1 the loops relax
+   * back into waves by themselves -- the same taper the reference has as it
+   * comes in to the bee.
    */
-  /**
-   * One bee's path, as a smooth line with at most one loop.
-   *
-   * Waypoints are given sparsely in stage fractions; the Catmull-Rom spline
-   * above turns them into a continuous curve, so nothing here is jagged. A
-   * loop is a real loop -- a teardrop the line enters and leaves at the same
-   * point, crossing itself once -- inserted between two waypoints and left to
-   * the spline to smooth. Loops are placed by hand at spread-out spots rather
-   * than rolled, because the old version put every loop where the routes
-   * happened to converge and they piled into one knot.
-   */
-  function smoothFlight(waypoints, loop, W, H) {
+  function trail(route, opt, W, H) {
     var scale = Math.min(W, H);
-    var pts = [];
-    for (var i = 0; i < waypoints.length; i++) {
-      var wp = waypoints[i];
-      pts.push([wp[0] * W, wp[1] * H]);
-      if (!loop || loop.after !== i || i >= waypoints.length - 1) continue;
+    var wp = route.map(function (p) { return [p[0] * W, p[1] * H]; });
+    var walk = march(curvePoints(wp, 48), 2);
+    var total = (walk.length - 1) * 2;
+    if (total < 1) return spline(wp);
 
-      var a = [wp[0] * W, wp[1] * H];
-      var b = [waypoints[i + 1][0] * W, waypoints[i + 1][1] * H];
-      var dl = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
-      var dir = [(b[0] - a[0]) / dl, (b[1] - a[1]) / dl];
-      var side = loop.side || 1;
-      var r = (loop.r || 0.06) * scale;
-      var along = 1.7; // a bee keeps its momentum through the turn: long the way it was going
+    // 2*pi*R is one curl of travel, so wave sets how often they come; k*R is
+    // how far the rider swings, so it sets how big they are. Tuned against
+    // the box: a curl is about one storey across, and four or five of them
+    // fit a route rather than a dozen.
+    var R = (opt.wave || 0.045) * scale;
+    var k = opt.curl || 1.75;              // > 1, or it is only a wobble
+    var side = opt.side || 1;
+    var phase = opt.phase || 0;
+    var bursts = opt.bursts || [[0.32, 0.17, 1]];
+    var out = [], th = phase;
 
-      // Centre sits one radius off the track, on `side`. The turn starts at
-      // the waypoint, so the neck of the loop is where it crosses itself.
-      var cx = a[0] - dir[1] * side * r;
-      var cy = a[1] + dir[0] * side * r;
-      var vx = (a[0] - cx) * dir[0] + (a[1] - cy) * dir[1];
-      var vy = -(a[0] - cx) * dir[1] + (a[1] - cy) * dir[0];
-      var a0 = Math.atan2(vy, vx / along);
-      var turns = 22;
-      for (var m = 1; m <= turns; m++) {
-        var f = m / turns;
-        var ang = a0 + side * 2 * Math.PI * f;
-        var rr = r * (1 + 0.12 * f); // opens the neck so it leaves on a fresh track
-        var ox = Math.cos(ang) * rr * along;
-        var oy = Math.sin(ang) * rr;
-        pts.push([cx + dir[0] * ox - dir[1] * oy, cy + dir[1] * ox + dir[0] * oy]);
+    for (var i = 0; i < walk.length; i++) {
+      var w = walk[i], u = i * 2 / total;
+      // Wavelength drifts a little along the run so the curls are siblings
+      // rather than a repeat, the way a stamped pattern would read.
+      var rr = R * (1 + 0.18 * Math.sin(u * 4.1 + phase));
+      var ds = 2;
+      // Curl in bursts, not all the way along. A trochoid left at full swing
+      // for a whole route comes out as a scalloped border -- the same curl
+      // repeated twenty times, which is a pattern, not a flight. A bee flies
+      // straight most of the way and works a patch when it finds one, so the
+      // envelope holds near zero for long runs and opens over a couple of
+      // stretches. Where it lifts k*env past 1 the loops appear on their own;
+      // where it does not, the same curve is a slow undulation.
+      var env = 0;
+      for (var q = 0; q < bursts.length; q++) {
+        var g = bursts[q];
+        // Fourth power, not squared: a plain bell spends most of its width in
+        // the shallows, and shallow swing is the worst of both -- too small to
+        // read as a loop, too broad to read as a straight line, so the trail
+        // comes out as a row of soft scallops. Steeper flanks make it closer
+        // to a switch, and the glide between bursts is properly a glide.
+        env = Math.max(env, (g[2] === undefined ? 1 : g[2])
+          * Math.exp(-Math.pow((u - g[0]) / g[1], 4)));
       }
+      env = env < 0.1 ? 0 : (env - 0.1) / 0.9;
+      env *= Math.min(1, u / 0.05);
+      // A trail that lands has to stop swinging before it arrives.
+      if (!opt.through) env *= Math.min(1, (1 - u) / 0.13);
+      else env *= Math.min(1, (1 - u) / 0.04);
+      var d = k * rr * env;
+      var ox = -d * Math.sin(th) * side;   // along the direction of travel
+      var oy = -d * Math.cos(th);          // across it
+      out.push([
+        w[0] + w[2] * ox - w[3] * oy * side,
+        w[1] + w[3] * ox + w[2] * oy * side,
+      ]);
+      th += ds / rr;
     }
-    return spline(pts);
+    // Sampled every 3px, so the polyline is already smoother than the stroke
+    // is wide; splining it again would only invite overshoot back in.
+    var d0 = 'M' + fmt(out[0][0]) + ' ' + fmt(out[0][1]);
+    for (var j = 1; j < out.length; j++) d0 += 'L' + fmt(out[j][0]) + ' ' + fmt(out[j][1]);
+    return d0;
   }
 
   function buildFlights() {
@@ -1273,12 +1377,25 @@ figcaption b { color: var(--ink); font-weight: 400; }
     flightSvg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
     flightFront.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
 
-    // The bores, as fractions of the model box; converted to stage fractions
-    // so the whole path can be authored in one coordinate system.
-    var HOMES = [[0.16, 0.30], [0.30, 0.24], [0.20, 0.44], [0.62, 0.33], [0.72, 0.42]];
+    // The entrance notches, measured off the plate (640x1081, drawn to fill
+    // the box element edge to edge, so an image fraction is a box fraction).
+    // Two columns down the face that catches the light; a bee arriving from
+    // the left meets them head on.
+    var HOMES = [
+      [0.185, 0.252], [0.392, 0.280],
+      [0.188, 0.317], [0.394, 0.345],
+      [0.188, 0.382], [0.394, 0.410],
+      [0.191, 0.447], [0.398, 0.489],
+    ];
     function home(i) {
       var f = HOMES[i % HOMES.length];
       return [(m.left + m.width * f[0] - s.left) / W, (m.top + m.height * f[1] - s.top) / H];
+    }
+    // A short hop out from the hole, so the last leg runs into the face
+    // rather than arriving broadside along it.
+    function approach(i, out, rise) {
+      var h = home(i);
+      return [h[0] - out, h[1] - rise];
     }
 
     // On one column the headline sits over the object and there is far less
@@ -1286,41 +1403,62 @@ figcaption b { color: var(--ink); font-weight: 400; }
     var c = copyEl.getBoundingClientRect();
     var stacked = c.right > m.left;
 
-    // Each line is authored: an entry off some edge, a couple of waypoints
-    // that keep it clear of the copy (top band above the headline, or the
-    // strip below it), a loop placed in open space, and a landing on a bore.
-    // The loops sit at (roughly) 0.26/0.14, 0.16/0.70, 0.44/0.74, 0.80/0.15 --
-    // four corners of the frame, never the same spot twice.
+    // Routes only -- the curling is the trochoid's business, and none of it
+    // is placed by hand. What is placed by hand is where a trail enters and
+    // which hole it is heading for.
+    //
+    // The holes all sit on one face, in a band down the middle of the box,
+    // and the headline occupies the left half of the frame at exactly those
+    // heights. So nothing approaches from the left at hole height: trails
+    // run along the top band or under the copy, and turn into the corridor
+    // between the text and the box only at the end, where the trail has
+    // already stopped swinging.
     var WIDE = [
-      { front: true, home: 0, loop: null,
-        wp: [[-0.06, 0.10], [0.30, 0.07], [0.54, 0.15]] },
-      { front: true, home: 1, loop: { after: 1, r: 0.05, side: 1 },
-        wp: [[-0.06, 0.20], [0.26, 0.15], [0.52, 0.22]] },
-      { front: true, home: 2, loop: { after: 1, r: 0.055, side: -1 },
-        wp: [[-0.06, 0.73], [0.16, 0.74], [0.42, 0.70], [0.58, 0.52]] },
-      { front: true, home: 3, loop: { after: 1, r: 0.045, side: 1 },
-        wp: [[0.30, 1.06], [0.44, 0.74], [0.58, 0.55]] },
-      { front: false, home: 4, loop: { after: 1, r: 0.05, side: -1 },
-        wp: [[0.94, -0.06], [0.80, 0.15], [0.66, 0.30]] },
+      { front: true,  home: 0, at: [0.075, 0.035], curl: 2.0, wave: 0.038, side: 1,
+        phase: 0.0, bursts: [[0.30, 0.15]],
+        wp: [[-0.08, 0.10], [0.20, 0.08], [0.42, 0.13], [0.56, 0.21]] },
+      { front: true,  home: 1, at: [0.055, 0.075], curl: 1.85, wave: 0.034, side: -1,
+        phase: 2.1, bursts: [[0.46, 0.13]],
+        wp: [[0.14, -0.08], [0.34, 0.05], [0.56, 0.14]] },
+      { front: true,  home: 6, at: [0.075, -0.03], curl: 2.1, wave: 0.042, side: -1,
+        phase: 3.6, bursts: [[0.22, 0.12], [0.58, 0.14, 0.8]],
+        wp: [[-0.08, 0.80], [0.20, 0.84], [0.44, 0.76], [0.58, 0.60]] },
+      { front: true,  home: 7, at: [0.05, -0.06], curl: 1.8, wave: 0.036, side: 1,
+        phase: 0.9, bursts: [[0.38, 0.14]],
+        wp: [[0.36, 1.08], [0.52, 0.88], [0.62, 0.70]] },
+      { front: false, home: 3, at: [-0.06, 0.06], curl: 1.9, wave: 0.04, side: 1,
+        phase: 2.8, bursts: [[0.34, 0.15]],
+        wp: [[1.08, 0.16], [0.92, 0.16], [0.82, 0.25]] },
+      // One that is only passing through, low and behind the legs. It keeps
+      // its swing small: this one is on its way somewhere else.
+      { front: false, home: null, through: true, curl: 1.6, wave: 0.045, side: -1,
+        phase: 4.4, bursts: [[0.20, 0.10, 0.85], [0.66, 0.11, 0.7]],
+        wp: [[-0.08, 0.95], [0.34, 0.99], [0.72, 0.93], [1.08, 0.88]] },
     ];
 
-    // Narrow: come up the left margin and under the copy, no top-band routes.
+    // Narrow: the copy sits over the box, so everything comes in low, under
+    // the text, and turns up into the face at the last moment.
     var NARROW = [
-      { front: true, home: 0, loop: { after: 1, r: 0.05, side: 1 },
-        wp: [[-0.06, 0.62], [0.22, 0.66], [0.5, 0.5]] },
-      { front: true, home: 2, loop: { after: 1, r: 0.05, side: -1 },
-        wp: [[-0.06, 0.82], [0.28, 0.8], [0.55, 0.6]] },
-      { front: true, home: 3, loop: null,
-        wp: [[0.34, 1.06], [0.5, 0.82], [0.62, 0.62]] },
+      { front: true, home: 2, at: [0.10, -0.10], curl: 1.9, wave: 0.05, side: 1,
+        phase: 0.4, bursts: [[0.30, 0.15]],
+        wp: [[-0.10, 0.74], [0.16, 0.80], [0.34, 0.70]] },
+      { front: true, home: 6, at: [0.09, -0.06], curl: 1.7, wave: 0.044, side: -1,
+        phase: 2.6, bursts: [[0.40, 0.15]],
+        wp: [[-0.10, 0.95], [0.24, 0.96], [0.42, 0.82]] },
+      { front: true, home: 7, at: [0.05, -0.08], curl: 1.95, wave: 0.046, side: 1,
+        phase: 4.0, bursts: [[0.34, 0.14]],
+        wp: [[0.40, 1.10], [0.60, 0.94], [0.68, 0.78]] },
     ];
 
     (stacked ? NARROW : WIDE).forEach(function (line) {
       var wp = line.wp.slice();
-      wp.push(home(line.home)); // land on the bore
+      if (line.home !== null && line.home !== undefined) {
+        wp.push(approach(line.home, line.at[0], line.at[1]));
+        wp.push(home(line.home)); // and in
+      }
       flights.push({
         come: true,
-        el: path(line.front ? flightFront : flightSvg, 'ln come',
-          smoothFlight(wp, line.loop, W, H)),
+        el: path(line.front ? flightFront : flightSvg, 'ln come', trail(wp, line, W, H)),
       });
     });
     measure(flights.map(function (f) { return f.el; }));
@@ -1636,17 +1774,22 @@ figcaption b { color: var(--ink); font-weight: 400; }
     driftFlight.setAttribute('viewBox', '0 0 ' + Math.round(W) + ' ' + Math.round(H));
 
     // Three lines, each in its own horizontal band so they thread through the
-    // drift rather than knot in the middle. Loops at distinct x, one per line.
+    // drift rather than knot in the middle. These are all passing through, so
+    // they curl edge to edge; different wavelengths and phases keep the three
+    // from reading as one pattern stamped three times.
     [
-      { wp: [[-0.06, 0.16], [0.30, 0.12], [0.7, 0.2], [1.06, 0.14]],
-        loop: { after: 1, r: 0.05, side: 1 } },
-      { wp: [[-0.06, 0.5], [0.28, 0.56], [0.66, 0.46], [1.06, 0.54]],
-        loop: { after: 2, r: 0.042, side: -1 } },
-      { wp: [[-0.06, 0.86], [0.34, 0.8], [0.72, 0.88], [1.06, 0.82]],
-        loop: { after: 1, r: 0.045, side: 1 } },
+      { through: true, curl: 1.9, wave: 0.055, side: 1, phase: 0.0,
+        bursts: [[0.26, 0.11], [0.68, 0.12, 0.75]],
+        wp: [[-0.08, 0.16], [0.30, 0.12], [0.7, 0.2], [1.08, 0.14]] },
+      { through: true, curl: 1.7, wave: 0.048, side: -1, phase: 2.4,
+        bursts: [[0.52, 0.13]],
+        wp: [[-0.08, 0.5], [0.28, 0.56], [0.66, 0.46], [1.08, 0.54]] },
+      { through: true, curl: 2.0, wave: 0.06, side: 1, phase: 4.1,
+        bursts: [[0.34, 0.12], [0.78, 0.10, 0.8]],
+        wp: [[-0.08, 0.86], [0.34, 0.8], [0.72, 0.88], [1.08, 0.82]] },
     ].forEach(function (f) {
       var el = document.createElementNS(NS, 'path');
-      el.setAttribute('d', smoothFlight(f.wp, f.loop, W, H));
+      el.setAttribute('d', trail(f.wp, f, W, H));
       driftFlight.appendChild(el);
       var len = el.getTotalLength();
       el.style.strokeDasharray = len;
