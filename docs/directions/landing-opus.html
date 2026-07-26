@@ -240,63 +240,33 @@ figcaption b { color: var(--ink); font-weight: 400; }
 
 .bleed { width: 100vw; margin-left: calc(50% - 50vw); }
 
-.steps {
+.faq {
+  margin: clamp(28px, 4vh, 52px) 0 0;
+  border-top: 1px solid var(--rule);
+}
+
+.faq div {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
-  gap: clamp(12px, 1.4vw, 22px);
-  margin-top: clamp(28px, 4vh, 52px);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  gap: clamp(16px, 3vw, 56px);
+  padding: clamp(16px, 2.2vh, 26px) 0;
+  border-bottom: 1px solid var(--rule);
 }
 
-.steps figure { margin: 0; }
-
-/* Numbers called off the drawing, the way a dimension is called off a plan.
-   The leaders are computed against the drawing's own box so each one reaches
-   the part it names at any width. */
-.specs {
-  position: relative;
-  height: clamp(460px, 70vh, 760px);
-  max-width: 1120px;
-  margin: clamp(40px, 6vh, 76px) auto 0;
+.faq dt { font-size: clamp(15px, 1.25vw, 20px); }
+.faq dd {
+  margin: 0;
+  max-width: 60ch;
+  font-size: clamp(14px, 1.05vw, 17px);
+  color: #4a493f;
 }
 
-.specs img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
+.faq code { font-family: var(--mono); font-size: 0.86em; }
+
+@media (max-width: 700px) {
+  .faq div { grid-template-columns: 1fr; gap: 8px; }
 }
 
-.leaders { position: absolute; inset: 0; width: 100%; height: 100%; }
-.leaders path { fill: none; stroke: var(--ink); stroke-width: 1; }
-.leaders circle { fill: var(--ink); }
-
-.spec {
-  position: absolute;
-  width: min(24ch, 30%);
-  transform: translateY(-50%);
-}
-
-.spec.end { text-align: right; }
-
-.spec b {
-  display: block;
-  font-weight: 400;
-  font-size: clamp(17px, 1.7vw, 27px);
-  letter-spacing: -0.02em;
-  line-height: 1.1;
-}
-
-.spec span {
-  display: block;
-  margin-top: 5px;
-  font-family: var(--mono);
-  font-size: clamp(8.5px, 0.62vw, 10px);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  line-height: 1.6;
-  color: var(--soft);
-}
 
 /* ---- the herbarium ----
    Pressed specimens on mounts. In "her eyes" the plate inverts to ink, the
@@ -484,20 +454,6 @@ figcaption b { color: var(--ink); font-weight: 400; }
      spill to stay in frame. */
   .garden { left: -48%; width: 180%; }
   .builder { height: 82vh; }
-  /* The drawing needs the full width here, so the callouts stack under it
-     with a rule instead of a leader. */
-  .specs { height: auto; }
-  .specs img { position: static; height: clamp(360px, 52vh, 480px); }
-  .leaders { display: none; }
-  .spec, .spec.end {
-    position: static;
-    width: auto;
-    transform: none;
-    text-align: left;
-    padding-left: 12px;
-    border-left: 1px solid var(--ink);
-    margin-top: 20px;
-  }
 }
 </style>
 
@@ -556,12 +512,10 @@ figcaption b { color: var(--ink); font-weight: 400; }
         of a gym, but for makers, where you either have a membership or pay per visit. You
         also get a two-page spec sheet: cut list, elevations and the assembly order.</p>
     </div>
-    <div class="steps">
-      <figure><img src="../renders/web/assembly-1.jpg" alt="One storey resting on its base" /></figure>
-      <figure><img src="../renders/web/assembly-2.jpg" alt="Two storeys stacked" /></figure>
-      <figure><img src="../renders/web/assembly-3.jpg" alt="Three storeys stacked" /></figure>
-      <figure><img src="../renders/web/assembly-4.jpg" alt="The roof closing the stack" /></figure>
-    </div>
+    <figure class="bleed">
+      <img src="../renders/web/workshop-bench.jpg"
+        alt="Bee Home parts and one assembled stack on a workshop bench" />
+    </figure>
     <p class="label" style="margin-top:14px">Assembly needs your hands, a drill and two screws</p>
   </section>
 
@@ -579,22 +533,58 @@ figcaption b { color: var(--ink); font-weight: 400; }
       <img src="../renders/web/studio-wall.jpg" alt="A Bee Home fixed to a wall on a short timber cleat, casting a soft shadow" />
     </figure>
 
-    <!-- The numbers hang off the drawing, not the photograph. On a render they
-         sat on top of the thing they described; on an outline a leader can
-         reach the part it means. -->
-    <figure class="specs" id="specs">
-      <svg class="leaders" id="leaders" aria-hidden="true"></svg>
-      <img id="specDrawing" src="../plates/bh-4.png"
-           alt="Hidden-line drawing of a four-storey Bee Home with dimensions called out" />
-      <div class="spec" data-at="0.242,0.264" style="left:0; top:20%">
-        <b>4&#8211;10 mm</b><span>Bore range &#183; one species per diameter</span></div>
-      <div class="spec" data-at="0.242,0.345" style="left:0; top:52%">
-        <b>20&#8211;30</b><span>Offspring per queen</span></div>
-      <div class="spec end" data-at="0.68,0.33" style="right:0; top:24%">
-        <b>120&#215;</b><span>One solitary bee pollinates as much as 120 honeybees</span></div>
-      <div class="spec end" data-at="0.47,0.84" style="right:0; top:66%">
-        <b>5&#8211;30 yrs</b><span>Lifespan &#183; timber and upkeep</span></div>
-    </figure>
+  </section>
+
+  <section class="band" id="about">
+    <p class="label">Questions</p>
+    <h2 class="lede">An open-source revival of a project that went offline.</h2>
+    <dl class="faq">
+      <div>
+        <dt>What is this?</dt>
+        <dd>Bee Home was released by SPACE10, IKEA's research lab, on World Bee Day
+          2020 &#8212; a parametric bee hotel anyone could configure and have cut
+          locally, free, under CC BY 4.0. SPACE10 closed in 2023 and the site went
+          with it. This is a rebuild of the design tool from the original geometry.</dd>
+      </div>
+      <div>
+        <dt>Is this the real thing?</dt>
+        <dd>The storeys are the project's own solids, meshed straight from
+          <code>BEEHOME GEOMETRIES.3dm</code>. The stacking rules are the recovered
+          ones. Two things are ours: the roof slab, which was generated at download
+          time by a Grasshopper definition we do not have, and the timber options,
+          which the original did not offer.</dd>
+      </div>
+      <div>
+        <dt>Will bees actually come?</dt>
+        <dd>Often, though nobody can promise it. Cavity-nesting solitary bees find
+          new nest sites on their own. Flowers within about 300 metres matter more
+          than anything you can do to the box.</dd>
+      </div>
+      <div>
+        <dt>How long does one last?</dt>
+        <dd>Five to thirty years, depending on the timber, where it hangs and
+          whether you clean it. Brush the fronts each autumn and clear any cavity
+          that stayed empty two seasons running.</dd>
+      </div>
+      <div>
+        <dt>Do they sting?</dt>
+        <dd>Practically never. Solitary bees make no honey and have no colony to
+          defend, so they have nothing to be aggressive about. They sting only if
+          trodden on or squeezed, and are safe around children and pets.</dd>
+      </div>
+      <div>
+        <dt>What do the numbers mean?</dt>
+        <dd>Bores run 4 to 10 mm, and different species use different diameters, so
+          a mixed stack houses more of them. Each nesting female lays 20 to 30
+          offspring, and one solitary bee can pollinate as much as 120 honeybees.</dd>
+      </div>
+      <div>
+        <dt>Can I use this?</dt>
+        <dd>Yes. CC BY 4.0, same as the original &#8212; build it, sell what you
+          build, fork the code, just credit SPACE10 and the designers. The
+          repository is public.</dd>
+      </div>
+    </dl>
   </section>
 
   <section class="band" id="plant">
@@ -973,6 +963,50 @@ figcaption b { color: var(--ink); font-weight: 400; }
     });
   }
 
+  /**
+   * One flight, as a flown path rather than a single curve.
+   *
+   * A bezier from entry to bore is the shortest lie: bees sweep wide, circle,
+   * overshoot and come back. So the run is chopped into segments along the
+   * base curve and displaced sideways by a sine -- `arc` sets how far it
+   * bulges, `loop` how many times it crosses back over the straight line on
+   * the way. The displacement is tapered to nothing at both ends so the line
+   * still leaves the edge cleanly and still lands exactly on its bore.
+   */
+  function flightPath(from, h1, h2, to, shape, W, H, clear) {
+    var arc = shape.arc || 0;
+    if (!arc) {
+      return 'M' + fmt(from[0]) + ' ' + fmt(from[1])
+        + 'C' + fmt(h1[0]) + ' ' + fmt(h1[1])
+        + ',' + fmt(h2[0]) + ' ' + fmt(h2[1])
+        + ',' + fmt(to[0]) + ' ' + fmt(to[1]);
+    }
+    var loops = (shape.loop || 0) + 1;
+    var steps = 26;
+    var pts = [];
+    for (var i = 0; i <= steps; i++) {
+      var t = i / steps;
+      var u = 1 - t;
+      // Cubic bezier, and its tangent, so the sideways push is perpendicular
+      // to the direction of travel rather than to the page.
+      var bx = u * u * u * from[0] + 3 * u * u * t * h1[0] + 3 * u * t * t * h2[0] + t * t * t * to[0];
+      var by = u * u * u * from[1] + 3 * u * u * t * h1[1] + 3 * u * t * t * h2[1] + t * t * t * to[1];
+      var dx = 3 * u * u * (h1[0] - from[0]) + 6 * u * t * (h2[0] - h1[0]) + 3 * t * t * (to[0] - h2[0]);
+      var dy = 3 * u * u * (h1[1] - from[1]) + 6 * u * t * (h2[1] - h1[1]) + 3 * t * t * (to[1] - h2[1]);
+      var len = Math.hypot(dx, dy) || 1;
+      // Taper: sin(pi t) is zero at both ends, so entry and landing are exact.
+      var push = Math.sin(Math.PI * t) * Math.sin(Math.PI * loops * t)
+        * arc * Math.min(W, H);
+      // And held flat while the line is still crossing the copy. The lane
+      // logic put it there safely; a wide swing would undo that and drag it
+      // through a headline.
+      var free = Math.max(0, Math.min(1, (bx - clear * 0.55) / (W * 0.16)));
+      push *= free;
+      pts.push([bx + (-dy / len) * push, by + (dx / len) * push]);
+    }
+    return spline(pts);
+  }
+
   function buildFlights() {
     [flightSvg, flightFront].forEach(function (svg) {
       while (svg.firstChild) svg.removeChild(svg.firstChild);
@@ -994,9 +1028,13 @@ figcaption b { color: var(--ink); font-weight: 400; }
     // Land on the bore face, and on a different storey each time. Aimed at the
     // silhouette edge instead, the lines stopped beside the object rather than
     // at it -- they never found the home.
+    // Bores on both visible faces. The near face is the left one in this
+    // plate; the right face carries the channel reveals and takes arrivals
+    // too, because a real Bee Home is drilled on more than one side.
     var HOMES = [
-      [0.23, 0.28], [0.34, 0.34], [0.18, 0.44], [0.30, 0.49],
-      [0.24, 0.56], [0.40, 0.40], [0.15, 0.35],
+      [0.23, 0.28], [0.34, 0.34], [0.18, 0.44],
+      [0.62, 0.31], [0.70, 0.38], [0.58, 0.46],
+      [0.30, 0.52],
     ];
     function home(i) {
       var f = HOMES[i % HOMES.length];
@@ -1040,14 +1078,24 @@ figcaption b { color: var(--ink); font-weight: 400; }
     // is an offset from the bore it lands on, so the line turns and settles
     // onto the face instead of ruling itself across the whole object. That is
     // the difference between traffic and tangle.
+    // Shape, not just destination. A bee does not fly a bezier: it sweeps,
+    // circles, overshoots and comes back. `arc` is how far the line bulges
+    // off the straight run, `loop` how many turns it takes on the way, and
+    // `behind` sends it round the far side of the object -- cut by the plate
+    // for the whole of its passage, so it reappears having gone around.
+    //
+    //  entry | handle | exit or null | approach offset | shape
     var LINES = [
-      [L, 'hi', 0.12, ['hi', 0.92], null, [-0.16, 0.015]],
-      [L, 'hi', 0.74, ['hi', 0.16], [R, 'hi', 0.34]],
-      [L, 'lo', 0.26, ['lo', 0.9], null, [-0.13, -0.03]],
-      [T, 'x', 0.7, ['x', 0.66, 'y', 0.14], null, [-0.05, -0.14]],
-      [T, 'x', 0.88, ['x', 0.84, 'y', 0.2], [R, 'y', 0.62]],
-      [L, 'hi', 0.05, ['hi', 0.42], null, [-0.19, 0.05]],
-      [L, 'hi', 0.94, ['hi', 0.3], null, [-0.11, 0.09]],
+      // The one that stays a clean sweep, for contrast.
+      [L, 'hi', 0.12, ['hi', 0.92], null, [-0.16, 0.015], {}],
+      [L, 'hi', 0.74, ['hi', 0.16], [R, 'hi', 0.34], null, { arc: 0.10 }],
+      [L, 'lo', 0.26, ['lo', 0.9], null, [-0.13, -0.03], { arc: 0.16, loop: 1 }],
+      [T, 'x', 0.7, ['x', 0.66, 'y', 0.14], null, [-0.05, -0.14], { arc: 0.13 }],
+      [T, 'x', 0.88, ['x', 0.84, 'y', 0.2], [R, 'y', 0.62], null, { arc: 0.12, loop: 1 }],
+      // Round the back: enters left, passes behind the object, lands on the
+      // far face.
+      [L, 'hi', 0.05, ['hi', 0.42], null, [0.26, 0.06], { arc: 0.2, behind: true }],
+      [L, 'hi', 0.94, ['hi', 0.3], null, [0.22, -0.02], { arc: 0.18, loop: 1, behind: true }],
     ];
 
     // Stacked, the object fills most of the width, the headline owns the top
@@ -1102,13 +1150,12 @@ figcaption b { color: var(--ink); font-weight: 400; }
           h1 = [W * (0.1 + n * 0.06), H * (0.9 - n * 0.07)];
           h2 = [to[0] - W * (0.2 - n * 0.03), to[1] + H * (0.1 + n * 0.02)];
         }
+        var shape = line[6] || {};
+        var layer = shape.behind ? flightSvg : (come ? flightFront : flightSvg);
         flights.push({
           come: come,
-          el: path(come ? flightFront : flightSvg, 'ln ' + (come ? 'come' : 'fly'),
-            'M' + fmt(from[0]) + ' ' + fmt(from[1])
-            + 'C' + fmt(h1[0]) + ' ' + fmt(h1[1])
-            + ',' + fmt(h2[0]) + ' ' + fmt(h2[1])
-            + ',' + fmt(to[0]) + ' ' + fmt(to[1])),
+          el: path(layer, 'ln ' + (come ? 'come' : 'fly'),
+            flightPath(from, h1, h2, to, shape, W, H, clear)),
         });
       });
     measure(flights.map(function (f) { return f.el; }));
@@ -1159,67 +1206,6 @@ figcaption b { color: var(--ink); font-weight: 400; }
     phases.forEach(function (el, i) { el.classList.toggle('on', i === on); });
   }
 
-  /* ---------------- called dimensions ----------------
-
-     Each callout names a point on the drawing rather than a point on the
-     page, so the leader is computed from the drawing's own box: the image is
-     object-fit: contain, which means its rendered rectangle is not the
-     element's rectangle at most window sizes. */
-
-  var specsFig = document.getElementById('specs');
-  var leaders = document.getElementById('leaders');
-  var drawing = document.getElementById('specDrawing');
-  var specs = [].slice.call(document.querySelectorAll('.spec'));
-
-  /** Where the drawing actually lands inside its element once contained. */
-  function drawnBox() {
-    var box = drawing.getBoundingClientRect();
-    var ratio = (drawing.naturalWidth || 640) / (drawing.naturalHeight || 1081);
-    var width = Math.min(box.width, box.height * ratio);
-    var height = width / ratio;
-    return {
-      left: box.left + (box.width - width) / 2,
-      top: box.top + (box.height - height) / 2,
-      width: width,
-      height: height,
-    };
-  }
-
-  function drawLeaders() {
-    while (leaders.firstChild) leaders.removeChild(leaders.firstChild);
-    if (getComputedStyle(leaders).display === 'none') return;
-
-    var f = specsFig.getBoundingClientRect();
-    var d = drawnBox();
-    leaders.setAttribute('viewBox', '0 0 ' + Math.round(f.width) + ' ' + Math.round(f.height));
-
-    specs.forEach(function (spec) {
-      var at = spec.dataset.at.split(',');
-      var ax = d.left + d.width * Number(at[0]) - f.left;
-      var ay = d.top + d.height * Number(at[1]) - f.top;
-
-      var s = spec.getBoundingClientRect();
-      var end = spec.classList.contains('end');
-      var sx = (end ? s.left : s.right) - f.left;
-      var sy = s.top + s.height / 2 - f.top;
-
-      // Out flat from the label, then one turn to the point -- a drawn
-      // dimension leader, not a line ruled diagonally across the sheet.
-      var turn = sx + (end ? -1 : 1) * Math.min(40, Math.abs(ax - sx) * 0.35);
-      path(leaders, '', 'M' + fmt(sx) + ' ' + fmt(sy) + 'H' + fmt(turn)
-        + 'L' + fmt(ax) + ' ' + fmt(ay));
-
-      var dot = document.createElementNS(NS, 'circle');
-      dot.setAttribute('cx', fmt(ax));
-      dot.setAttribute('cy', fmt(ay));
-      dot.setAttribute('r', '2.5');
-      leaders.appendChild(dot);
-    });
-  }
-
-  if (drawing.complete) drawLeaders();
-  else drawing.addEventListener('load', drawLeaders);
-  addEventListener('resize', drawLeaders);
 
   /* ---------------- where you are ----------------
 

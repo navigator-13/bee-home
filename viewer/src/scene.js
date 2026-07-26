@@ -131,6 +131,69 @@ export class Stage {
     });
   }
 
+  /**
+   * A second, tiny renderer for the storey preview: one part alone, turning.
+   * Shares nothing with the main scene except the geometry cache, so hovering
+   * cannot disturb the model you are building.
+   */
+  preview(canvas) {
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+    const scene = new THREE.Scene();
+    scene.add(new THREE.HemisphereLight('#f4efe4', '#3a382c', 2.0));
+    const key = new THREE.DirectionalLight('#fff6e6', 2.2);
+    key.position.set(0.5, 0.9, 0.6);
+    scene.add(key);
+
+    const camera = new THREE.PerspectiveCamera(30, 1, 0.01, 10);
+    const pivot = new THREE.Group();
+    scene.add(pivot);
+    let spin = 0;
+    let live = false;
+
+    renderer.setAnimationLoop(() => {
+      if (!live) return;
+      spin += 0.006;
+      pivot.rotation.y = spin;
+      renderer.render(scene, camera);
+    });
+
+    return {
+      show: (geometry, woodKey) => {
+        pivot.clear();
+        const mesh = new THREE.Mesh(geometry, this.materialFor(woodKey));
+        const box = new THREE.Box3().setFromObject(mesh);
+        const centre = box.getCenter(new THREE.Vector3());
+        mesh.position.sub(centre);
+        pivot.add(mesh);
+
+        const lines = new THREE.LineSegments(
+          this.edgesFor(geometry),
+          new THREE.LineBasicMaterial({ color: LINE[this.mode], transparent: true, opacity: 0.3 }),
+        );
+        lines.position.copy(mesh.position);
+        pivot.add(lines);
+
+        const radius = box.getSize(new THREE.Vector3()).length();
+        camera.position.set(0, radius * 0.42, radius * 1.15);
+        camera.lookAt(0, 0, 0);
+        spin = -0.5;
+        live = true;
+      },
+      hide: () => { live = false; },
+    };
+  }
+
+  /** Cached edge geometry — the preview and the stage share one per part. */
+  edgesFor(geometry) {
+    if (!this.edgeCache.has(geometry.uuid)) {
+      this.edgeCache.set(geometry.uuid, new THREE.EdgesGeometry(geometry, 20));
+    }
+    return this.edgeCache.get(geometry.uuid);
+  }
+
   /** Screen-space centre and half-height of one storey, in canvas pixels. */
   storeyAnchor(index) {
     const box = new THREE.Box3();
@@ -305,11 +368,8 @@ export class Stage {
     if (this.mode === 'drawing') mesh.material = this.occluder();
     this.root.add(mesh);
 
-    if (!this.edgeCache.has(geometry.uuid)) {
-      this.edgeCache.set(geometry.uuid, new THREE.EdgesGeometry(geometry, 20));
-    }
     const lines = new THREE.LineSegments(
-      this.edgeCache.get(geometry.uuid),
+      this.edgesFor(geometry),
       new THREE.LineBasicMaterial({
         color: LINE[this.mode],
         transparent: true,

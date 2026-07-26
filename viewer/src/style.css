@@ -91,20 +91,22 @@ body.ready .readout { opacity: 1; }
 /* The drawer folds away entirely -- the model owns the viewport, and the
    controls are a visitor. */
 body.panelHidden .panel { transform: translateX(calc(100% + 24px)); }
+body:not(.panelHidden) .panelTab { right: 268px; }
 
+/* Pinned to the top right corner, level with the panel's own top edge --
+   floating at mid-height it drifted with viewport height and read as
+   unrelated to the panel it opens. */
 .panelTab {
   position: fixed;
-  top: 50%;
-  right: 0;
-  transform: translateY(-50%);
-  width: 26px;
-  height: 52px;
+  top: 20px;
+  right: 20px;
+  width: 34px;
+  height: 34px;
   display: grid;
   place-items: center;
   padding: 0;
   border: 1px solid rgba(233, 233, 225, 0.3);
-  border-right: 0;
-  border-radius: 3px 0 0 3px;
+  border-radius: 2px;
   background: rgba(42, 41, 32, 0.6);
   backdrop-filter: blur(3px);
   color: var(--grey-light);
@@ -244,19 +246,107 @@ body.drawing .rail li.hot,
 body.drawing .rail li.selected { border-color: #7386bd; color: var(--ink); }
 
 
+/* --- export bar ---
+   Sits under the stage, outside the drawer: the thing you leave with should
+   not be foldable away with the controls. */
+
+.exportBar {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  z-index: 5;
+  opacity: 0;
+  transition: opacity 0.6s ease 0.15s;
+}
+
+body.ready .exportBar { opacity: 1; }
+
+.exportBar p {
+  margin: 0;
+  max-width: 34ch;
+  text-align: right;
+  font-size: 10px;
+  line-height: 1.5;
+  color: var(--grey);
+}
+
+.exportBar .chip {
+  flex: 0 0 auto;
+  padding: 9px 16px;
+  font-size: 11px;
+  border-color: var(--bone);
+  color: var(--bone);
+}
+
+.exportBar .chip:hover { background: var(--bone); color: var(--ink); }
+
+body.drawing .exportBar p { color: var(--grey-warm); }
+body.drawing .exportBar .chip { border-color: var(--ink); color: var(--ink); }
+body.drawing .exportBar .chip:hover { background: var(--ink); color: var(--bone); }
+
+@media (max-width: 820px) {
+  .exportBar { left: 14px; right: 14px; bottom: 14px; justify-content: flex-end; }
+  .exportBar p { display: none; }
+}
+
+
+/* --- storey preview ---
+   Hovering a storey shows that part alone, turning slowly, in the empty
+   bottom-left corner. The rail tells you which storey; this tells you what
+   shape it is, which a letter cannot. */
+
+.preview {
+  position: fixed;
+  left: 26px;
+  bottom: 118px;
+  width: 150px;
+  height: 150px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease;
+  z-index: 4;
+}
+
+.preview.on { opacity: 1; }
+.preview canvas { width: 100%; height: 100%; display: block; }
+
+.preview span {
+  position: absolute;
+  left: 0;
+  bottom: -16px;
+  font-family: 'SFMono-Regular', Menlo, monospace;
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--grey);
+}
+
+@media (max-width: 820px) { .preview { display: none; } }
+
+
 /* --- the view toggle ---
    Drawing/timber as one button in the stage corner: outline cube for the
    drawing, solid cube for the timber. */
 
+/* [ drawing ] / [ timber ]: the brackets say "this is the current state",
+   which a lone icon never managed. Anchored to the same top-right corner as
+   the drawer tab so neither jumps when the other moves. */
 .viewToggle {
   position: fixed;
-  top: 26px;
-  right: 320px;
-  width: 34px;
+  top: 20px;
+  right: 62px;
   height: 34px;
-  display: grid;
-  place-items: center;
-  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 10px;
+  font-family: 'SFMono-Regular', Menlo, monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
   border: 1px solid rgba(233, 233, 225, 0.3);
   border-radius: 2px;
   background: rgba(42, 41, 32, 0.35);
@@ -270,8 +360,10 @@ body.drawing .rail li.selected { border-color: #7386bd; color: var(--ink); }
 .viewToggle:hover { border-color: var(--bone); color: var(--bone); }
 
 /* The icon shows where the toggle goes, not where it is. */
-body.drawing .viewToggle .ic-drawing { display: none; }
-body:not(.drawing) .viewToggle .ic-timber { display: none; }
+body:not(.panelHidden) .viewToggle { right: 310px; }
+.viewToggle b { font-weight: 400; }
+body.drawing .viewToggle .m-timber { display: none; }
+body:not(.drawing) .viewToggle .m-drawing { display: none; }
 
 body.drawing .viewToggle {
   border-color: rgba(42, 41, 32, 0.35);
@@ -339,7 +431,9 @@ body.drawing .viewToggle:hover { border-color: var(--ink); color: var(--ink); }
   position: fixed;
   left: 30px;
   bottom: 24px;
+  max-width: calc(100vw - 420px);
   display: flex;
+  flex-wrap: wrap;
   gap: 30px;
   align-items: flex-end;
   opacity: 0;
@@ -487,6 +581,8 @@ body.clean .masthead,
 body.clean .rail,
 body.clean .viewToggle,
 body.clean .panelTab,
+body.clean .preview,
+body.clean .exportBar,
 body.clean .readout { display: none; }
 
 /* Plate captures with alpha need the page itself transparent too. */

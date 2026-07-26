@@ -18,6 +18,7 @@ const state = {
 let index = null;
 let rules = null;
 let stage = null;
+let preview = null;
 
 const el = (id) => document.getElementById(id);
 
@@ -403,6 +404,9 @@ function buildControls() {
     palette.append(button);
   }
 
+  // The storey preview: its own little renderer, fed the same cached geometry.
+  preview = stage.preview(el('previewCanvas'));
+
   // Drawing/timber lives as one two-state button in the stage corner.
   el('viewToggle').addEventListener('click', () => {
     state.mode = state.mode === 'drawing' ? 'timber' : 'drawing';
@@ -430,16 +434,10 @@ function buildControls() {
     requestAnimationFrame(() => {
       hoverPending = false;
       const i = stage.pick(event);
-      stage.setHovered(i);
-      for (const item of el('stackList').children) {
-        item.classList.toggle('hot', Number(item.dataset.storey) === i && i >= 0);
-      }
+      hoverStorey(i);
     });
   });
-  el('stage').addEventListener('pointerleave', () => {
-    stage.setHovered(-1);
-    for (const item of el('stackList').children) item.classList.remove('hot');
-  });
+  el('stage').addEventListener('pointerleave', () => hoverStorey(-1));
 
   const woods = el('woods');
   for (const wood of WOODS) {
@@ -517,8 +515,8 @@ function syncControls() {
     if (i === state.selected) item.classList.add('selected');
     item.tabIndex = 0;
     item.addEventListener('click', () => selectStorey(i === state.selected ? -1 : i));
-    item.addEventListener('pointerenter', () => stage.setHovered(i));
-    item.addEventListener('pointerleave', () => stage.setHovered(-1));
+    item.addEventListener('pointerenter', () => hoverStorey(i));
+    item.addEventListener('pointerleave', () => hoverStorey(-1));
     item.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectStorey(i); }
     });
@@ -528,10 +526,37 @@ function syncControls() {
 }
 
 /**
+ * One place decides what "hovering a storey" means: the model lights up, the
+ * rail chip lights up, and the preview shows that part alone, turning.
+ */
+async function hoverStorey(i) {
+  stage.setHovered(i);
+  for (const item of el('stackList').children) {
+    item.classList.toggle('hot', Number(item.dataset.storey) === i && i >= 0);
+  }
+  if (!preview) return;
+  const letter = i >= 0 ? state.stack[i] : null;
+  if (!letter) {
+    preview.hide();
+    el('preview').classList.remove('on');
+    return;
+  }
+  const entry = index.storeys[letter][state.variant];
+  const geometry = await stage.load(entry.file);
+  // The pointer may have moved on while that awaited.
+  if (stage.hovered !== i) return;
+  preview.show(geometry, woodFor(i));
+  el('previewLabel').textContent = `${letter} \u00b7 storey ${i + 1}`;
+  el('preview').classList.add('on');
+}
+
+/**
  * Keep each rail chip level with its own storey. Runs on the stage's frame
  * callback, so the letters ride the model through orbits and rebuilds; the
  * chip's height is the storey's height on screen, clamped to stay legible.
  */
+const RAIL_TOP = 118; // clear of the masthead
+
 function positionRail() {
   const list = el('stackList');
   for (const item of list.children) {
@@ -541,9 +566,13 @@ function positionRail() {
       continue;
     }
     const height = Math.max(20, Math.min(72, anchor.half * 2));
+    // Never climb into the masthead. A short stack seen from below puts the
+    // top storey near the top of the screen and the chip would land on the
+    // title; clamped, the rail simply stops short of it.
+    const top = Math.max(RAIL_TOP, anchor.y - height / 2);
     item.style.display = '';
     item.style.height = `${height}px`;
-    item.style.top = `${anchor.y - height / 2}px`;
+    item.style.top = `${top}px`;
   }
 }
 
