@@ -235,17 +235,7 @@ figcaption b { color: var(--ink); font-weight: 400; }
 /* The question that changes the drift, given the size of a question rather
    than the size of a form label. Loose heads fall around it: the same plates
    as the drift below, cropped to the flower, so the two read as one press. */
-.ask {
-  position: relative;
-  min-height: 260px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: clamp(24px, 4vw, 64px);
-  margin-bottom: clamp(46px, 7vh, 96px);
-}
-
-.askPut { position: relative; z-index: 2; max-width: 42ch; }
+.ask { margin-bottom: clamp(40px, 6vh, 84px); max-width: 46ch; }
 
 .askQ {
   margin: 0;
@@ -277,24 +267,12 @@ figcaption b { color: var(--ink); font-weight: 400; }
 
 .ask select:focus-visible { outline: 2px solid var(--bee); outline-offset: 2px; }
 
-.askHeads { position: absolute; inset: -18px 0 -10px; pointer-events: none; z-index: 1; }
-.askHeads img {
-  position: absolute;
-  width: var(--w);
-  opacity: 0.92;
-  transform: rotate(var(--tilt));
-}
-
-@media (max-width: 760px) {
-  .ask { flex-direction: column; align-items: flex-start; gap: 30px; }
-  .askHeads { display: none; }
-}
 
 /* The line that opens the section about flowers. It used to be a band of its
    own, which made it a poster between two arguments instead of the first
    sentence of one. */
 .opener {
-  margin: 0 0 clamp(26px, 4vh, 54px);
+  margin: 0;
   max-width: 26ch;
   font-weight: 400;
   font-size: clamp(24px, 3.2vw, 50px);
@@ -346,6 +324,21 @@ figcaption b { color: var(--ink); font-weight: 400; }
 
 .packView iframe { flex: 1 1 auto; width: 100%; border: 0; background: #fff; }
 
+/* The claim and what to do about it, side by side. Stacked, the claim was a
+   poster and the instruction was a footnote to it. */
+.ledeSplit {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(24px, 4vw, 76px);
+  align-items: start;
+}
+
+.ledeSplit .lede { margin-top: 0; }
+
+@media (max-width: 860px) {
+  .ledeSplit { grid-template-columns: 1fr; gap: 18px; }
+}
+
 .plate { margin: clamp(38px, 6vh, 92px) 0 0; }
 .plate img { display: block; width: 100%; height: auto; }
 
@@ -380,6 +373,12 @@ figcaption b { color: var(--ink); font-weight: 400; }
   line-height: 1.08;
   letter-spacing: -0.024em;
   text-wrap: balance;
+}
+
+.aboutMe {
+  margin: clamp(20px, 3vh, 34px) 0 0;
+  max-width: 58ch;
+  font-size: clamp(14px, 1.05vw, 18px);
 }
 
 .faq {
@@ -551,10 +550,6 @@ figcaption b { color: var(--ink); font-weight: 400; }
   color: var(--soft);
 }
 
-.beeRow { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
-.beeRow img { width: clamp(64px, 6vw, 96px); height: auto; flex: none; }
-.beeRow .noPic { width: clamp(64px, 6vw, 96px); flex: none; }
-
 .regionAside ul { margin: 0; padding: 0; list-style: none;
                   font-size: clamp(14px, 1vw, 16px); }
 .regionAside li { margin-bottom: 8px; line-height: 1.35; }
@@ -570,73 +565,54 @@ figcaption b { color: var(--ink); font-weight: 400; }
   color: var(--soft);
 }
 
-/* The bee toggle. She is the control -- no pill, no border, no box. She sits
-   at the foot of the drift beside the paragraph that explains what she sees,
-   tilted off square like something that landed there rather than something
-   that was laid out. Hover and she wiggles, the way one does before settling. */
-.eyeSwap {
-  flex: none;
-  position: relative;
-  z-index: 2;
-  display: block;
-  width: max-content;
+/* Bees stand in the drift beside the flowers, at the flowers' own scale. Each
+   is the vision toggle; each wobbles when the pointer finds it, so which one
+   you press never matters. */
+.beeMount {
+  position: absolute;
+  width: var(--w);
   padding: 0;
   border: 0;
   background: none;
-  color: var(--ink);
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  line-height: 1.4;
-  text-align: center;
   cursor: pointer;
+  transform: rotate(var(--tilt));
+  transform-origin: 55% 60%;
+  z-index: 3;
   -webkit-tap-highlight-color: transparent;
 }
 
-.eyeBee {
-  display: block;
-  width: clamp(104px, 11.5vw, 176px);
-  margin: 0 auto;
-  height: auto;
-  object-fit: contain;
-  transform: rotate(-13deg);
-  transform-origin: 60% 65%;
-  transition: transform 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.2);
-}
+.beeMount img { display: block; width: 100%; height: auto; }
 
-.eyeSwapLabel {
-  display: block;
-  margin-top: 12px;
-  white-space: nowrap;
-  border-bottom: 1px solid var(--rule);
-  padding-bottom: 2px;
-  color: #6f6e63;
-  transition: color 0.3s ease, border-color 0.3s ease;
-}
-
-.eyeSwap:hover .eyeBee, .eyeSwap:focus-visible .eyeBee {
+.beeMount:hover, .beeMount:focus-visible {
   animation: wiggle 0.5s ease-in-out infinite;
-}
-
-.eyeSwap:hover .eyeSwapLabel, .eyeSwap:focus-visible .eyeSwapLabel {
-  color: var(--ink);
-  border-color: var(--ink);
+  outline: none;
 }
 
 @keyframes wiggle {
-  0%, 100% { transform: rotate(-19deg) scale(1.03); }
-  50%      { transform: rotate(-4deg)  scale(1.03); }
+  0%, 100% { transform: rotate(calc(var(--tilt) - 7deg)) scale(1.04); }
+  50%      { transform: rotate(calc(var(--tilt) + 8deg)) scale(1.04); }
 }
 
-/* Pressed, she has turned to face the other way -- the drift is in her eyes
-   now, so the label reads as the way back rather than the way in. */
-.eyeSwap[aria-pressed="true"] .eyeBee { transform: rotate(9deg) scaleX(-1); }
-.eyeSwap[aria-pressed="true"] .eyeSwapLabel { color: var(--bee); border-color: var(--bee); }
-.eyeSwap:focus-visible { outline: none; }
-
-@media (max-width: 760px) {
+.beeName {
+  position: absolute;
+  left: 0;
+  top: 100%;
+  margin-top: 8px;
+  display: block;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-align: left;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.25s ease;
 }
 
+.beeMount:hover .beeName, .beeMount:focus-visible .beeName { opacity: 1; }
+.beeName b { display: block; font-weight: 400; color: var(--ink); }
+.beeName i { display: block; font-style: italic; text-transform: none;
+             letter-spacing: 0.06em; color: var(--soft); }
 
 /* The explainer, popped when the toggle is first pressed. */
 .eyePop {
@@ -717,19 +693,24 @@ figcaption b { color: var(--ink); font-weight: 400; }
 
 .builder iframe { display: block; width: 100%; height: 100%; border: 0; }
 
-.packCall {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: clamp(18px, 3vw, 48px);
-  flex-wrap: wrap;
-  margin-top: clamp(30px, 4.5vh, 58px);
-  padding-top: clamp(20px, 3vh, 34px);
-  border-top: 1px solid var(--rule);
+/* The heading and what it hands you, on one line: the pack is the thing the
+   sentence is about, so it belongs beside it rather than below the section. */
+.ledeRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: clamp(24px, 4vw, 72px);
+  align-items: end;
 }
 
-.packCall p { margin: 0; max-width: 44ch; font-size: clamp(13px, 1vw, 16px); }
+.packCall { text-align: right; justify-self: end; max-width: 42ch; }
+.packCall p { margin: 0; font-size: clamp(13px, 1vw, 16px); }
 .packCall p + p { margin-top: 6px; color: var(--soft); }
+.packCall .pill { margin-top: 16px; }
+
+@media (max-width: 860px) {
+  .ledeRow { grid-template-columns: 1fr; }
+  .packCall { text-align: left; justify-self: start; margin-top: 8px; }
+}
 
 .packFor {
   font-family: var(--mono);
@@ -804,7 +785,7 @@ figcaption b { color: var(--ink); font-weight: 400; }
     <div class="frame">
       <div class="copy" id="copy">
         <h1>Bee Home is an open invitation to give bees the home they deserve.</h1>
-        <p class="sub">Design it here. Download the files for free. Have it made near you.</p>
+        <p class="sub">Design it here. Download the files for free. Build it yourself or manufacture it locally.</p>
       </div>
       <div class="art">
         <div class="ground" id="ground">
@@ -833,7 +814,15 @@ figcaption b { color: var(--ink); font-weight: 400; }
   </section>
 
   <section class="band">
-    <h2 class="lede">Download the design files for free and share them with a makerspace.</h2>
+    <div class="ledeRow">
+      <h2 class="lede">Download the design files for free and share them with a makerspace.</h2>
+      <div class="packCall">
+        <p class="packFor">Your design <b id="packId">&#8212;</b></p>
+        <p>Elevations, a cut list with the timber you chose, and the assembly order.
+          Two A4 pages to hand over or email ahead.</p>
+        <button id="getPack" class="pill">Download build pack</button>
+      </div>
+    </div>
     <div class="two">
       <p>A makerspace is an open workshop with access to a variety of fabrication tools.
         Think of a gym, but for makers, where you either have a membership or pay per
@@ -844,18 +833,6 @@ figcaption b { color: var(--ink); font-weight: 400; }
            rel="noopener noreferrer">Find one near you</a>.</p>
     </div>
 
-    <!-- The pack sits here, in the section about having it made, and names the
-         design it belongs to. Hung off the builder it read as a second export
-         button; the thing it produces is only useful once you have decided to
-         take it to somebody. -->
-    <div class="packCall">
-      <div>
-        <p class="packFor">Your design <b id="packId">&#8212;</b></p>
-        <p>Elevations, a cut list with the timber you chose, and the assembly order.
-          Two A4 pages to hand over or email ahead.</p>
-      </div>
-      <button id="getPack" class="pill">Get the build pack</button>
-    </div>
     <figure class="plate full">
       <img src="../assets/final-scenes/web/makerspace-build.jpg"
         alt="A maker setting the roof onto a stacked Bee Home at a workbench, CNC router behind" />
@@ -864,12 +841,17 @@ figcaption b { color: var(--ink); font-weight: 400; }
   </section>
 
   <section class="band">
-    <h2 class="lede">Facing the morning sun, within 300 metres of flowers.</h2>
+    <h2 class="lede">Placement: install it facing the morning sun, within
+      300 metres of flowers.</h2>
     <div class="two">
-      <p>Place it anywhere, as long as it's outside. Make sure your Bee Home is protected
-        from strong winds and that the holes remain horizontal at all times.</p>
-      <p>Take your files to a makerspace with a CNC milling machine. Assembly takes a few
-        minutes and needs no special tools.</p>
+      <p>Anywhere outside works. In a garden, stand it on legs among the planting or
+        drive the spike into firm soil, about 20 cm down. On a flat roof, keep it low
+        and weighted: a roof is windier than the garden below it, and wind is the one
+        thing these boxes mind.</p>
+      <p>On a balcony, fix it to the wall at least a metre up, over a window box or a
+        few pots. Whatever you choose, keep it out of strong wind, and keep the holes
+        horizontal &#8212; a cavity that tilts down lets rain in, and one that tilts
+        up drains into the nest.</p>
     </div>
 
     <figure class="plate offset">
@@ -880,9 +862,11 @@ figcaption b { color: var(--ink); font-weight: 400; }
   </section>
 
   <section class="band" id="plant">
-    <blockquote class="opener">A single solitary bee can provide as much
-      pollination as 120 honeybees.</blockquote>
-    <h2 class="lede">Plant flowers within flying distance.</h2>
+    <div class="ledeSplit">
+      <blockquote class="opener">A single solitary bee can provide as much
+        pollination as 120 honeybees.</blockquote>
+      <h2 class="lede">Plant flowers within flying distance.</h2>
+    </div>
     <div class="two">
       <p>A red mason bee will forage up to about 600 metres from her nest, but when flowers
         are close she works within 50 to 300, and averages nearer 100. Every trip is pollen carried
@@ -916,17 +900,11 @@ figcaption b { color: var(--ink); font-weight: 400; }
          what is underneath them, so they belong at the same height, and loose
          heads fall around them the way they do out of a press. -->
     <div class="ask">
-      <div class="askHeads" id="askHeads" aria-hidden="true"></div>
-      <div class="askPut">
-        <h2 class="askQ"><label for="regionPick">Where are you?</label></h2>
-        <p class="askWhy">Name your region and the drift below becomes the one that
-          grows near you, with the bees recorded there and the seed to sow.</p>
-        <select id="regionPick"></select>
-      </div>
-      <button class="eyeSwap" id="eyeSwap" aria-pressed="false">
-        <img src="../assets/bees/web/osmia-bicornis.webp" alt="" class="eyeBee" />
-        <span class="eyeSwapLabel" id="eyeSwapLabel">See in bee vision</span>
-      </button>
+      <h2 class="askQ"><label for="regionPick">Where do you live?</label></h2>
+      <p class="askWhy">The drift below becomes the one that grows near you, with the
+        cavity-nesting bees recorded there. Click any bee to see the flowers as she
+        does.</p>
+      <select id="regionPick"></select>
     </div>
 
     <div class="driftField" id="herbarium"></div>
@@ -958,16 +936,19 @@ figcaption b { color: var(--ink); font-weight: 400; }
 
 <div class="pad">
   <section class="band" id="who">
-    <p class="label">Who comes</p>
     <div class="regionAside">
-      <section><h3>Cavity nesters recorded near you</h3><ul id="regionBees"></ul></section>
-      <section><h3>What they work locally</h3><ul id="regionCrops"></ul></section>
+      <section><h3>What they pollinate near you</h3><ul id="regionCrops"></ul></section>
       <section><h3>Seed</h3><p class="label seedNote" id="regionSeed"></p></section>
     </div>
   </section>
 
   <section class="band" id="about">
-    <h2 class="lede">An open-source revival of a project that went offline.</h2>
+    <h2 class="lede">Reviving an open-source project that went offline.</h2>
+    <p class="aboutMe">Bee Home was published, used, and then quietly disappeared when
+      the lab behind it shut. The licence says anyone may pick it up. I am Ivan, and I
+      did: rebuilding the builder from the original geometry file, drawing the plates
+      and the site around it, and putting the whole thing back where people can reach
+      it. It is open, so the next person does not have to wait for me either.</p>
     <div class="faq">
       <details>
         <summary>What is this?<i class="mark"></i></summary>
@@ -1515,10 +1496,12 @@ figcaption b { color: var(--ink); font-weight: 400; }
       { front: true,  art: 'wander',     from: [-0.12, 0.30], home: 0 },
       { front: true,  art: 'curl',       from: [0.30, -0.08], home: 1 },
       { front: true,  art: 'switchback', from: [0.60, -0.08], home: 2, flip: -1 },
-      { front: true,  art: 'loop',       from: [0.30, 1.08],  home: 4 },
+      { front: true,  art: 'loop',       from: [0.46, 1.10],  home: 4 },
       { front: false, art: 'curl',       from: [1.12, 0.46],  home: 3, flip: -1 },
       // Passing through, low and behind the legs, on its way somewhere else.
-      { front: false, art: 'wander',     from: [-0.08, 0.88], to: [0.60, 1.04] },
+      // Kept to the far left: sharing the bottom edge with the route above put
+      // two sets of loops in the same square of page.
+      { front: false, art: 'wander',     from: [-0.10, 0.66], to: [0.24, 1.06] },
     ];
 
     // Narrow: the copy sits over the box and there is far less room, so this is
@@ -1542,8 +1525,26 @@ figcaption b { color: var(--ink); font-weight: 400; }
 
   measure(plants.reduce(function (a, b) { return a.concat(b); }, []));
 
-  function draw(el, k) {
-    el.style.strokeDashoffset = el._len * (1 - Math.max(0, Math.min(1, k)));
+  /*
+   * Draw a path in, then pull it away by the tail.
+   *
+   * `k` runs 0..1 and advances the head from the entry towards the hole. `out`
+   * runs 0..1 after that and moves the *back* of the line forward along the
+   * same track, so the visible stretch shortens from behind while its far end
+   * stays on the hole: the trail is drawn by a bee arriving, and then goes the
+   * way the bee went, into the box.
+   *
+   * Both come out of the one dash pattern. strokeDasharray is the path length,
+   * which CSS reads as a dash of L followed by a gap of L, so the window on
+   * screen is [-offset, -offset + L] clipped to the path. Positive offset
+   * hides the front, negative offset eats the back. No second element, no
+   * mask, no clip path.
+   */
+  function draw(el, k, out) {
+    var L = el._len;
+    el.style.strokeDashoffset = out > 0
+      ? -L * Math.min(1, out)
+      : L * (1 - Math.max(0, Math.min(1, k)));
   }
 
   function seg(p, a, b) { return Math.max(0, Math.min(1, (p - a) / (b - a))); }
@@ -1557,7 +1558,12 @@ figcaption b { color: var(--ink); font-weight: 400; }
   // The garden takes its time: each plant gets a long draw and they overlap,
   // so the meadow comes up in waves rather than snapping in as one row.
   var GARDEN = [0.36, 0.78];
-  var FLY = [0.66, 0.97];
+  var FLY = [0.58, 0.84];
+  // And then they leave. Trails that stay drawn accumulate until the frame is
+  // a diagram of every flight ever made; letting them run out into the box
+  // leaves the object alone at the end of the sequence, which is the point of
+  // the sequence.
+  var FLY_OUT = [0.80, 1.0];
 
   function frame() {
     var span = section.offsetHeight - innerHeight;
@@ -1576,8 +1582,11 @@ figcaption b { color: var(--ink); font-weight: 400; }
     });
 
     flights.forEach(function (f, i) {
-      var t0 = FLY[0] + i * 0.022;
-      draw(f.el, seg(p, t0, t0 + 0.17));
+      var t0 = FLY[0] + i * 0.020;
+      // Staggered so the last one is gone by the end of the section, not
+      // still leaving when the next begins.
+      var o0 = FLY_OUT[0] + i * 0.015;
+      draw(f.el, seg(p, t0, t0 + 0.16), seg(p, o0, o0 + 0.11));
     });
 
     cue.style.opacity = String(1 - seg(p, 0.01, 0.09));
@@ -1650,7 +1659,7 @@ figcaption b { color: var(--ink); font-weight: 400; }
       packView.hidden = false;
       document.body.style.overflow = 'hidden';
       getPack.disabled = false;
-      getPack.textContent = 'Get the build pack';
+      getPack.textContent = 'Download build pack';
     });
   }
 
@@ -1724,7 +1733,6 @@ figcaption b { color: var(--ink); font-weight: 400; }
 
   var pick = document.getElementById('regionPick');
   var herbarium = document.getElementById('herbarium');
-  var beesList = document.getElementById('regionBees');
   var cropsList = document.getElementById('regionCrops');
   var seedNote = document.getElementById('regionSeed');
 
@@ -1841,56 +1849,25 @@ figcaption b { color: var(--ink); font-weight: 400; }
     return mount;
   }
 
-  /* Loose heads around the question. Cropped from the same pressed plates the
-     drift below uses, so they are the same press, not clip art; they turn with
-     the rest of the field when the bee toggle goes on. Placed by hand rather
-     than rolled -- five things falling on a page look wrong until they look
-     right, and that is a judgement, not a distribution. */
-  var HEADS = [
-    { s: 'papaver-rhoeas',      x: '40%', y: '2%',  w: '116px', tilt: '-12deg' },
-    { s: 'glebionis-coronaria', x: '63%', y: '6%',  w: '104px', tilt: '-5deg' },
-    { s: 'centaurea-cyanus',    x: '52%', y: '48%', w: '90px',  tilt: '9deg' },
-    { s: 'knautia-arvensis',    x: '72%', y: '52%', w: '76px',  tilt: '16deg' },
-    { s: 'centaurea-nigra',     x: '33%', y: '58%', w: '82px',  tilt: '-14deg' },
-  ];
-
-  var askHeads = document.getElementById('askHeads');
-  var headEls = [];
-  if (askHeads) {
-    HEADS.forEach(function (h) {
-      var img = document.createElement('img');
-      img.alt = '';
-      img.style.setProperty('--w', h.w);
-      img.style.setProperty('--tilt', h.tilt);
-      img.style.left = h.x;
-      img.style.top = h.y;
-      img.dataset.species = h.s;
-      askHeads.appendChild(img);
-      headEls.push(img);
-    });
-  }
-
-  function headSrc(species, uv) {
-    var key = species + (uv ? '-uv' : '-rgb');
-    var inlined = window.__HEADS__;
-    return inlined ? inlined[key] : '../assets/pressed/heads/' + key + '.webp';
-  }
-
-  function paintHeads(uv) {
-    headEls.forEach(function (img) { img.src = headSrc(img.dataset.species, uv); });
-  }
-  paintHeads(false);
-
   /* The field crosses from human sight to bee sight as it scrolls, one plate
      a beat behind the last, so the change sweeps across the drift instead of
      snapping over all of it at once. */
   var mounts = [];
   var driftField = document.getElementById('herbarium');
   var driftFlight = document.getElementById('driftFlight');
-  var eyeSwap = document.getElementById('eyeSwap');
-  var eyeSwapLabel = document.getElementById('eyeSwapLabel');
 
   var beeVision = false;
+  var beeMounts = [];
+
+  function toggleVision() {
+    beeVision = !beeVision;
+    paintVision();
+    if (beeVision && !explained) {
+      explained = true;
+      pop.classList.add('on');
+      setTimeout(function () { pop.classList.remove('on'); }, 9000);
+    }
+  }
 
   function paintVision() {
     mounts.forEach(function (mount) {
@@ -1898,7 +1875,7 @@ figcaption b { color: var(--ink); font-weight: 400; }
       if (uvImg) uvImg.style.opacity = beeVision ? '1' : '0';
       mount.classList.toggle('bee', beeVision);
     });
-    paintHeads(beeVision); // the loose heads cross over with the field
+    beeMounts.forEach(function (m) { m.setAttribute('aria-pressed', String(beeVision)); });
   }
 
   function updateHerbarium() {
@@ -1927,9 +1904,11 @@ figcaption b { color: var(--ink); font-weight: 400; }
     // drift rather than knot in the middle. All passing through: the drift is
     // a field of flowers, not a nest.
     [
-      { art: 'wander',     from: [-0.08, 0.20], to: [1.08, 0.12] },
-      { art: 'loop',       from: [-0.08, 0.58], to: [1.08, 0.50], flip: -1 },
-      { art: 'switchback', from: [-0.08, 0.90], to: [1.08, 0.84] },
+      // Each ends well short of where the next begins, so no two are curling in
+      // the same part of the field at the same time.
+      { art: 'wander',     from: [-0.10, 0.14], to: [0.62, 0.06] },
+      { art: 'switchback', from: [0.34, 1.06],  to: [1.10, 0.58], flip: -1 },
+      { art: 'loop',       from: [-0.10, 0.72], to: [0.52, 0.98] },
     ].forEach(function (f) {
       var el = document.createElementNS(NS, 'path');
       place(el, f.art, f.from, f.to, f.flip, W, H);
@@ -1944,7 +1923,10 @@ figcaption b { color: var(--ink); font-weight: 400; }
 
   function drawDriftFlight(p) {
     driftLines.forEach(function (el, i) {
-      draw(el, seg(p, 0.3 + i * 0.1, 0.75 + i * 0.1));
+      // Same in and out as the hero. Three lines held across a whole section
+      // stop being flight and become a border.
+      draw(el, seg(p, 0.18 + i * 0.08, 0.56 + i * 0.08),
+        seg(p, 0.66 + i * 0.07, 0.94 + i * 0.07));
     });
   }
 
@@ -1972,26 +1954,53 @@ figcaption b { color: var(--ink); font-weight: 400; }
     'osmia-aztecana', 'osmia-bicornis', 'osmia-caerulescens', 'osmia-cornuta',
     'osmia-leaiana', 'osmia-lignaria', 'osmia-taurus'];
 
-  function beeRows(list, items) {
-    list.innerHTML = items.map(function (item) {
-      var src = beePic(item[1]);
-      return '<li class="beeRow">'
-        + (src ? '<img src="' + src + '" alt="" loading="lazy" />' : '<span class="noPic"></span>')
-        + '<span>' + item[0] + '<i>' + item[1] + '</i></span></li>';
-    }).join('');
+  /* Where the bees stand in the drift. Between the plates, not in a row of
+     their own: they are what the flowers are for, and a column of portraits
+     beside a field of flowers says the opposite. */
+  var BEE_DRIFT = [
+    { x: 0.135, y: 0.06, w: 0.115, tilt: -9 },
+    { x: 0.585, y: 0.20, w: 0.100, tilt: 12 },
+    { x: 0.395, y: 0.80, w: 0.108, tilt: -5 },
+    { x: 0.755, y: 0.72, w: 0.094, tilt: 7 },
+  ];
+
+  /* Every bee is the toggle. One bee set apart with a label under it was a
+     control pretending to be an illustration; these are illustrations that
+     happen to be the control, and there is no wrong one to click. */
+  function beeMount(name, latin, place) {
+    var src = beePic(latin);
+    if (!src) return null;
+    var mount = document.createElement('button');
+    mount.className = 'beeMount';
+    mount.type = 'button';
+    mount.style.left = (place.x * 100) + '%';
+    mount.style.top = (place.y * 100) + '%';
+    mount.style.setProperty('--w', (place.w * 100) + '%');
+    mount.style.setProperty('--tilt', place.tilt + 'deg');
+    mount.setAttribute('aria-pressed', 'false');
+    mount.innerHTML = '<img src="' + src + '" alt="' + name + '" />'
+      + '<span class="beeName"><b>' + name + '</b><i>' + latin + '</i></span>';
+    mount.addEventListener('click', toggleVision);
+    return mount;
   }
 
   function showRegion() {
     var r = REGIONS[pick.selectedIndex];
     herbarium.textContent = '';
     mounts = [];
+    beeMounts = [];
     r.plants.forEach(function (plant, i) {
       var place = DRIFT[i % DRIFT.length];
       var mount = specimen(plant[0], plant[1], i, place);
       herbarium.appendChild(mount);
       mounts.push(mount);
     });
-    beeRows(beesList, r.bees);
+    r.bees.forEach(function (bee, i) {
+      var mount = beeMount(bee[0], bee[1], BEE_DRIFT[i % BEE_DRIFT.length]);
+      if (!mount) return;
+      herbarium.appendChild(mount);
+      beeMounts.push(mount);
+    });
     rows(cropsList, r.crops);
     seedNote.textContent = r.seed;
     buildDriftFlight();
@@ -2022,19 +2031,7 @@ figcaption b { color: var(--ink); font-weight: 400; }
   });
   var explained = false;
 
-  if (eyeSwap) {
-    eyeSwap.addEventListener('click', function () {
-      beeVision = !beeVision;
-      eyeSwap.setAttribute('aria-pressed', String(beeVision));
-      eyeSwapLabel.textContent = beeVision ? 'Back to your eyes' : 'See in bee vision';
-      paintVision();
-      if (beeVision && !explained) {
-        explained = true;
-        pop.classList.add('on');
-        setTimeout(function () { pop.classList.remove('on'); }, 9000);
-      }
-    });
-  }
+
 
   var ticking = false;
   function onScroll() {
