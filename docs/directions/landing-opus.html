@@ -245,6 +245,120 @@ figcaption b { color: var(--ink); font-weight: 400; }
    the workshop runs the full viewport, the meadow sits off-centre with its
    caption in the margin it opens up, and the balcony is held small because a
    balcony is a small thing. */
+/* The question that changes the drift, given the size of a question rather
+   than the size of a form label. Loose heads fall around it: the same plates
+   as the drift below, cropped to the flower, so the two read as one press. */
+.ask {
+  position: relative;
+  min-height: 260px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(24px, 4vw, 64px);
+  margin-bottom: clamp(46px, 7vh, 96px);
+}
+
+.askPut { position: relative; z-index: 2; max-width: 42ch; }
+
+.askQ {
+  margin: 0;
+  font-weight: 400;
+  font-size: clamp(26px, 3.4vw, 52px);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.askWhy {
+  margin: 0.6em 0 0;
+  max-width: 40ch;
+  font-size: clamp(14px, 1.05vw, 18px);
+  color: #55544b;
+}
+
+.ask select {
+  display: block;
+  margin-top: clamp(18px, 2.4vh, 30px);
+  padding: 14px 18px;
+  min-width: min(100%, 380px);
+  border: 1px solid var(--ink);
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: clamp(15px, 1.2vw, 20px);
+}
+
+.ask select:focus-visible { outline: 2px solid var(--bee); outline-offset: 2px; }
+
+.askHeads { position: absolute; inset: -18px 0 -10px; pointer-events: none; z-index: 1; }
+.askHeads img {
+  position: absolute;
+  width: var(--w);
+  opacity: 0.92;
+  transform: rotate(var(--tilt));
+}
+
+@media (max-width: 760px) {
+  .ask { flex-direction: column; align-items: flex-start; gap: 30px; }
+  .askHeads { display: none; }
+}
+
+/* The line that opens the section about flowers. It used to be a band of its
+   own, which made it a poster between two arguments instead of the first
+   sentence of one. */
+.opener {
+  margin: 0 0 clamp(26px, 4vh, 54px);
+  max-width: 26ch;
+  font-weight: 400;
+  font-size: clamp(24px, 3.2vw, 50px);
+  line-height: 1.1;
+  letter-spacing: -0.022em;
+  color: var(--bee);
+  text-wrap: balance;
+}
+
+.packView {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  background: #2a2920;
+}
+.packView[hidden] { display: none; }
+
+.packBar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px clamp(14px, 3vw, 28px);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #cfceC4;
+}
+
+.packActs { display: flex; gap: 8px; }
+
+.packBar button {
+  padding: 8px 14px;
+  border: 1px solid rgba(233, 233, 225, 0.3);
+  border-radius: 3px;
+  background: transparent;
+  color: #e9e9e1;
+  font: inherit;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.packBar button:hover { background: #e9e9e1; color: #2a2920; border-color: #e9e9e1; }
+
+.packView iframe { flex: 1 1 auto; width: 100%; border: 0; background: #fff; }
+
 .plate { margin: clamp(38px, 6vh, 92px) 0 0; }
 .plate img { display: block; width: 100%; height: auto; }
 
@@ -255,24 +369,14 @@ figcaption b { color: var(--ink); font-weight: 400; }
   padding: 0 clamp(22px, 4vw, 76px);
 }
 
-/* Caption in the gutter, set to the foot of the picture -- the alignment is
-   what makes the empty column read as deliberate rather than as a gap. */
-.plate.offset, .plate.inset {
-  display: grid;
-  gap: clamp(16px, 2.2vw, 40px);
-  align-items: end;
-}
-.plate.offset { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); }
-.plate.offset img { grid-column: 2; grid-row: 1; }
-.plate.offset figcaption { grid-column: 1; grid-row: 1; margin: 0 0 4px; }
-
-.plate.inset { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); }
-.plate.inset img { grid-column: 1; grid-row: 1; }
-.plate.inset figcaption { grid-column: 2; grid-row: 1; margin: 0 0 4px; }
+/* Captions sit under their picture. Hanging them in the opposite margin left
+   a column of empty page beside every photograph, and the eye read the gap
+   before it read the caption. */
+.plate.offset { width: min(100%, 76%); margin-left: auto; }
+.plate.inset  { width: min(100%, 58%); }
 
 @media (max-width: 760px) {
-  .plate.offset, .plate.inset { display: block; }
-  .plate.offset figcaption, .plate.inset figcaption { margin-top: 12px; }
+  .plate.offset, .plate.inset { width: 100%; }
 }
 
 .bleed { width: 100vw; margin-left: calc(50% - 50vw); }
@@ -460,6 +564,10 @@ figcaption b { color: var(--ink); font-weight: 400; }
   color: var(--soft);
 }
 
+.beeRow { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+.beeRow img { width: clamp(64px, 6vw, 96px); height: auto; flex: none; }
+.beeRow .noPic { width: clamp(64px, 6vw, 96px); flex: none; }
+
 .regionAside ul { margin: 0; padding: 0; list-style: none;
                   font-size: clamp(14px, 1vw, 16px); }
 .regionAside li { margin-bottom: 8px; line-height: 1.35; }
@@ -479,14 +587,10 @@ figcaption b { color: var(--ink); font-weight: 400; }
    at the foot of the drift beside the paragraph that explains what she sees,
    tilted off square like something that landed there rather than something
    that was laid out. Hover and she wiggles, the way one does before settling. */
-.driftFoot {
-  display: flex;
-  align-items: flex-start;
-  gap: clamp(20px, 3vw, 44px);
-}
-
 .eyeSwap {
   flex: none;
+  position: relative;
+  z-index: 2;
   display: block;
   width: max-content;
   padding: 0;
@@ -544,7 +648,6 @@ figcaption b { color: var(--ink); font-weight: 400; }
 .eyeSwap:focus-visible { outline: none; }
 
 @media (max-width: 760px) {
-  .driftFoot { flex-direction: column; align-items: center; gap: 22px; }
 }
 
 
@@ -591,22 +694,6 @@ figcaption b { color: var(--ink); font-weight: 400; }
 
 /* ---- where you are ---- */
 
-.region { margin-top: clamp(30px, 5vh, 58px); }
-
-.region select {
-  display: block;
-  margin: 10px 0 0;
-  padding: 10px 14px;
-  min-width: min(100%, 320px);
-  border: 1px solid var(--ink);
-  border-radius: 0;
-  background: transparent;
-  color: var(--ink);
-  font: inherit;
-  font-size: clamp(14px, 1.1vw, 18px);
-}
-
-.region select:focus-visible { outline: 2px solid var(--bee); outline-offset: 2px; }
 
 .cards {
   display: grid;
@@ -729,8 +816,7 @@ figcaption b { color: var(--ink); font-weight: 400; }
           <span>Storey by storey. Every combination the builder offers is one that can be
             cut and stacked.</span>
           <span>Native wildflowers, within about 300 metres of where it hangs.</span>
-          <span>A single solitary bee could provide as much pollination as 120
-            honeybees.</span>
+          <span>She finds it herself. Nobody has to put a bee in it.</span>
         </div>
       </div>
       <div class="art">
@@ -753,7 +839,6 @@ figcaption b { color: var(--ink); font-weight: 400; }
 
 <div class="pad">
   <section class="band" id="design">
-    <p class="label">Design</p>
     <h2 class="lede">Design your very own Bee Home in a few minutes.</h2>
     <div class="builder">
       <iframe id="builderFrame" src="../../viewer/" title="Bee Home builder" loading="lazy"></iframe>
@@ -761,12 +846,11 @@ figcaption b { color: var(--ink); font-weight: 400; }
     <div class="afterBuilder">
       <p>Drawings, cut list and the notes a makerspace asks for &#8212; two A4 pages
         of whatever you have just designed.</p>
-      <button id="getPack" class="pill">Download build pack</button>
+      <button id="getPack" class="pill">Get the build pack</button>
     </div>
   </section>
 
   <section class="band">
-    <p class="label">Download &amp; fabricate</p>
     <h2 class="lede">Download the design files for free and share them with a makerspace.</h2>
     <div class="two">
       <p>We'll help you find a local space, and they'll help you create your Bee Home. Most
@@ -779,17 +863,11 @@ figcaption b { color: var(--ink); font-weight: 400; }
     <figure class="plate full">
       <img src="../assets/final-scenes/web/makerspace-build.jpg"
         alt="A maker setting the roof onto a stacked Bee Home at a workbench, CNC router behind" />
-      <figcaption>Cut on a CNC router, then assembled by hand &#8212; a drill and two screws</figcaption>
+      <figcaption>Cut on a CNC router, assembled by hand</figcaption>
     </figure>
   </section>
 
-  <section class="band quoteBand">
-    <blockquote>A single solitary bee can provide as much pollination as
-      120 honeybees.</blockquote>
-  </section>
-
   <section class="band">
-    <p class="label">Place it</p>
     <h2 class="lede">Facing the morning sun, within 300 metres of flowers.</h2>
     <div class="two">
       <p>Place it anywhere, as long as it's outside. Make sure your Bee Home is protected
@@ -801,13 +879,13 @@ figcaption b { color: var(--ink); font-weight: 400; }
     <figure class="plate offset">
       <img src="../assets/final-scenes/web/garden-solitary-bees.jpg"
         alt="A Bee Home standing on legs in a meadow, solitary bees at the flowers around it" />
-      <figcaption>Standing on legs, <b>in the planting rather than above it</b></figcaption>
     </figure>
 
   </section>
 
   <section class="band" id="plant">
-    <p class="label">Plant for them</p>
+    <blockquote class="opener">A single solitary bee can provide as much
+      pollination as 120 honeybees.</blockquote>
     <h2 class="lede">Plant flowers within flying distance.</h2>
     <div class="two">
       <p>A red mason bee will forage up to about 600 metres from her nest, but when flowers
@@ -816,8 +894,6 @@ figcaption b { color: var(--ink); font-weight: 400; }
         cell &#8212; that is provisioning, and it is all the food that larva will ever
         get. Flowers by the box are the difference between a female provisioning ten
         cells and provisioning thirty.</p>
-      <p>Tell us roughly where you are. We'll name the cavity-nesting bees recorded near
-        you, what they pollinate locally, and which seed to sow.</p>
       <p>Solitary bees are friendly. They don't produce honey and therefore have nothing to
         protect. They only sting if trod on, and are safe to keep around kids and pets.</p>
     </div>
@@ -825,14 +901,9 @@ figcaption b { color: var(--ink); font-weight: 400; }
     <figure class="plate inset">
       <img src="../assets/final-scenes/web/balcony-wall.jpg"
         alt="The wall-fixed Bee Home on a city balcony wall beside planted window boxes" />
-      <figcaption>Wall-fixed, above a planted balcony &#8212;
-        <b>a window box is within flying distance</b></figcaption>
+      <figcaption>Wall-fixed, over a window box</figcaption>
     </figure>
 
-    <div class="region">
-      <label class="label" for="regionPick">Where are you?</label>
-      <select id="regionPick"></select>
-    </div>
   </section>
 
   <!-- The herbarium. Not a grid: pressed plates fall across the section at
@@ -844,12 +915,25 @@ figcaption b { color: var(--ink); font-weight: 400; }
 <section class="drift" id="drift" aria-label="Wildflowers for your region">
     <svg class="driftFlight" id="driftFlight" aria-hidden="true"></svg>
     <div class="pad">
-    <div class="driftField" id="herbarium"></div>
-    <div class="driftFoot">
+
+    <!-- The question and the bee sit on one line above the drift: both change
+         what is underneath them, so they belong at the same height, and loose
+         heads fall around them the way they do out of a press. -->
+    <div class="ask">
+      <div class="askHeads" id="askHeads" aria-hidden="true"></div>
+      <div class="askPut">
+        <h2 class="askQ"><label for="regionPick">Where are you?</label></h2>
+        <p class="askWhy">Name your region and the drift below becomes the one that
+          grows near you, with the bees recorded there and the seed to sow.</p>
+        <select id="regionPick"></select>
+      </div>
       <button class="eyeSwap" id="eyeSwap" aria-pressed="false">
         <img src="../assets/bees/web/osmia-bicornis.webp" alt="" class="eyeBee" />
         <span class="eyeSwapLabel" id="eyeSwapLabel">See in bee vision</span>
       </button>
+    </div>
+
+    <div class="driftField" id="herbarium"></div>
     <p class="driftNote">
       Bees see ultraviolet, and many flowers print landing guides in it. These
       plates are bee-vision simulations, mapping the bee's ultraviolet, blue and
@@ -857,9 +941,24 @@ figcaption b { color: var(--ink); font-weight: 400; }
       &#8212; a legend, not what she sees. Where no ultraviolet pattern is
       documented for a species we have left it plain rather than invent one.
     </p>
-    </div>
   </div>
 </section>
+
+<!-- The pack, shown rather than only handed over. A download from inside a
+     sandboxed frame is at the mercy of whoever embedded the page, and when it
+     is blocked the button looks broken with nothing to say why. Opening the
+     document here always works, and Print is where a PDF actually comes from. -->
+<div class="packView" id="packView" hidden>
+  <div class="packBar">
+    <span id="packName">Build pack</span>
+    <span class="packActs">
+      <button id="packPrint">Print / save as PDF</button>
+      <button id="packSave">Download</button>
+      <button id="packClose" aria-label="Close">Close</button>
+    </span>
+  </div>
+  <iframe id="packDoc" title="Build pack"></iframe>
+</div>
 
 <div class="pad">
   <section class="band" id="who">
@@ -872,7 +971,6 @@ figcaption b { color: var(--ink); font-weight: 400; }
   </section>
 
   <section class="band" id="about">
-    <p class="label">Questions</p>
     <h2 class="lede">An open-source revival of a project that went offline.</h2>
     <div class="faq">
       <details>
@@ -888,34 +986,44 @@ figcaption b { color: var(--ink); font-weight: 400; }
       <details>
         <summary>What is original and what did you rebuild?<i class="mark"></i></summary>
         <div>The storeys are the project's own solids, meshed straight from
-          <code>BEEHOME GEOMETRIES.3dm</code>, and the stacking rules are the recovered
-          ones. Ours: the roof slab, because it was generated at download time by a
-          Grasshopper definition that was never published; the timber choices, which
-          the original did not offer; and this site around the builder.</div>
+          <code>BEEHOME GEOMETRIES.3dm</code>, and the stacking rules are the
+          recovered ones. Everything you are looking at around them is new: the
+          builder and its renderer, this site, the drawings and the build pack it
+          hands you, the timber choices the original did not offer, and the
+          herbarium &#8212; every species pressed, photographed and then rendered a
+          second time in bee vision, from the published spectral work rather than
+          from a filter. Where no ultraviolet pattern has been recorded for a
+          species, the plate stays plain.</div>
       </details>
       <details>
         <summary>Will bees actually come?<i class="mark"></i></summary>
-        <div>Often, though nobody can promise it. Cavity-nesting solitary bees find
-          new nest sites on their own. Flowers within about 300 metres matter more
-          than anything you can do to the box.</div>
+        <div>Usually yes, though sometimes it takes a while, and it can look empty
+          if you are not attentive. Cavity-nesting solitary bees find new nest sites
+          on their own. Planting flowers nearby makes them more likely to come
+          across their newly furnished bee home.</div>
       </details>
       <details>
-        <summary>How long does one last?<i class="mark"></i></summary>
-        <div>Five to thirty years, depending on the timber, where it hangs and
-          whether you clean it. Brush the fronts each autumn and clear any cavity
-          that stayed empty two seasons running.</div>
+        <summary>How long does a bee home last?<i class="mark"></i></summary>
+        <div>Anywhere between five and thirty years. It depends on the durability of
+          the wood, the specific location, and how well you clean and maintain it.
+          Brush the fronts each autumn and clear any cavity that stayed empty two
+          seasons running.</div>
       </details>
       <details>
-        <summary>Do they sting?<i class="mark"></i></summary>
-        <div>Practically never. Solitary bees make no honey and have no colony to
-          defend, so they have nothing to be aggressive about. They sting only if
-          trodden on or squeezed, and are safe around children and pets.</div>
+        <summary>Do these bees sting?<i class="mark"></i></summary>
+        <div>Solitary bees are friendly. They don't produce honey and therefore have
+          nothing to protect. They only sting if trod on, and are safe to keep around
+          kids and pets.</div>
       </details>
       <details>
-        <summary>Can I use this?<i class="mark"></i></summary>
-        <div>Yes. CC BY 4.0, same as the original &#8212; build it, sell what you
-          build, fork the code, just credit SPACE10 and the designers. The
-          repository is public.</div>
+        <summary>What licence is it under?<i class="mark"></i></summary>
+        <div><b>CC BY 4.0</b>, the same licence SPACE10 released it under. In
+          practice: build one, build a hundred, sell what you build, change the
+          design, fork the code, put it on your own site. The one condition is
+          attribution &#8212; name the original authors, say if you changed
+          anything, and link the licence. You cannot add conditions of your own
+          on top, so nobody downstream of you can close it either. The repository
+          is public and the geometry, the site and the build pack are all in it.</div>
       </details>
     </div>
   </section>
@@ -926,7 +1034,8 @@ figcaption b { color: var(--ink); font-weight: 400; }
     original beehome.design, recovered from the Wayback Machine. Plants are grown by a
     bracketed L-system after Prusinkiewicz &amp; Lindenmayer,
     <i>The Algorithmic Beauty of Plants</i>.<br />
-    CC BY 4.0 &#8212; SPACE10, Bakken &amp; B&aelig;ck, Tanita Klein.
+    Original Bee Home CC BY 4.0 &#8212; SPACE10, Bakken &amp; B&aelig;ck, Tanita Klein.
+    This revival and everything new in it, also CC BY 4.0 &#8212; Ivan, 2026.
   </p>
 </div>
 
@@ -1401,32 +1510,28 @@ figcaption b { color: var(--ink); font-weight: 400; }
     // run along the top band or under the copy, and turn into the corridor
     // between the text and the box only at the end, where the trail has
     // already stopped swinging.
-    // Entries are spread over four different off-screen edges. The ones that
-    // land come in from the top and the bottom rather than the left, because
-    // the holes sit at the same heights as the headline: a single smooth line
-    // from the left edge to a hole has to cross the text to get there, and no
-    // amount of shaping fixes that. Dropping in from above and rising from
-    // below reaches the same holes with the copy nowhere near the route.
+    // Spread over every edge. Earlier versions kept the landing routes off the
+    // left because the holes sit at the same heights as the headline and a
+    // line from that side has to cross the text -- but a trail passing over
+    // type is a trail, and every route arriving from the same quarter is a
+    // pattern. So the outermost two come in from the left and the right, wide
+    // and level, and the rest drop in from above and rise from below.
     var WIDE = [
-      // Only the upper holes are approached. The lower ones sit behind the
-      // legs with the headline to their left, so every route to them either
-      // crosses the copy or runs down the front of the box -- there is no
-      // clear line in, and a bee drawn taking one reads as a mistake.
-      { front: true,  art: 'curl',       from: [0.22, -0.06], home: 0 },
-      { front: true,  art: 'switchback', from: [0.48, -0.06], home: 1, flip: -1 },
-      { front: true,  art: 'loop',       from: [0.92, -0.08], home: 2, flip: -1 },
-      { front: false, art: 'wander',     from: [1.06, 0.13],  home: 3 },
+      { front: true,  art: 'wander',     from: [-0.12, 0.30], home: 0 },
+      { front: true,  art: 'curl',       from: [0.30, -0.08], home: 1 },
+      { front: true,  art: 'switchback', from: [0.60, -0.08], home: 2, flip: -1 },
+      { front: true,  art: 'loop',       from: [0.30, 1.08],  home: 4 },
+      { front: false, art: 'curl',       from: [1.12, 0.46],  home: 3, flip: -1 },
       // Passing through, low and behind the legs, on its way somewhere else.
-      // Kept short: the drawing's swing scales with how far it travels, and a
-      // line crossing the whole frame arrives with loops the size of the box.
-      { front: false, art: 'wander',     from: [-0.05, 0.82], to: [0.56, 1.02] },
+      { front: false, art: 'wander',     from: [-0.08, 0.88], to: [0.60, 1.04] },
     ];
 
-    // Narrow: the copy sits over the box, so everything comes up from below.
+    // Narrow: the copy sits over the box and there is far less room, so this is
+    // three lines rather than six -- but not three from the same edge.
     var NARROW = [
-      { front: true, art: 'loop',       from: [0.04, 1.10], home: 2 },
-      { front: true, art: 'curl',       from: [0.40, 1.12], home: 6, flip: -1 },
-      { front: true, art: 'switchback', from: [0.78, 1.10], home: 7 },
+      { front: true, art: 'loop',       from: [-0.12, 0.46], home: 2 },
+      { front: true, art: 'curl',       from: [0.42, 1.10],  home: 6, flip: -1 },
+      { front: true, art: 'switchback', from: [1.12, 0.20],  home: 3, flip: -1 },
     ];
 
     (stacked ? NARROW : WIDE).forEach(function (line) {
@@ -1497,27 +1602,58 @@ figcaption b { color: var(--ink); font-weight: 400; }
   var packFrame = document.getElementById('builderFrame');
   var getPack = document.getElementById('getPack');
 
+  var packView = document.getElementById('packView');
+  var packDoc = document.getElementById('packDoc');
+  var packName = document.getElementById('packName');
+  var packHtml = '';
+  var packFile = 'bee-home-build-pack.html';
+
+  function savePack() {
+    var url = URL.createObjectURL(new Blob([packHtml], { type: 'text/html' }));
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = packFile;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
   if (getPack) {
     getPack.addEventListener('click', function () {
       if (!packFrame || !packFrame.contentWindow) return;
       getPack.disabled = true;
-      getPack.textContent = 'Preparing...';
+      // The builder redraws three measured views before it can answer, which
+      // takes a second or two on a slow machine. Say what it is doing: a dead
+      // button is indistinguishable from a broken one.
+      getPack.textContent = 'Drawing the plates...';
       packFrame.contentWindow.postMessage({ type: 'beehome:request-buildpack' }, '*');
+    });
+
+    document.getElementById('packClose').addEventListener('click', function () {
+      packView.hidden = true;
+      document.body.style.overflow = '';
+    });
+    document.getElementById('packSave').addEventListener('click', savePack);
+    document.getElementById('packPrint').addEventListener('click', function () {
+      packDoc.contentWindow.focus();
+      packDoc.contentWindow.print();
+    });
+    addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !packView.hidden) document.getElementById('packClose').click();
     });
 
     addEventListener('message', function (event) {
       var data = event.data;
       if (!data || data.type !== 'beehome:buildpack') return;
-      var url = URL.createObjectURL(new Blob([data.html], { type: 'text/html' }));
-      var a = document.createElement('a');
-      a.href = url;
-      a.download = data.name || 'bee-home-build-pack.html';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
+      packHtml = data.html;
+      packFile = data.name || 'bee-home-build-pack.html';
+      packName.textContent = packFile.replace(/\.html$/, '');
+      packDoc.srcdoc = packHtml;
+      packView.hidden = false;
+      document.body.style.overflow = 'hidden';
       getPack.disabled = false;
-      getPack.textContent = 'Download build pack';
+      getPack.textContent = 'Get the build pack';
     });
   }
 
@@ -1708,6 +1844,46 @@ figcaption b { color: var(--ink); font-weight: 400; }
     return mount;
   }
 
+  /* Loose heads around the question. Cropped from the same pressed plates the
+     drift below uses, so they are the same press, not clip art; they turn with
+     the rest of the field when the bee toggle goes on. Placed by hand rather
+     than rolled -- five things falling on a page look wrong until they look
+     right, and that is a judgement, not a distribution. */
+  var HEADS = [
+    { s: 'papaver-rhoeas',      x: '40%', y: '2%',  w: '116px', tilt: '-12deg' },
+    { s: 'glebionis-coronaria', x: '63%', y: '6%',  w: '104px', tilt: '-5deg' },
+    { s: 'centaurea-cyanus',    x: '52%', y: '48%', w: '90px',  tilt: '9deg' },
+    { s: 'knautia-arvensis',    x: '72%', y: '52%', w: '76px',  tilt: '16deg' },
+    { s: 'centaurea-nigra',     x: '33%', y: '58%', w: '82px',  tilt: '-14deg' },
+  ];
+
+  var askHeads = document.getElementById('askHeads');
+  var headEls = [];
+  if (askHeads) {
+    HEADS.forEach(function (h) {
+      var img = document.createElement('img');
+      img.alt = '';
+      img.style.setProperty('--w', h.w);
+      img.style.setProperty('--tilt', h.tilt);
+      img.style.left = h.x;
+      img.style.top = h.y;
+      img.dataset.species = h.s;
+      askHeads.appendChild(img);
+      headEls.push(img);
+    });
+  }
+
+  function headSrc(species, uv) {
+    var key = species + (uv ? '-uv' : '-rgb');
+    var inlined = window.__HEADS__;
+    return inlined ? inlined[key] : '../assets/pressed/heads/' + key + '.webp';
+  }
+
+  function paintHeads(uv) {
+    headEls.forEach(function (img) { img.src = headSrc(img.dataset.species, uv); });
+  }
+  paintHeads(false);
+
   /* The field crosses from human sight to bee sight as it scrolls, one plate
      a beat behind the last, so the change sweeps across the drift instead of
      snapping over all of it at once. */
@@ -1725,6 +1901,7 @@ figcaption b { color: var(--ink); font-weight: 400; }
       if (uvImg) uvImg.style.opacity = beeVision ? '1' : '0';
       mount.classList.toggle('bee', beeVision);
     });
+    paintHeads(beeVision); // the loose heads cross over with the field
   }
 
   function updateHerbarium() {
@@ -1781,6 +1958,32 @@ figcaption b { color: var(--ink); font-weight: 400; }
     }).join('');
   }
 
+  /* The bees get their portraits. Fifteen were photographed for this and one
+     was being used, on a toggle; a list of latin names is the one place on the
+     page where a reader most wants to see the animal. Species with no portrait
+     fall back to the name alone rather than to a stand-in of the wrong bee. */
+  function beePic(latin) {
+    var key = latin.toLowerCase().replace(/[^a-z]+/g, '-');
+    var inlined = window.__BEEPIC__;
+    if (inlined) return inlined[key] || null;
+    return BEE_PORTRAITS.indexOf(key) < 0 ? null : '../assets/bees/web/' + key + '.webp';
+  }
+
+  var BEE_PORTRAITS = ['chelostoma-florisomne', 'heriades-truncorum',
+    'megachile-centuncularis', 'megachile-ericetorum', 'megachile-fidelis',
+    'megachile-pilidens', 'megachile-pugnata', 'megachile-willughbiella',
+    'osmia-aztecana', 'osmia-bicornis', 'osmia-caerulescens', 'osmia-cornuta',
+    'osmia-leaiana', 'osmia-lignaria', 'osmia-taurus'];
+
+  function beeRows(list, items) {
+    list.innerHTML = items.map(function (item) {
+      var src = beePic(item[1]);
+      return '<li class="beeRow">'
+        + (src ? '<img src="' + src + '" alt="" loading="lazy" />' : '<span class="noPic"></span>')
+        + '<span>' + item[0] + '<i>' + item[1] + '</i></span></li>';
+    }).join('');
+  }
+
   function showRegion() {
     var r = REGIONS[pick.selectedIndex];
     herbarium.textContent = '';
@@ -1791,7 +1994,7 @@ figcaption b { color: var(--ink); font-weight: 400; }
       herbarium.appendChild(mount);
       mounts.push(mount);
     });
-    rows(beesList, r.bees);
+    beeRows(beesList, r.bees);
     rows(cropsList, r.crops);
     seedNote.textContent = r.seed;
     buildDriftFlight();

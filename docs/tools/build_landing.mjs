@@ -46,6 +46,35 @@ if (fs.existsSync(pressed)) {
   console.log(`inlined ${Object.keys(plates).length} pressed plates`);
 }
 
+// The loose heads above the region question, same treatment: the page builds
+// their src in script, so nothing in the markup points at them.
+const heads = path.join(repo, 'docs/assets/pressed/heads');
+if (fs.existsSync(heads)) {
+  const crops = {};
+  for (const file of fs.readdirSync(heads)) {
+    if (!file.endsWith('.webp')) continue;
+    crops[file.replace(/\.webp$/, '')] =
+      `data:image/webp;base64,${fs.readFileSync(path.join(heads, file)).toString('base64')}`;
+  }
+  html = html.replace('</style>', () =>
+    `</style>\n<script>window.__HEADS__ = ${JSON.stringify(crops)};</script>`);
+  console.log(`inlined ${Object.keys(crops).length} head crops`);
+}
+
+// Bee portraits, same story -- the region list builds their src in script.
+const bees = path.join(repo, 'docs/assets/bees/web');
+if (fs.existsSync(bees)) {
+  const pics = {};
+  for (const file of fs.readdirSync(bees)) {
+    if (!file.endsWith('.webp')) continue;
+    pics[file.replace(/\.webp$/, '')] =
+      `data:image/webp;base64,${fs.readFileSync(path.join(bees, file)).toString('base64')}`;
+  }
+  html = html.replace('</style>', () =>
+    `</style>\n<script>window.__BEEPIC__ = ${JSON.stringify(pics)};</script>`);
+  console.log(`inlined ${Object.keys(pics).length} bee portraits`);
+}
+
 // The builder travels as base64. Raw source in a text/plain script looked
 // fine from disk but did not survive the artifact host re-serialising the
 // page: the payload spilled out as visible text where the builder should
