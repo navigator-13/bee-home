@@ -1,0 +1,236 @@
+@font-face {
+  font-family: 'S10 Beehome Display';
+  src: url('/fonts/S10Beehome-Display.woff2') format('woff2');
+  font-display: swap;
+}
+
+:root {
+  --bone: #ecece5;
+  --paper: #f6f3ea;
+  --ink: #27271f;
+  --line: rgba(39, 39, 31, 0.2);
+  --blue: #a9bde9;
+  --violet: #5547ff;
+  --acid: #d8ff43;
+  --night: #17122a;
+  --sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --display: 'S10 Beehome Display', var(--sans);
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; color: var(--ink); background: var(--bone); font-family: var(--sans); -webkit-font-smoothing: antialiased; }
+body[data-site-vision='field'] .site-flight,
+body[data-site-vision='flight'] .site-field { display: none; }
+body[data-site-vision='flight'] { background: var(--night); color: #f3f0df; }
+a { color: inherit; }
+img { display: block; max-width: 100%; }
+button, select { font: inherit; }
+.skip-link { position: fixed; top: 8px; left: 8px; z-index: 100; padding: 8px 12px; background: white; transform: translateY(-150%); }
+.skip-link:focus { transform: translateY(0); }
+
+.site-header {
+  position: fixed; inset: 0 0 auto; z-index: 30; height: 76px; display: grid;
+  grid-template-columns: 1fr auto 1fr; align-items: center; padding: 0 28px;
+  border-bottom: 1px solid var(--line); background: rgba(236, 236, 229, 0.87); backdrop-filter: blur(16px);
+}
+.wordmark { font: 30px/1 var(--display); text-decoration: none; letter-spacing: 0.01em; }
+.primary-nav { display: flex; gap: 30px; }
+.primary-nav a { font-size: 12px; text-decoration: none; }
+.header-tools { justify-self: end; display: flex; align-items: center; gap: 14px; }
+.region-control { display: grid; grid-template-columns: auto auto; align-items: center; gap: 8px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; }
+.region-control select { max-width: 150px; border: 0; border-bottom: 1px solid currentColor; background: transparent; color: inherit; padding: 4px 18px 4px 2px; font-size: 11px; text-transform: none; letter-spacing: 0; }
+
+.bee-view {
+  position: relative; width: 132px; height: 54px; border: 0; border-radius: 55% 45% 52% 48% / 46% 54% 46% 54%;
+  background: var(--ink); color: var(--bone); display: flex; align-items: center; justify-content: flex-end; padding: 6px 12px 6px 50px;
+  cursor: pointer; text-align: left; transition: transform .25s, background .25s, color .25s;
+}
+.bee-view:hover { transform: rotate(-2deg) scale(1.03); }
+.bee-view img { position: absolute; left: -14px; top: -15px; width: 76px; height: 76px; object-fit: contain; filter: drop-shadow(0 6px 7px rgba(0,0,0,.2)); }
+.bee-view__copy { display: block; line-height: 1.05; }
+.bee-view__label { display: block; margin-bottom: 4px; font-size: 8px; text-transform: uppercase; letter-spacing: .12em; opacity: .6; }
+#beeViewState { display: block; font-size: 10px; }
+html[data-bee-view='bee'] .bee-view { background: var(--violet); color: white; }
+html[data-bee-view='bee'] body { --blue: #6455ff; }
+
+.vision-picker { position: fixed; z-index: 25; left: 24px; bottom: 22px; display: grid; width: 154px; padding: 10px; background: rgba(246,243,234,.92); border: 1px solid var(--line); backdrop-filter: blur(10px); }
+.vision-picker > span { padding: 0 5px 8px; font-size: 8px; text-transform: uppercase; letter-spacing: .14em; opacity: .55; }
+.vision-picker button { border: 0; border-top: 1px solid var(--line); padding: 8px 5px; background: none; color: inherit; text-align: left; font-size: 10px; cursor: pointer; }
+.vision-picker button[aria-pressed='true'] { font-weight: 700; }
+
+.eyebrow { margin: 0 0 20px; font-size: 9px; text-transform: uppercase; letter-spacing: .16em; }
+.button { display: inline-flex; min-height: 46px; align-items: center; justify-content: center; padding: 0 22px; border: 1px solid currentColor; text-decoration: none; font-size: 11px; }
+.button--dark { background: var(--ink); color: var(--bone); }
+.button--light { color: var(--bone); }
+.text-link { align-self: center; margin-left: 18px; font-size: 11px; text-decoration: none; border-bottom: 1px solid currentColor; padding-bottom: 4px; }
+.hero-actions { display: flex; align-items: center; margin-top: 38px; }
+
+.field-hero { min-height: 100vh; padding: 120px 4vw 5vw; display: grid; grid-template-columns: .82fr 1.18fr; align-items: center; gap: 4vw; position: relative; overflow: hidden; }
+.field-hero__copy { padding-left: 7vw; position: relative; z-index: 2; }
+.field-hero h1 { margin: 0; font: 400 clamp(72px, 9.4vw, 158px)/.76 var(--display); letter-spacing: -.035em; }
+.lede { max-width: 430px; margin: 34px 0 0; font-size: 15px; line-height: 1.6; }
+.field-hero__figure { margin: 0; align-self: stretch; min-height: 650px; position: relative; }
+.field-hero__figure img { width: 100%; height: 100%; object-fit: cover; }
+.field-hero__figure figcaption { position: absolute; right: 15px; bottom: 14px; padding: 8px 10px; background: rgba(246,243,234,.88); font-size: 9px; }
+.field-hero__number { position: absolute; right: 51vw; bottom: -5vw; z-index: 3; margin: 0; color: var(--blue); font: 400 clamp(150px, 22vw, 340px)/.8 var(--display); letter-spacing: -.08em; pointer-events: none; mix-blend-mode: multiply; }
+.field-hero__number span { font: 18px var(--sans); letter-spacing: 0; }
+
+.plain-fact { display: flex; justify-content: space-between; align-items: flex-end; min-height: 270px; padding: 70px 10vw 55px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.plain-fact p { max-width: 780px; margin: 0; font: 400 clamp(35px, 5vw, 74px)/.95 var(--display); }
+.plain-fact span { font-size: 9px; text-transform: uppercase; letter-spacing: .12em; }
+
+.field-flowers { padding: 120px 7vw 90px; background: var(--paper); }
+.section-heading { display: grid; grid-template-columns: 1.3fr .7fr; align-items: end; gap: 5vw; margin-bottom: 90px; }
+.section-heading h2 { margin: 0; font: 400 clamp(54px, 7vw, 108px)/.87 var(--display); letter-spacing: -.02em; }
+.section-heading > p { max-width: 420px; margin: 0 0 10px; font-size: 14px; line-height: 1.6; }
+.specimen-grid { display: grid; grid-template-columns: repeat(10, 1fr); align-items: end; border-bottom: 1px solid var(--line); min-height: 560px; }
+.specimen { grid-column: span 2; margin: 0; padding: 0 7% 24px; min-width: 0; }
+.specimen:nth-child(even) { transform: translateY(-70px) rotate(1deg); }
+.specimen:nth-child(3n) { transform: translateY(-20px) rotate(-1deg); }
+.specimen img { width: 100%; height: 380px; object-fit: contain; object-position: center bottom; filter: drop-shadow(0 10px 8px rgba(38,35,25,.08)); transition: filter .5s, transform .4s; }
+.specimen:hover img { transform: translateY(-8px); }
+html[data-bee-view='bee'] .specimen img { filter: drop-shadow(0 14px 18px rgba(70,47,255,.22)); }
+.specimen__caption { border-top: 1px solid var(--line); padding-top: 10px; min-height: 76px; }
+.specimen__caption p { margin: 0 0 4px; font-size: 12px; }
+.specimen__caption i { display: block; font-size: 9px; opacity: .6; }
+.specimen__caption span { display: block; margin-top: 9px; font-size: 9px; text-transform: uppercase; letter-spacing: .1em; }
+.bee-view-note { display: grid; grid-template-columns: 1fr 1fr; gap: 5vw; margin-top: 54px; padding-top: 20px; border-top: 1px solid var(--line); }
+.bee-view-note__mark { color: var(--violet); font: 11px/1.5 monospace; }
+.bee-view-note p { max-width: 540px; margin: 0; font-size: 11px; line-height: 1.6; }
+
+.placement { padding: 120px 7vw; color: var(--bone); background: var(--ink); }
+.section-heading--light { border-bottom: 1px solid rgba(236,236,229,.25); padding-bottom: 60px; }
+.placement-grid { display: grid; grid-template-columns: 1.3fr .7fr; gap: 22px; }
+.placement-card { margin: 0; }
+.placement-card--wide { grid-row: span 2; }
+.placement-card img { width: 100%; height: 100%; min-height: 300px; object-fit: cover; }
+.placement-card--wide img { min-height: 760px; }
+.placement-card figcaption { display: flex; justify-content: space-between; gap: 20px; padding-top: 10px; font-size: 10px; }
+.placement-card figcaption span { text-transform: uppercase; letter-spacing: .13em; }
+.make-section { min-height: 82vh; padding: 12vw 9vw; background: var(--blue); display: flex; flex-direction: column; justify-content: center; align-items: flex-start; }
+.make-section h2 { margin: 0; font: 400 clamp(70px, 10vw, 160px)/.78 var(--display); }
+.make-section > p:not(.eyebrow) { max-width: 500px; font-size: 15px; line-height: 1.6; margin: 40px 0; }
+
+/* Flight radius: the same information, treated as space and movement. */
+body[data-site-vision='flight'] .site-header { color: #f3f0df; background: rgba(23,18,42,.82); border-color: rgba(243,240,223,.2); }
+body[data-site-vision='flight'] .vision-picker { color: #f3f0df; background: rgba(23,18,42,.86); border-color: rgba(243,240,223,.2); }
+body[data-site-vision='flight'] .vision-picker button { border-color: rgba(243,240,223,.2); }
+body[data-site-vision='flight'] .bee-view { color: var(--night); background: var(--acid); }
+html[data-bee-view='bee'] body[data-site-vision='flight'] .bee-view { color: white; background: var(--violet); }
+.flight-hero { min-height: 100vh; padding: 120px 5vw 5vw; display: grid; grid-template-columns: .8fr 1.2fr; align-items: center; position: relative; overflow: hidden; background: var(--night); }
+.flight-copy { position: relative; z-index: 4; padding-left: 4vw; }
+.flight-kicker { margin: 0 0 24px; color: var(--acid); font-size: 10px; text-transform: uppercase; letter-spacing: .15em; }
+.flight-copy h1 { margin: 0; color: #f3f0df; font: 400 clamp(75px, 10vw, 170px)/.76 var(--display); letter-spacing: -.04em; }
+.flight-copy > p:not(.flight-kicker) { max-width: 420px; margin: 34px 0; color: rgba(243,240,223,.72); font-size: 14px; line-height: 1.6; }
+.flight-link { display: inline-flex; gap: 30px; border-bottom: 1px solid; padding: 0 0 8px; color: var(--acid); text-decoration: none; font-size: 12px; }
+.flight-orbit { --mx: 0px; --my: 0px; width: min(68vw, 900px); aspect-ratio: 1; justify-self: center; position: relative; transform: translate(var(--mx), var(--my)); transition: transform .6s cubic-bezier(.2,.8,.2,1); }
+.orbit-ring { position: absolute; inset: 8%; border: 1px solid rgba(216,255,67,.28); border-radius: 50%; }
+.orbit-ring--two { inset: 27%; border-style: dashed; border-color: rgba(243,240,223,.2); }
+.orbit-centre { position: absolute; inset: 43%; display: grid; place-content: center; border-radius: 50%; background: var(--acid); color: var(--night); text-align: center; z-index: 3; }
+.orbit-centre span { font-size: 9px; text-transform: uppercase; letter-spacing: .12em; }
+.orbit-centre strong { font: 26px var(--display); }
+.orbit-scale { position: absolute; left: 8%; right: 8%; top: 50%; display: flex; justify-content: space-between; border-top: 1px solid rgba(243,240,223,.24); color: rgba(243,240,223,.55); font: 9px monospace; }
+.flight-flower { position: absolute; z-index: 2; margin: 0; width: 22%; aspect-ratio: 1; transition: transform .7s cubic-bezier(.2,.8,.2,1), filter .4s; }
+.flight-flower img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 18px 25px rgba(0,0,0,.35)); }
+.flight-flower figcaption { position: absolute; left: 50%; top: 88%; white-space: nowrap; color: rgba(243,240,223,.7); font-size: 8px; text-transform: uppercase; letter-spacing: .1em; }
+.flight-flower--1 { left: 4%; top: 24%; transform: rotate(-12deg); }
+.flight-flower--2 { left: 30%; top: 0; transform: rotate(8deg); }
+.flight-flower--3 { right: 4%; top: 24%; transform: rotate(15deg); }
+.flight-flower--4 { right: 12%; bottom: 8%; transform: rotate(-5deg); }
+.flight-flower--5 { left: 18%; bottom: 3%; transform: rotate(8deg); }
+.flight-flower:hover { transform: scale(1.18) rotate(0); filter: saturate(1.15); z-index: 5; }
+html[data-bee-view='bee'] .orbit-ring { border-color: rgba(125,108,255,.6); }
+html[data-bee-view='bee'] .flight-flower img { filter: drop-shadow(0 0 24px rgba(106,82,255,.55)); }
+.flight-hero__index { position: absolute; left: 26px; bottom: 24px; font: 9px monospace; color: rgba(243,240,223,.5); }
+
+.flight-band { min-height: 85vh; padding: 8vw; display: grid; grid-template-columns: .65fr 1fr .65fr; align-items: center; gap: 4vw; background: var(--acid); color: var(--night); }
+.flight-band__number { margin: 0; font: 400 clamp(100px, 19vw, 300px)/.7 var(--display); letter-spacing: -.08em; }
+.flight-band h2 { margin: 0; font: 400 clamp(55px, 7vw, 115px)/.82 var(--display); }
+.flight-band__note { align-self: end; max-width: 250px; font-size: 12px; line-height: 1.6; }
+.flight-seasons { padding: 110px 8vw 140px; background: #f3f0df; color: var(--night); }
+.flight-seasons header { display: flex; justify-content: space-between; align-items: end; margin-bottom: 80px; }
+.flight-seasons h2 { margin: 0; font: 400 clamp(60px, 9vw, 130px)/.8 var(--display); }
+.season-track { margin-left: 30%; display: grid; grid-template-columns: repeat(8, 1fr); border-bottom: 1px solid var(--line); padding-bottom: 9px; font: 9px monospace; }
+.season-rows { border-bottom: 1px solid var(--line); }
+.season-row { display: grid; grid-template-columns: 30% 70%; align-items: center; min-height: 78px; border-top: 1px solid var(--line); }
+.season-row strong, .season-row i { display: block; font-size: 11px; }
+.season-row i { margin-top: 3px; font-weight: 400; opacity: .55; }
+.season-row__line { height: 12px; display: grid; grid-template-columns: repeat(8, 1fr); background-image: linear-gradient(90deg, var(--line) 1px, transparent 1px); background-size: 12.5% 100%; }
+.season-row__line span { grid-column: calc(var(--start) + 1) / span var(--span); border-radius: 20px; background: var(--violet); }
+.flight-place { min-height: 100vh; display: grid; grid-template-columns: 1.08fr .92fr; background: var(--night); }
+.flight-place__image img { width: 100%; height: 100%; object-fit: cover; }
+.flight-place__instructions { align-self: center; padding: 8vw; }
+.flight-place__instructions ol { list-style: none; margin: 50px 0 0; padding: 0; }
+.flight-place__instructions li { display: grid; grid-template-columns: 44px 1fr; padding: 24px 0; border-top: 1px solid rgba(243,240,223,.2); }
+.flight-place__instructions li > span { grid-row: span 2; color: var(--acid); font: 10px monospace; }
+.flight-place__instructions strong { font: 400 36px var(--display); }
+.flight-place__instructions li p { margin: 7px 0 0; color: rgba(243,240,223,.6); font-size: 11px; }
+.flight-build { min-height: 90vh; padding: 8vw; display: flex; flex-direction: column; justify-content: center; background: var(--violet); color: white; position: relative; overflow: hidden; }
+.flight-build__label { font: 9px monospace; text-transform: uppercase; letter-spacing: .1em; }
+.flight-build h2 { margin: 4vw 0; font: 400 clamp(100px, 18vw, 290px)/.68 var(--display); letter-spacing: -.06em; }
+.flight-build__button { align-self: flex-end; width: 210px; height: 210px; border-radius: 50%; display: grid; place-content: center; gap: 12px; background: var(--acid); color: var(--night); text-decoration: none; font-size: 12px; }
+
+.site-footer { min-height: 160px; display: grid; grid-template-columns: 1fr 1fr auto; align-items: end; gap: 30px; padding: 45px 28px; background: var(--ink); color: var(--bone); }
+.site-footer p, .site-footer > a:not(.wordmark) { margin: 0; font-size: 10px; }
+body[data-site-vision='flight'] .site-footer { background: #0e0a1a; }
+
+.reveal { opacity: 0; transform: translateY(24px); transition: opacity .8s ease, transform .8s ease; }
+.reveal.is-visible { opacity: 1; transform: translateY(0); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition-duration: .01ms !important; }
+  .reveal { opacity: 1; transform: none; }
+}
+
+@media (max-width: 920px) {
+  .site-header { height: 66px; padding: 0 14px; grid-template-columns: 1fr auto; }
+  .wordmark { font-size: 25px; }
+  .primary-nav { display: none; }
+  .region-control {
+    position: fixed; right: 10px; top: 74px; z-index: 31; display: flex; padding: 7px 9px;
+    border: 1px solid var(--line); background: rgba(246,243,234,.9); backdrop-filter: blur(10px);
+  }
+  body[data-site-vision='flight'] .region-control { color: #f3f0df; border-color: rgba(243,240,223,.2); background: rgba(23,18,42,.88); }
+  .bee-view { width: 104px; height: 42px; padding-left: 38px; }
+  .bee-view img { width: 58px; height: 58px; left: -12px; top: -10px; }
+  .bee-view__label { display: none; }
+  .vision-picker { left: 10px; bottom: 10px; width: 130px; }
+  .field-hero { padding: 95px 16px 35px; grid-template-columns: 1fr; gap: 40px; }
+  .field-hero__copy { padding: 30px 8px 0; }
+  .field-hero h1 { font-size: clamp(68px, 22vw, 110px); }
+  .field-hero__figure { min-height: 55vh; }
+  .field-hero__number { right: 2vw; bottom: 48vh; font-size: 42vw; }
+  .plain-fact { padding: 70px 24px 45px; min-height: 320px; display: block; }
+  .plain-fact span { display: block; margin-top: 50px; }
+  .field-flowers, .placement { padding: 80px 20px; }
+  .section-heading { grid-template-columns: 1fr; margin-bottom: 60px; }
+  .section-heading h2 { font-size: 18vw; }
+  .specimen-grid { grid-template-columns: 1fr 1fr; gap: 30px 12px; min-height: 0; }
+  .specimen { grid-column: auto; padding: 0 0 15px; transform: none !important; }
+  .specimen img { height: 260px; }
+  .bee-view-note { grid-template-columns: 1fr; }
+  .placement-grid { grid-template-columns: 1fr; }
+  .placement-card--wide { grid-row: auto; }
+  .placement-card img, .placement-card--wide img { min-height: 55vh; }
+  .make-section { padding: 120px 24px 160px; }
+
+  .flight-hero { padding: 100px 18px 70px; grid-template-columns: 1fr; }
+  .flight-copy { padding: 20px 8px 0; }
+  .flight-copy h1 { font-size: 20vw; }
+  .flight-orbit { width: 110vw; margin-left: -12vw; }
+  .flight-band { grid-template-columns: 1fr; padding: 100px 24px; }
+  .flight-band__number { font-size: 48vw; }
+  .flight-band__note { align-self: auto; }
+  .flight-seasons { padding: 90px 20px 130px; }
+  .flight-seasons header { display: block; }
+  .season-track { margin-left: 42%; }
+  .season-row { grid-template-columns: 42% 58%; }
+  .flight-place { grid-template-columns: 1fr; }
+  .flight-place__image img { height: 62vh; }
+  .flight-place__instructions { padding: 80px 24px 120px; }
+  .flight-build { padding: 110px 24px 160px; }
+  .flight-build h2 { font-size: 28vw; }
+  .flight-build__button { align-self: flex-start; width: 170px; height: 170px; }
+  .site-footer { grid-template-columns: 1fr; align-items: start; padding-bottom: 120px; }
+}
