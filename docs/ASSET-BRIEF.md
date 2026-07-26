@@ -185,7 +185,7 @@ Feed these as references:
 
 - `docs/plates/bh-4.png` — hidden-line drawing of the real four-storey
   model. **Ground truth for proportions; the object must match it.**
-- `docs/renders/web/studio-wall.jpg`, `workshop-bench.jpg` — our current
+- `docs/assets/final-scenes/web/*.jpg` — the current
   best, for material and light.
 - `viewer/public/models/*.glb` — the actual geometry, if your tool takes 3D.
 

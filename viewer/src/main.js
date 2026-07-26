@@ -458,6 +458,41 @@ function buildControls() {
     document.body.classList.add('panelHidden');
   }
 
+  /*
+   * The model is the control surface, so the drawer answers to it.
+   *
+   * Reaching for the tab in the corner to change a storey you are already
+   * pointing at is a detour. Click the storey itself, or its letter on the
+   * rail, and the drawer comes out with that storey selected. Click anywhere
+   * that is not a storey and not the drawer, and it folds away again -- which
+   * is what dismissing something means everywhere else, and it keeps the model
+   * one click from clear at all times.
+   */
+  // Capture, not bubble. Selecting a storey rebuilds the rail, so a chip is
+  // already detached from the list by the time a bubbling listener sees it --
+  // closest('.rail li') then finds no .rail ancestor, and the click reads as
+  // "outside", which closed the drawer the chip had just asked to open.
+  addEventListener('click', (event) => {
+    if (event.target.closest('.panel, #panelTab')) return;
+
+    const chip = event.target.closest('.rail li');
+    if (chip) {
+      document.body.classList.remove('panelHidden');
+      return; // the chip's own handler does the selecting
+    }
+
+    if (event.target.closest('#stage')) {
+      const i = stage.pick(event);
+      if (i >= 0) {
+        selectStorey(i);
+        document.body.classList.remove('panelHidden');
+        return;
+      }
+    }
+
+    document.body.classList.add('panelHidden');
+  }, true);
+
   // Hover: resting the pointer on a storey lights it and its rail chip.
   let hoverPending = false;
   el('stage').addEventListener('pointermove', (event) => {

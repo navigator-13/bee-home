@@ -61,8 +61,8 @@ const payload = fs.readFileSync(builder).toString('base64');
 // and `$&` from minified regex replacements, and a string replacement would
 // expand them against this match and quietly corrupt the module.
 html = html.replace(
-  /<iframe src="\.\.\/\.\.\/viewer\/"([^>]*)><\/iframe>/,
-  (whole, attrs) => `<iframe id="builderFrame"${attrs}></iframe>
+  /<iframe([^>]*)\ssrc="\.\.\/\.\.\/viewer\/"([^>]*)><\/iframe>/,
+  (whole, before, attrs) => `<iframe${before}${attrs}></iframe>
       <script type="text/plain" id="builderSrc">${payload}</script>
       <script>
         // Mount on approach: booting a WebGL scene the moment the page loads

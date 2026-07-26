@@ -238,6 +238,43 @@ figcaption {
 
 figcaption b { color: var(--ink); font-weight: 400; }
 
+/* Photographs are not all given the same measure.
+   Three identical figures stacked down a column reads as a slideshow, and the
+   pictures stop being looked at somewhere around the second one. So each gets
+   the width its subject wants and the captions hang in the space that leaves:
+   the workshop runs the full viewport, the meadow sits off-centre with its
+   caption in the margin it opens up, and the balcony is held small because a
+   balcony is a small thing. */
+.plate { margin: clamp(38px, 6vh, 92px) 0 0; }
+.plate img { display: block; width: 100%; height: auto; }
+
+.plate.full { width: 100vw; margin-left: calc(50% - 50vw); }
+.plate.full figcaption {
+  max-width: 1680px;
+  margin: 14px auto 0;
+  padding: 0 clamp(22px, 4vw, 76px);
+}
+
+/* Caption in the gutter, set to the foot of the picture -- the alignment is
+   what makes the empty column read as deliberate rather than as a gap. */
+.plate.offset, .plate.inset {
+  display: grid;
+  gap: clamp(16px, 2.2vw, 40px);
+  align-items: end;
+}
+.plate.offset { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); }
+.plate.offset img { grid-column: 2; grid-row: 1; }
+.plate.offset figcaption { grid-column: 1; grid-row: 1; margin: 0 0 4px; }
+
+.plate.inset { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); }
+.plate.inset img { grid-column: 1; grid-row: 1; }
+.plate.inset figcaption { grid-column: 2; grid-row: 1; margin: 0 0 4px; }
+
+@media (max-width: 760px) {
+  .plate.offset, .plate.inset { display: block; }
+  .plate.offset figcaption, .plate.inset figcaption { margin-top: 12px; }
+}
+
 .bleed { width: 100vw; margin-left: calc(50% - 50vw); }
 
 /* One line, given a whole band. It is the only number on the page that
@@ -719,7 +756,7 @@ figcaption b { color: var(--ink); font-weight: 400; }
     <p class="label">Design</p>
     <h2 class="lede">Design your very own Bee Home in a few minutes.</h2>
     <div class="builder">
-      <iframe src="../../viewer/" title="Bee Home builder" loading="lazy"></iframe>
+      <iframe id="builderFrame" src="../../viewer/" title="Bee Home builder" loading="lazy"></iframe>
     </div>
     <div class="afterBuilder">
       <p>Drawings, cut list and the notes a makerspace asks for &#8212; two A4 pages
@@ -739,11 +776,11 @@ figcaption b { color: var(--ink); font-weight: 400; }
         of a gym, but for makers, where you either have a membership or pay per visit. You
         also get a two-page spec sheet: cut list, elevations and the assembly order.</p>
     </div>
-    <figure class="bleed">
+    <figure class="plate full">
       <img src="../assets/final-scenes/web/makerspace-build.jpg"
         alt="A maker setting the roof onto a stacked Bee Home at a workbench, CNC router behind" />
+      <figcaption>Cut on a CNC router, then assembled by hand &#8212; a drill and two screws</figcaption>
     </figure>
-    <p class="label" style="margin-top:14px">Assembly needs your hands, a drill and two screws</p>
   </section>
 
   <section class="band quoteBand">
@@ -761,11 +798,77 @@ figcaption b { color: var(--ink); font-weight: 400; }
         minutes and needs no special tools.</p>
     </div>
 
-    <figure class="bleed">
+    <figure class="plate offset">
       <img src="../assets/final-scenes/web/garden-solitary-bees.jpg"
         alt="A Bee Home standing on legs in a meadow, solitary bees at the flowers around it" />
+      <figcaption>Standing on legs, <b>in the planting rather than above it</b></figcaption>
     </figure>
 
+  </section>
+
+  <section class="band" id="plant">
+    <p class="label">Plant for them</p>
+    <h2 class="lede">Plant flowers within flying distance.</h2>
+    <div class="two">
+      <p>A red mason bee will forage up to about 600 metres from her nest, but when flowers
+        are close she works within 50 to 300, and averages nearer 100. Every trip is pollen carried
+        home. She packs each cell with a loaf of it, lays one egg on top and seals the
+        cell &#8212; that is provisioning, and it is all the food that larva will ever
+        get. Flowers by the box are the difference between a female provisioning ten
+        cells and provisioning thirty.</p>
+      <p>Tell us roughly where you are. We'll name the cavity-nesting bees recorded near
+        you, what they pollinate locally, and which seed to sow.</p>
+      <p>Solitary bees are friendly. They don't produce honey and therefore have nothing to
+        protect. They only sting if trod on, and are safe to keep around kids and pets.</p>
+    </div>
+
+    <figure class="plate inset">
+      <img src="../assets/final-scenes/web/balcony-wall.jpg"
+        alt="The wall-fixed Bee Home on a city balcony wall beside planted window boxes" />
+      <figcaption>Wall-fixed, above a planted balcony &#8212;
+        <b>a window box is within flying distance</b></figcaption>
+    </figure>
+
+    <div class="region">
+      <label class="label" for="regionPick">Where are you?</label>
+      <select id="regionPick"></select>
+    </div>
+  </section>
+
+  <!-- The herbarium. Not a grid: pressed plates fall across the section at
+       their own scale and angle, the way they do when a folder is tipped out.
+       Scrolling carries the whole field from human sight into bee sight, one
+       plate a beat behind the last, and bee lines thread between them. -->
+</div>
+
+<section class="drift" id="drift" aria-label="Wildflowers for your region">
+    <svg class="driftFlight" id="driftFlight" aria-hidden="true"></svg>
+    <div class="pad">
+    <div class="driftField" id="herbarium"></div>
+    <div class="driftFoot">
+      <button class="eyeSwap" id="eyeSwap" aria-pressed="false">
+        <img src="../assets/bees/web/osmia-bicornis.webp" alt="" class="eyeBee" />
+        <span class="eyeSwapLabel" id="eyeSwapLabel">See in bee vision</span>
+      </button>
+    <p class="driftNote">
+      Bees see ultraviolet, and many flowers print landing guides in it. These
+      plates are bee-vision simulations, mapping the bee's ultraviolet, blue and
+      green receptors onto blue, green and red so a human screen can show them
+      &#8212; a legend, not what she sees. Where no ultraviolet pattern is
+      documented for a species we have left it plain rather than invent one.
+    </p>
+    </div>
+  </div>
+</section>
+
+<div class="pad">
+  <section class="band" id="who">
+    <p class="label">Who comes</p>
+    <div class="regionAside">
+      <section><h3>Cavity nesters recorded near you</h3><ul id="regionBees"></ul></section>
+      <section><h3>What they work locally</h3><ul id="regionCrops"></ul></section>
+      <section><h3>Seed</h3><p class="label seedNote" id="regionSeed"></p></section>
+    </div>
   </section>
 
   <section class="band" id="about">
@@ -814,70 +917,6 @@ figcaption b { color: var(--ink); font-weight: 400; }
           build, fork the code, just credit SPACE10 and the designers. The
           repository is public.</div>
       </details>
-    </div>
-  </section>
-
-  <section class="band" id="plant">
-    <p class="label">Plant for them</p>
-    <h2 class="lede">Plant flowers within flying distance.</h2>
-    <div class="two">
-      <p>A red mason bee will forage up to about 600 metres from her nest, but when flowers
-        are close she works within 50 to 300, and averages nearer 100. Every trip is pollen carried
-        home. She packs each cell with a loaf of it, lays one egg on top and seals the
-        cell &#8212; that is provisioning, and it is all the food that larva will ever
-        get. Flowers by the box are the difference between a female provisioning ten
-        cells and provisioning thirty.</p>
-      <p>Tell us roughly where you are. We'll name the cavity-nesting bees recorded near
-        you, what they pollinate locally, and which seed to sow.</p>
-      <p>Solitary bees are friendly. They don't produce honey and therefore have nothing to
-        protect. They only sting if trod on, and are safe to keep around kids and pets.</p>
-    </div>
-
-    <figure>
-      <img src="../assets/final-scenes/web/balcony-wall.jpg"
-        alt="The wall-fixed Bee Home on a city balcony wall beside planted window boxes" />
-      <figcaption>Wall-fixed, above a planted balcony</figcaption>
-    </figure>
-
-    <div class="region">
-      <label class="label" for="regionPick">Where are you?</label>
-      <select id="regionPick"></select>
-    </div>
-  </section>
-
-  <!-- The herbarium. Not a grid: pressed plates fall across the section at
-       their own scale and angle, the way they do when a folder is tipped out.
-       Scrolling carries the whole field from human sight into bee sight, one
-       plate a beat behind the last, and bee lines thread between them. -->
-</div>
-
-<section class="drift" id="drift" aria-label="Wildflowers for your region">
-    <svg class="driftFlight" id="driftFlight" aria-hidden="true"></svg>
-    <div class="pad">
-    <div class="driftField" id="herbarium"></div>
-    <div class="driftFoot">
-      <button class="eyeSwap" id="eyeSwap" aria-pressed="false">
-        <img src="../assets/bees/web/osmia-bicornis.webp" alt="" class="eyeBee" />
-        <span class="eyeSwapLabel" id="eyeSwapLabel">See in bee vision</span>
-      </button>
-    <p class="driftNote">
-      Bees see ultraviolet, and many flowers print landing guides in it. These
-      plates are bee-vision simulations, mapping the bee's ultraviolet, blue and
-      green receptors onto blue, green and red so a human screen can show them
-      &#8212; a legend, not what she sees. Where no ultraviolet pattern is
-      documented for a species we have left it plain rather than invent one.
-    </p>
-    </div>
-  </div>
-</section>
-
-<div class="pad">
-  <section class="band" id="who">
-    <p class="label">Who comes</p>
-    <div class="regionAside">
-      <section><h3>Cavity nesters recorded near you</h3><ul id="regionBees"></ul></section>
-      <section><h3>What they work locally</h3><ul id="regionCrops"></ul></section>
-      <section><h3>Seed</h3><p class="label seedNote" id="regionSeed"></p></section>
     </div>
   </section>
 
@@ -1011,54 +1050,6 @@ figcaption b { color: var(--ink); font-weight: 400; }
         + ' ' + fmt(s[3][0]) + ' ' + fmt(s[3][1]);
     });
     return d;
-  }
-
-  /* The same curve, as points, so something else can ride along it. */
-  function curvePoints(pts, per) {
-    var out = [];
-    crBezier(pts).forEach(function (s, i) {
-      for (var j = i ? 1 : 0; j <= per; j++) {
-        var t = j / per, u = 1 - t;
-        var a = u * u * u, b = 3 * u * u * t, c = 3 * u * t * t, e = t * t * t;
-        out.push([
-          a * s[0][0] + b * s[1][0] + c * s[2][0] + e * s[3][0],
-          a * s[0][1] + b * s[1][1] + c * s[2][1] + e * s[3][1],
-        ]);
-      }
-    });
-    return out;
-  }
-
-  /*
-   * Walk a polyline at a fixed step, handing back position and heading.
-   *
-   * The heading is taken across several steps rather than from the segment
-   * the point happens to sit on. A rider swinging tens of pixels off the
-   * line turns any kink in the heading into a visible step in its own track,
-   * so the heading has to be at least as smooth as the curve it steers.
-   */
-  function march(pts, step) {
-    var out = [], carry = 0;
-    for (var i = 0; i < pts.length - 1; i++) {
-      var ax = pts[i][0], ay = pts[i][1];
-      var dx = pts[i + 1][0] - ax, dy = pts[i + 1][1] - ay;
-      var seg = Math.hypot(dx, dy);
-      if (seg < 1e-6) continue;
-      for (var s = carry; s < seg; s += step) out.push([ax + dx * s / seg, ay + dy * s / seg, 0, 0]);
-      carry = (carry - seg) % step;
-      if (carry < 0) carry += step;
-    }
-    var last = pts[pts.length - 1];
-    if (out.length) out.push([last[0], last[1], 0, 0]);
-    var span = 4;
-    for (var j = 0; j < out.length; j++) {
-      var a = out[Math.max(0, j - span)], b = out[Math.min(out.length - 1, j + span)];
-      var hx = b[0] - a[0], hy = b[1] - a[1];
-      var h = Math.hypot(hx, hy) || 1;
-      out[j][2] = hx / h;
-      out[j][3] = hy / h;
-    }
-    return out;
   }
 
   /* Turtle interpretation. Paths come back grouped by role so a scroll can
@@ -1301,93 +1292,62 @@ figcaption b { color: var(--ink); font-weight: 400; }
     });
   }
 
-  /**
-   * One bee's trail: a prolate trochoid ridden along a route.
+  /*
+   * Bee trails are drawn, not generated.
    *
-   * A trochoid is what a point fixed to a rolling circle traces. Roll radius
-   * R sets the wavelength, the rider's offset d sets how far it swings, and
-   * the ratio k = d/R decides the character of the curve outright:
+   * Three passes at deriving them said what a curve like this actually needs:
+   * long calm runs, loops of unequal size, and a rhythm that never repeats.
+   * A trochoid gives loops out of its parameters but every one the same, and
+   * the version with enough swing to make the loops read had a wave twice
+   * their size carrying them. These four are drawn, so they have the thing
+   * the parameterisation could not reach.
    *
-   *     k < 1   a wave -- the point never outruns the roll
-   *     k = 1   a cusp at every low point
-   *     k > 1   the point swings backwards faster than the circle advances,
-   *             so the curve reverses, crosses its own track and closes a
-   *             real loop, once per turn, forever
-   *
-   * That last case is the reference sheet exactly: not a straight line with
-   * a loop stuck on it, but one continuous curl that keeps looping the whole
-   * way. Loops come out of the parameters, so there is nothing to place by
-   * hand and nothing to splice, which is also what kills the old spur at the
-   * joins -- there are no joins left.
-   *
-   * The envelope multiplies d along the run. It opens early, so the trail is
-   * at its curliest out in the open where there is room, and closes to zero
-   * at the last point, so the bee stops swinging and arrives at the hole on
-   * a clean tangent. Where the envelope drops k*env below 1 the loops relax
-   * back into waves by themselves -- the same taper the reference has as it
-   * comes in to the bee.
+   * Each is a single path, left to right, ending where the bee arrives.
+   * Placement is a similarity -- rotate and scale by the same factor on both
+   * axes -- fitted so the first point lands on the entry and the last on a
+   * hole. That is the only transform that leaves a drawing looking drawn: any
+   * separate x and y scale shears the loops into ellipses and the whole thing
+   * goes back to looking computed.
    */
-  function trail(route, opt, W, H) {
-    var scale = Math.min(W, H);
-    var wp = route.map(function (p) { return [p[0] * W, p[1] * H]; });
-    var walk = march(curvePoints(wp, 48), 2);
-    var total = (walk.length - 1) * 2;
-    if (total < 1) return spline(wp);
+  var ART = {
+    loop: 'M30 165 C105 38 180 38 220 128 C252 200 171 233 133 177 C96 124 142 83 198 103 C265 127 274 218 347 212 C431 204 408 62 497 55 C586 48 579 178 660 171 C711 166 731 118 770 82',
+    wander: 'M24 197 C111 183 137 83 224 89 C311 95 301 213 376 215 C458 218 449 48 548 45 C647 41 643 180 720 169 C777 161 781 91 840 91 C898 91 920 139 976 119',
+    curl: 'M29 183 C112 181 116 76 194 75 C267 74 271 185 207 197 C153 207 143 132 193 115 C251 95 268 214 354 207 C422 202 405 105 460 93 C516 81 540 160 497 180 C458 198 439 144 468 121 C511 87 556 188 632 175 C699 164 724 103 772 78',
+    switchback: 'M29 198 C95 176 77 78 145 64 C216 49 239 135 202 173 C165 211 126 163 151 126 C181 81 249 95 276 146 C311 212 378 226 421 177 C461 132 430 79 470 55 C519 25 557 78 541 122 C525 168 570 195 620 170 C681 140 712 93 771 77'
+  };
 
-    // 2*pi*R is one curl of travel, so wave sets how often they come; k*R is
-    // how far the rider swings, so it sets how big they are. Tuned against
-    // the box: a curl is about one storey across, and four or five of them
-    // fit a route rather than a dozen.
-    var R = (opt.wave || 0.045) * scale;
-    var k = opt.curl || 1.75;              // > 1, or it is only a wobble
-    var side = opt.side || 1;
-    var phase = opt.phase || 0;
-    var bursts = opt.bursts || [[0.32, 0.17, 1]];
-    var out = [], th = phase;
+  /* Endpoints, from the path data. Both are literal in every one of these:
+     an M to open and the final pair of a C to close. */
+  function ends(d) {
+    var m = /^M\s*(-?[\d.]+)[ ,]+(-?[\d.]+)/.exec(d);
+    var t = /(-?[\d.]+)[ ,]+(-?[\d.]+)\s*$/.exec(d);
+    return [[+m[1], +m[2]], [+t[1], +t[2]]];
+  }
 
-    for (var i = 0; i < walk.length; i++) {
-      var w = walk[i], u = i * 2 / total;
-      // Wavelength drifts a little along the run so the curls are siblings
-      // rather than a repeat, the way a stamped pattern would read.
-      var rr = R * (1 + 0.18 * Math.sin(u * 4.1 + phase));
-      var ds = 2;
-      // Curl in bursts, not all the way along. A trochoid left at full swing
-      // for a whole route comes out as a scalloped border -- the same curl
-      // repeated twenty times, which is a pattern, not a flight. A bee flies
-      // straight most of the way and works a patch when it finds one, so the
-      // envelope holds near zero for long runs and opens over a couple of
-      // stretches. Where it lifts k*env past 1 the loops appear on their own;
-      // where it does not, the same curve is a slow undulation.
-      var env = 0;
-      for (var q = 0; q < bursts.length; q++) {
-        var g = bursts[q];
-        // Fourth power, not squared: a plain bell spends most of its width in
-        // the shallows, and shallow swing is the worst of both -- too small to
-        // read as a loop, too broad to read as a straight line, so the trail
-        // comes out as a row of soft scallops. Steeper flanks make it closer
-        // to a switch, and the glide between bursts is properly a glide.
-        env = Math.max(env, (g[2] === undefined ? 1 : g[2])
-          * Math.exp(-Math.pow((u - g[0]) / g[1], 4)));
-      }
-      env = env < 0.1 ? 0 : (env - 0.1) / 0.9;
-      env *= Math.min(1, u / 0.05);
-      // A trail that lands has to stop swinging before it arrives.
-      if (!opt.through) env *= Math.min(1, (1 - u) / 0.13);
-      else env *= Math.min(1, (1 - u) / 0.04);
-      var d = k * rr * env;
-      var ox = -d * Math.sin(th) * side;   // along the direction of travel
-      var oy = -d * Math.cos(th);          // across it
-      out.push([
-        w[0] + w[2] * ox - w[3] * oy * side,
-        w[1] + w[3] * ox + w[2] * oy * side,
-      ]);
-      th += ds / rr;
-    }
-    // Sampled every 3px, so the polyline is already smoother than the stroke
-    // is wide; splining it again would only invite overshoot back in.
-    var d0 = 'M' + fmt(out[0][0]) + ' ' + fmt(out[0][1]);
-    for (var j = 1; j < out.length; j++) d0 += 'L' + fmt(out[j][0]) + ' ' + fmt(out[j][1]);
-    return d0;
+  /* from and to are stage fractions; flip mirrors the drawing across its own
+     line of travel, which turns a left-handed curl into a right-handed one
+     and lets four drawings cover more than four positions. */
+  function place(el, key, from, to, flip, W, H) {
+    var d = ART[key];
+    var e = ends(d);
+    var p0 = e[0], p1 = e[1];
+    var q0 = [from[0] * W, from[1] * H];
+    var q1 = [to[0] * W, to[1] * H];
+    var f = flip || 1;
+    var pd = Math.hypot(p1[0] - p0[0], p1[1] - p0[1]) || 1;
+    var qd = Math.hypot(q1[0] - q0[0], q1[1] - q0[1]);
+    var scale = qd / pd;
+    var srcAngle = Math.atan2((p1[1] - p0[1]) * f, p1[0] - p0[0]);
+    var deg = (Math.atan2(q1[1] - q0[1], q1[0] - q0[0]) - srcAngle) * 180 / Math.PI;
+    el.setAttribute('d', d);
+    el.setAttribute('transform',
+      'translate(' + fmt(q0[0]) + ' ' + fmt(q0[1]) + ') rotate(' + fmt(deg) + ') '
+      + 'scale(' + (Math.round(scale * 1e4) / 1e4) + ' '
+      + (Math.round(scale * f * 1e4) / 1e4) + ') '
+      + 'translate(' + fmt(-p0[0]) + ' ' + fmt(-p0[1]) + ')');
+    // Stroke width is set in CSS and would otherwise scale with the drawing.
+    el.setAttribute('vector-effect', 'non-scaling-stroke');
+    return el;
   }
 
   function buildFlights() {
@@ -1441,53 +1401,41 @@ figcaption b { color: var(--ink); font-weight: 400; }
     // run along the top band or under the copy, and turn into the corridor
     // between the text and the box only at the end, where the trail has
     // already stopped swinging.
+    // Entries are spread over four different off-screen edges. The ones that
+    // land come in from the top and the bottom rather than the left, because
+    // the holes sit at the same heights as the headline: a single smooth line
+    // from the left edge to a hole has to cross the text to get there, and no
+    // amount of shaping fixes that. Dropping in from above and rising from
+    // below reaches the same holes with the copy nowhere near the route.
     var WIDE = [
-      { front: true,  home: 0, at: [0.075, 0.035], curl: 2.0, wave: 0.038, side: 1,
-        phase: 0.0, bursts: [[0.30, 0.15]],
-        wp: [[-0.08, 0.10], [0.20, 0.08], [0.42, 0.13], [0.56, 0.21]] },
-      { front: true,  home: 1, at: [0.055, 0.075], curl: 1.85, wave: 0.034, side: -1,
-        phase: 2.1, bursts: [[0.46, 0.13]],
-        wp: [[0.14, -0.08], [0.34, 0.05], [0.56, 0.14]] },
-      { front: true,  home: 6, at: [0.075, -0.03], curl: 2.1, wave: 0.042, side: -1,
-        phase: 3.6, bursts: [[0.22, 0.12], [0.58, 0.14, 0.8]],
-        wp: [[-0.08, 0.80], [0.20, 0.84], [0.44, 0.76], [0.58, 0.60]] },
-      { front: true,  home: 7, at: [0.05, -0.06], curl: 1.8, wave: 0.036, side: 1,
-        phase: 0.9, bursts: [[0.38, 0.14]],
-        wp: [[0.36, 1.08], [0.52, 0.88], [0.62, 0.70]] },
-      { front: false, home: 3, at: [-0.06, 0.06], curl: 1.9, wave: 0.04, side: 1,
-        phase: 2.8, bursts: [[0.34, 0.15]],
-        wp: [[1.08, 0.16], [0.92, 0.16], [0.82, 0.25]] },
-      // One that is only passing through, low and behind the legs. It keeps
-      // its swing small: this one is on its way somewhere else.
-      { front: false, home: null, through: true, curl: 1.6, wave: 0.045, side: -1,
-        phase: 4.4, bursts: [[0.20, 0.10, 0.85], [0.66, 0.11, 0.7]],
-        wp: [[-0.08, 0.95], [0.34, 0.99], [0.72, 0.93], [1.08, 0.88]] },
+      // Only the upper holes are approached. The lower ones sit behind the
+      // legs with the headline to their left, so every route to them either
+      // crosses the copy or runs down the front of the box -- there is no
+      // clear line in, and a bee drawn taking one reads as a mistake.
+      { front: true,  art: 'curl',       from: [0.22, -0.06], home: 0 },
+      { front: true,  art: 'switchback', from: [0.48, -0.06], home: 1, flip: -1 },
+      { front: true,  art: 'loop',       from: [0.92, -0.08], home: 2, flip: -1 },
+      { front: false, art: 'wander',     from: [1.06, 0.13],  home: 3 },
+      // Passing through, low and behind the legs, on its way somewhere else.
+      // Kept short: the drawing's swing scales with how far it travels, and a
+      // line crossing the whole frame arrives with loops the size of the box.
+      { front: false, art: 'wander',     from: [-0.05, 0.82], to: [0.56, 1.02] },
     ];
 
-    // Narrow: the copy sits over the box, so everything comes in low, under
-    // the text, and turns up into the face at the last moment.
+    // Narrow: the copy sits over the box, so everything comes up from below.
     var NARROW = [
-      { front: true, home: 2, at: [0.10, -0.10], curl: 1.9, wave: 0.05, side: 1,
-        phase: 0.4, bursts: [[0.30, 0.15]],
-        wp: [[-0.10, 0.74], [0.16, 0.80], [0.34, 0.70]] },
-      { front: true, home: 6, at: [0.09, -0.06], curl: 1.7, wave: 0.044, side: -1,
-        phase: 2.6, bursts: [[0.40, 0.15]],
-        wp: [[-0.10, 0.95], [0.24, 0.96], [0.42, 0.82]] },
-      { front: true, home: 7, at: [0.05, -0.08], curl: 1.95, wave: 0.046, side: 1,
-        phase: 4.0, bursts: [[0.34, 0.14]],
-        wp: [[0.40, 1.10], [0.60, 0.94], [0.68, 0.78]] },
+      { front: true, art: 'loop',       from: [0.04, 1.10], home: 2 },
+      { front: true, art: 'curl',       from: [0.40, 1.12], home: 6, flip: -1 },
+      { front: true, art: 'switchback', from: [0.78, 1.10], home: 7 },
     ];
 
     (stacked ? NARROW : WIDE).forEach(function (line) {
-      var wp = line.wp.slice();
-      if (line.home !== null && line.home !== undefined) {
-        wp.push(approach(line.home, line.at[0], line.at[1]));
-        wp.push(home(line.home)); // and in
-      }
-      flights.push({
-        come: true,
-        el: path(line.front ? flightFront : flightSvg, 'ln come', trail(wp, line, W, H)),
-      });
+      var to = line.to || home(line.home);
+      var el = document.createElementNS(NS, 'path');
+      el.setAttribute('class', 'ln come');
+      place(el, line.art, line.from, to, line.flip, W, H);
+      (line.front ? flightFront : flightSvg).appendChild(el);
+      flights.push({ come: true, el: el });
     });
     measure(flights.map(function (f) { return f.el; }));
   }
@@ -1802,22 +1750,15 @@ figcaption b { color: var(--ink); font-weight: 400; }
     driftFlight.setAttribute('viewBox', '0 0 ' + Math.round(W) + ' ' + Math.round(H));
 
     // Three lines, each in its own horizontal band so they thread through the
-    // drift rather than knot in the middle. These are all passing through, so
-    // they curl edge to edge; different wavelengths and phases keep the three
-    // from reading as one pattern stamped three times.
+    // drift rather than knot in the middle. All passing through: the drift is
+    // a field of flowers, not a nest.
     [
-      { through: true, curl: 1.9, wave: 0.055, side: 1, phase: 0.0,
-        bursts: [[0.26, 0.11], [0.68, 0.12, 0.75]],
-        wp: [[-0.08, 0.16], [0.30, 0.12], [0.7, 0.2], [1.08, 0.14]] },
-      { through: true, curl: 1.7, wave: 0.048, side: -1, phase: 2.4,
-        bursts: [[0.52, 0.13]],
-        wp: [[-0.08, 0.5], [0.28, 0.56], [0.66, 0.46], [1.08, 0.54]] },
-      { through: true, curl: 2.0, wave: 0.06, side: 1, phase: 4.1,
-        bursts: [[0.34, 0.12], [0.78, 0.10, 0.8]],
-        wp: [[-0.08, 0.86], [0.34, 0.8], [0.72, 0.88], [1.08, 0.82]] },
+      { art: 'wander',     from: [-0.08, 0.20], to: [1.08, 0.12] },
+      { art: 'loop',       from: [-0.08, 0.58], to: [1.08, 0.50], flip: -1 },
+      { art: 'switchback', from: [-0.08, 0.90], to: [1.08, 0.84] },
     ].forEach(function (f) {
       var el = document.createElementNS(NS, 'path');
-      el.setAttribute('d', trail(f.wp, f, W, H));
+      place(el, f.art, f.from, f.to, f.flip, W, H);
       driftFlight.appendChild(el);
       var len = el.getTotalLength();
       el.style.strokeDasharray = len;
