@@ -7,6 +7,19 @@ missing falls back to a placeholder, so partial delivery is fine.
 **Read section 0 before generating anything.** The first deliverable is
 research, not pictures.
 
+Everything referenced under `docs/assets/` is something **you create**, not
+something to go looking for. The directories are empty on purpose:
+
+```
+docs/assets/RESEARCH.md      <- you write this first (section 0)
+docs/assets/pressed/         <- flower plates (section 1)
+docs/assets/bees/            <- bee portraits (section 2)
+docs/assets/scenes/          <- sited product shots (section 3)
+```
+
+Files that already exist and are inputs to you are called out by path in
+each section — the plate drawing, the reference renders, the geometry.
+
 The page's world: bone paper `#e9e9e1`, ink `#2a2920`, one accent — the bee
 periwinkle `#7d94d8`. Quiet, Scandinavian, editorial. Nothing glossy,
 nothing stocky, no lens flare, no bokeh sparkle.
@@ -17,8 +30,9 @@ nothing stocky, no lens flare, no bokeh sparkle.
 
 The bee-vision plates are the one place where making it up will be obvious
 to anyone who knows the subject, and the brief you are replacing got it
-wrong. Before generating a single image, research and write
-`docs/assets/RESEARCH.md` covering the following. Cite a source per claim.
+wrong. Before generating a single image, research the following and
+**write your findings to a new file at `docs/assets/RESEARCH.md`.** It does
+not exist yet; creating it is the first task. Cite a source per claim.
 
 **0.1 The trap: three different things get called "UV flower photography".**
 Establish the difference and state in writing which one we are making.
@@ -61,8 +75,11 @@ distinction that matters here.
 find. Research informs what you generate; it never gets pasted in. Say in
 RESEARCH.md that you did not use source imagery directly.
 
-Send `RESEARCH.md` back before or alongside the first plates. If your
-research contradicts anything in this brief, the research wins — flag it.
+Send `RESEARCH.md` back **before** the first plates, not alongside them —
+it is a checkpoint, and its conclusions decide what the `-uv` plates
+actually look like. If your research contradicts anything in this brief,
+the research wins; flag the contradiction rather than quietly following
+either one.
 
 ---
 
