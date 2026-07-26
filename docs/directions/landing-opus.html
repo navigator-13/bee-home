@@ -1395,9 +1395,14 @@ figcaption b { color: var(--ink); font-weight: 400; }
    */
   function draw(el, k, out) {
     var L = el._len;
-    el.style.strokeDashoffset = out > 0
-      ? -L * Math.min(1, out)
-      : L * (1 - Math.max(0, Math.min(1, k)));
+    // Once, in each direction. Scroll position alone is reversible, so
+    // scrolling back up un-drew every trail and scrolling down drew it again:
+    // a bee that arrives, leaves, arrives, leaves as you hunt for the builder.
+    // Each stage keeps its high-water mark, so a trail is drawn once, goes
+    // into the box once, and stays gone.
+    el._k = Math.max(el._k || 0, Math.max(0, Math.min(1, k)));
+    el._out = Math.max(el._out || 0, Math.max(0, Math.min(1, out || 0)));
+    el.style.strokeDashoffset = el._out > 0 ? -L * el._out : L * (1 - el._k);
   }
 
   function seg(p, a, b) { return Math.max(0, Math.min(1, (p - a) / (b - a))); }
@@ -1870,10 +1875,10 @@ figcaption b { color: var(--ink); font-weight: 400; }
      that the toggle speaks for itself and a repeated popover is a nag. */
   var pop = document.createElement('div');
   pop.className = 'eyePop';
-  pop.innerHTML = '<b>This is a simulation, not her view.</b> Bees see ultraviolet '
-    + 'and have no red receptor. These plates map her ultraviolet, blue and green '
-    + 'receptors onto blue, green and red so a screen can show them &#8212; a legend. '
-    + 'Where no ultraviolet pattern is documented for a species, we left it plain.'
+  pop.innerHTML = 'A bee sees ultraviolet and has no red receptor at all. Her '
+    + 'ultraviolet, blue and green are shown here as blue, green and red, because '
+    + 'those are the three a screen has. The marks are real; the colours are ours. '
+    + 'Where nobody has recorded a pattern for a species, the plate stays plain.'
     + '<button type="button">Got it</button>';
   document.body.appendChild(pop);
   pop.querySelector('button').addEventListener('click', function () {
