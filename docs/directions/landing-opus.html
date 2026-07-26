@@ -169,6 +169,10 @@ body {
 .ln.grass { stroke-width: 1.1; stroke: #8d8c81; }
 .ln.fly   { stroke-width: 1.6; stroke: var(--soft); }
 .ln.come  { stroke-width: 2.6; stroke: var(--bee); }
+/* Not every trail is blue. Two inks pull the crossings apart: where a grey
+   line passes under a blue one the eye reads two flights, where one colour
+   crosses itself it reads a snarl. */
+.ln.come.alt { stroke: #55544b; stroke-width: 2.2; }
 
 .cue {
   position: absolute;
@@ -465,6 +469,7 @@ figcaption b { color: var(--ink); font-weight: 400; }
                pointer-events: none; }
 .driftFlight path { fill: none; stroke: var(--bee); stroke-width: 2.2;
                     stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.driftFlight path.alt { stroke: #55544b; stroke-width: 1.9; }
 
 .mount {
   position: absolute;
@@ -785,7 +790,7 @@ figcaption b { color: var(--ink); font-weight: 400; }
     <div class="frame">
       <div class="copy" id="copy">
         <h1>Bee Home is an open invitation to give bees the home they deserve.</h1>
-        <p class="sub">Design it here. Download the files for free. Build it yourself or manufacture it locally.</p>
+        <p class="sub">Choose the floors. Cut them at a local makerspace. Plant flowers close by.</p>
       </div>
       <div class="art">
         <div class="ground" id="ground">
@@ -865,7 +870,10 @@ figcaption b { color: var(--ink); font-weight: 400; }
     <div class="ledeSplit">
       <blockquote class="opener">A single solitary bee can provide as much
         pollination as 120 honeybees.</blockquote>
-      <h2 class="lede">Plant flowers within flying distance.</h2>
+      <div>
+        <p class="label">Plant for your region</p>
+        <h2 class="lede">Keep something in bloom.</h2>
+      </div>
     </div>
     <div class="two">
       <p>A red mason bee will forage up to about 600 metres from her nest, but when flowers
@@ -1494,28 +1502,28 @@ figcaption b { color: var(--ink); font-weight: 400; }
     // and level, and the rest drop in from above and rise from below.
     var WIDE = [
       { front: true,  art: 'wander',     from: [-0.12, 0.30], home: 0 },
-      { front: true,  art: 'curl',       from: [0.30, -0.08], home: 1 },
+      { front: true,  art: 'curl',       from: [0.30, -0.08], home: 1, grey: true },
       { front: true,  art: 'switchback', from: [0.60, -0.08], home: 2, flip: -1 },
       { front: true,  art: 'loop',       from: [0.46, 1.10],  home: 4 },
-      { front: false, art: 'curl',       from: [1.12, 0.46],  home: 3, flip: -1 },
+      { front: false, art: 'curl',       from: [1.12, 0.46],  home: 3, flip: -1, grey: true },
       // Passing through, low and behind the legs, on its way somewhere else.
       // Kept to the far left: sharing the bottom edge with the route above put
       // two sets of loops in the same square of page.
-      { front: false, art: 'wander',     from: [-0.10, 0.66], to: [0.24, 1.06] },
+      { front: false, art: 'wander',     from: [-0.10, 0.66], to: [0.24, 1.06], grey: true },
     ];
 
     // Narrow: the copy sits over the box and there is far less room, so this is
     // three lines rather than six -- but not three from the same edge.
     var NARROW = [
       { front: true, art: 'loop',       from: [-0.12, 0.46], home: 2 },
-      { front: true, art: 'curl',       from: [0.42, 1.10],  home: 6, flip: -1 },
+      { front: true, art: 'curl',       from: [0.42, 1.10],  home: 6, flip: -1, grey: true },
       { front: true, art: 'switchback', from: [1.12, 0.20],  home: 3, flip: -1 },
     ];
 
     (stacked ? NARROW : WIDE).forEach(function (line) {
       var to = line.to || home(line.home);
       var el = document.createElementNS(NS, 'path');
-      el.setAttribute('class', 'ln come');
+      el.setAttribute('class', 'ln come' + (line.grey ? ' alt' : ''));
       place(el, line.art, line.from, to, line.flip, W, H);
       (line.front ? flightFront : flightSvg).appendChild(el);
       flights.push({ come: true, el: el });
@@ -1907,10 +1915,11 @@ figcaption b { color: var(--ink); font-weight: 400; }
       // Each ends well short of where the next begins, so no two are curling in
       // the same part of the field at the same time.
       { art: 'wander',     from: [-0.10, 0.14], to: [0.62, 0.06] },
-      { art: 'switchback', from: [0.34, 1.06],  to: [1.10, 0.58], flip: -1 },
+      { art: 'switchback', from: [0.34, 1.06],  to: [1.10, 0.58], flip: -1, grey: true },
       { art: 'loop',       from: [-0.10, 0.72], to: [0.52, 0.98] },
     ].forEach(function (f) {
       var el = document.createElementNS(NS, 'path');
+      if (f.grey) el.setAttribute('class', 'alt');
       place(el, f.art, f.from, f.to, f.flip, W, H);
       driftFlight.appendChild(el);
       var len = el.getTotalLength();

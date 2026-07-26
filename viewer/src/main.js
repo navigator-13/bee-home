@@ -142,9 +142,13 @@ async function rebuild() {
   const roof = index.guides.find((g) => g.name === 'roof');
   if (roof) {
     const roofGeometry = await stage.load(roof.file);
-    stage.add(roofGeometry, new THREE.Vector3(0, y, 0),
+    const roofMesh = stage.add(roofGeometry, new THREE.Vector3(0, y, 0),
       // Shares the top storey's step: closing the stack is one move, not two.
       { wood: woodFor(state.stack.length - 1), storey: state.stack.length - 1 });
+    // But not the top storey's rail chip. The chip's height is the storey's
+    // height on screen; measured with the roof included, the top chip came out
+    // half again as tall as its neighbours and sat on them.
+    roofMesh.userData.roof = true;
   }
 
   if (state.position !== 'fixed') {

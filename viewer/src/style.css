@@ -262,12 +262,14 @@ body.drawing .rail li.selected { border-color: #7386bd; color: var(--ink); }
    bottom-left corner. The rail tells you which storey; this tells you what
    shape it is, which a letter cannot. */
 
+/* To the right of the rail, not under it: at 26px the turning part sat
+   behind the letter chips and lost its left edge whenever it swung wide. */
 .preview {
   position: fixed;
-  left: 26px;
-  bottom: 118px;
-  width: 150px;
-  height: 150px;
+  left: 92px;
+  bottom: 96px;
+  width: 190px;
+  height: 190px;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.22s ease;

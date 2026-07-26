@@ -176,8 +176,13 @@ export class Stage {
         lines.position.copy(mesh.position);
         pivot.add(lines);
 
-        const radius = box.getSize(new THREE.Vector3()).length();
-        camera.position.set(0, radius * 0.42, radius * 1.15);
+        // Fit by bounding sphere, not by eye. The part turns, so its widest
+        // diagonal will face the camera at some point in every revolution;
+        // framed any tighter than the sphere, a long flat storey clips its
+        // corners twice a turn.
+        const sphere = box.getBoundingSphere(new THREE.Sphere()).radius;
+        const dist = (sphere * 1.12) / Math.sin(THREE.MathUtils.degToRad(camera.fov / 2));
+        camera.position.set(0, dist * 0.34, dist);
         camera.lookAt(0, 0, 0);
         spin = -0.5;
         live = true;
@@ -199,7 +204,7 @@ export class Stage {
     const box = new THREE.Box3();
     let found = false;
     for (const child of this.root.children) {
-      if (child.isMesh && child.userData.storey === index) {
+      if (child.isMesh && child.userData.storey === index && !child.userData.roof) {
         box.expandByObject(child);
         found = true;
       }
