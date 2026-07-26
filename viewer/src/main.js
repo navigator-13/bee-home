@@ -347,6 +347,12 @@ function downloadBuildPack() {
 
 function refreshReadout() {
   el('beeId').textContent = formatId(state);
+  // The page around the builder names the design its build-pack button will
+  // produce, so the button belongs to what is on screen rather than to some
+  // generic download.
+  if (window.parent !== window) {
+    window.parent.postMessage({ type: 'beehome:id', id: formatId(state) }, '*');
+  }
   el('exportString').textContent = exportString(state);
   el('storeyCount').textContent = String(state.stack.length);
   el('stackHeight').textContent = `${Math.round(stackHeight())} mm`;

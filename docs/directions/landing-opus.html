@@ -105,27 +105,6 @@ body {
   margin: 1.3em 0 0;
 }
 
-/* The caption tracks the animation, so the words describe what is happening
-   on screen rather than sitting next to it. */
-.phase {
-  position: relative;
-  margin-top: 1.8em;
-  min-height: 3.6em;
-}
-
-.phase span {
-  position: absolute;
-  inset: 0;
-  font-size: clamp(12px, 1.55cqi, 17px);
-  line-height: 1.5;
-  color: var(--ink);
-  max-width: 34ch;
-  opacity: 0;
-  transition: opacity 0.5s ease;
-}
-
-.phase span.on { opacity: 1; }
-
 .art { position: relative; grid-column: 2; height: 100%; }
 
 /* The object and its planting share one box, tied to the plate's own
@@ -219,6 +198,14 @@ body {
   margin-top: clamp(28px, 4vh, 52px);
   font-size: clamp(14px, 1.05vw, 18px);
 }
+
+.two a, .packCall a {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid var(--bee);
+  padding-bottom: 1px;
+}
+.two a:hover, .packCall a:hover { color: var(--bee); }
 
 .two p { margin: 0 0 1em; max-width: 48ch; }
 .two p:last-child { margin-bottom: 0; }
@@ -730,22 +717,29 @@ figcaption b { color: var(--ink); font-weight: 400; }
 
 .builder iframe { display: block; width: 100%; height: 100%; border: 0; }
 
-.afterBuilder {
+.packCall {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  gap: clamp(14px, 2vw, 28px);
+  justify-content: space-between;
+  gap: clamp(18px, 3vw, 48px);
   flex-wrap: wrap;
-  margin-top: 16px;
+  margin-top: clamp(30px, 4.5vh, 58px);
+  padding-top: clamp(20px, 3vh, 34px);
+  border-top: 1px solid var(--rule);
 }
 
-.afterBuilder p {
-  margin: 0;
-  max-width: 46ch;
-  text-align: right;
-  font-size: clamp(12px, 0.9vw, 14px);
+.packCall p { margin: 0; max-width: 44ch; font-size: clamp(13px, 1vw, 16px); }
+.packCall p + p { margin-top: 6px; color: var(--soft); }
+
+.packFor {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
   color: var(--soft);
 }
+
+.packFor b { color: var(--ink); font-weight: 400; letter-spacing: 0.1em; }
 
 .pill {
   padding: 11px 22px;
@@ -791,7 +785,6 @@ figcaption b { color: var(--ink); font-weight: 400; }
   .art { grid-column: 1; grid-row: 2; }
   .copy h1 { font-size: clamp(30px, 8.6cqi, 54px); }
   .copy .sub { display: none; }
-  .phase { margin-top: 1em; min-height: 5.4em; }
   /* Held off centre here too. Centred, the object sat like a specimen on a
      card; pushed right it keeps the asymmetry the wide layout is built on and
      leaves a clear left margin for the bees to come up. */
@@ -812,12 +805,6 @@ figcaption b { color: var(--ink); font-weight: 400; }
       <div class="copy" id="copy">
         <h1>Bee Home is an open invitation to give bees the home they deserve.</h1>
         <p class="sub">Design it here. Download the files for free. Have it made near you.</p>
-        <div class="phase" id="phase">
-          <span>Storey by storey. Every combination the builder offers is one that can be
-            cut and stacked.</span>
-          <span>Native wildflowers, within about 300 metres of where it hangs.</span>
-          <span>She finds it herself. Nobody has to put a bee in it.</span>
-        </div>
       </div>
       <div class="art">
         <div class="ground" id="ground">
@@ -843,22 +830,31 @@ figcaption b { color: var(--ink); font-weight: 400; }
     <div class="builder">
       <iframe id="builderFrame" src="../../viewer/" title="Bee Home builder" loading="lazy"></iframe>
     </div>
-    <div class="afterBuilder">
-      <p>Drawings, cut list and the notes a makerspace asks for &#8212; two A4 pages
-        of whatever you have just designed.</p>
-      <button id="getPack" class="pill">Get the build pack</button>
-    </div>
   </section>
 
   <section class="band">
     <h2 class="lede">Download the design files for free and share them with a makerspace.</h2>
     <div class="two">
-      <p>We'll help you find a local space, and they'll help you create your Bee Home. Most
-        makerspaces have computer-controlled tools, including a CNC milling machine, which is
-        what you'll need to fabricate it.</p>
-      <p>A makerspace is an open workshop with access to a variety of fabrication tools. Think
-        of a gym, but for makers, where you either have a membership or pay per visit. You
-        also get a two-page spec sheet: cut list, elevations and the assembly order.</p>
+      <p>A makerspace is an open workshop with access to a variety of fabrication tools.
+        Think of a gym, but for makers, where you either have a membership or pay per
+        visit. Most have a CNC milling machine, which is what cuts the storeys.</p>
+      <p>Search for <b>makerspace</b>, <b>fab lab</b> or <b>hackspace</b> and your city.
+        Most will quote from the files without you joining first.
+        <a href="https://www.google.com/maps/search/makerspace+near+me" target="_blank"
+           rel="noopener noreferrer">Find one near you</a>.</p>
+    </div>
+
+    <!-- The pack sits here, in the section about having it made, and names the
+         design it belongs to. Hung off the builder it read as a second export
+         button; the thing it produces is only useful once you have decided to
+         take it to somebody. -->
+    <div class="packCall">
+      <div>
+        <p class="packFor">Your design <b id="packId">&#8212;</b></p>
+        <p>Elevations, a cut list with the timber you chose, and the assembly order.
+          Two A4 pages to hand over or email ahead.</p>
+      </div>
+      <button id="getPack" class="pill">Get the build pack</button>
     </div>
     <figure class="plate full">
       <img src="../assets/final-scenes/web/makerspace-build.jpg"
@@ -1052,7 +1048,6 @@ figcaption b { color: var(--ink); font-weight: 400; }
   var groundEl = document.getElementById('ground');
   var copyEl = document.getElementById('copy');
   var frames = [].slice.call(document.querySelectorAll('.model img'));
-  var phases = [].slice.call(document.querySelectorAll('#phase span'));
   var cue = document.getElementById('cue');
 
   /* Deterministic noise: the garden must look the same on every load and on
@@ -1586,8 +1581,6 @@ figcaption b { color: var(--ink); font-weight: 400; }
     });
 
     cue.style.opacity = String(1 - seg(p, 0.01, 0.09));
-    var on = p < GARDEN[0] ? 0 : p < FLY[0] ? 1 : 2;
-    phases.forEach(function (el, i) { el.classList.toggle('on', i === on); });
   }
 
 
@@ -1645,6 +1638,10 @@ figcaption b { color: var(--ink); font-weight: 400; }
 
     addEventListener('message', function (event) {
       var data = event.data;
+      if (data && data.type === 'beehome:id') {
+        document.getElementById('packId').textContent = data.id;
+        return;
+      }
       if (!data || data.type !== 'beehome:buildpack') return;
       packHtml = data.html;
       packFile = data.name || 'bee-home-build-pack.html';
@@ -2052,7 +2049,6 @@ figcaption b { color: var(--ink); font-weight: 400; }
     plants.forEach(function (group) { group.forEach(function (el) { draw(el, 1); }); });
     flights.forEach(function (f) { draw(f.el, 1); });
     frames.forEach(function (img) { img.style.opacity = img.dataset.n === '4' ? '1' : '0'; });
-    phases[0].classList.add('on');
     mounts.forEach(function (m) { var u = m.querySelector('img.uv'); if (u) u.style.opacity = '0'; });
   } else {
     addEventListener('scroll', onScroll, { passive: true });
