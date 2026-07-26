@@ -67,6 +67,92 @@ def true_bounds(brep):
     return points.min(axis=0), points.max(axis=0)
 
 
+def orient_consistently(positions, normals):
+    """Rewind a closed mesh so every face points out of the solid.
+
+    Faces cannot be oriented from the plane they lie in, because a plane group
+    holds faces pointing *both* ways: plane_key flips normals into a canonical
+    hemisphere so that coplanar edges collect together, which is what makes the
+    loop walk work, but it also puts the outer skin at y = -80 and an interior
+    partition at the same y into one group. Winding the whole group to one
+    representative normal therefore leaves every face of the opposite sense
+    backwards, and a backwards face is culled -- you look straight through the
+    part into its own cavities. The storeys with the most internal partitions,
+    O and P, were the worst.
+
+    Topology settles it without reference to any normal. In a closed surface
+    each edge is shared by exactly two triangles, and they agree only if they
+    traverse it in opposite directions. So walk the adjacency graph, flip any
+    neighbour that disagrees, and every connected shell comes out internally
+    consistent. Whether a shell then faces out or in is one bit, and the signed
+    volume gives it: negative means inside-out, so flip the shell.
+    """
+    tris = np.asarray(positions, dtype=float).reshape(-1, 3, 3)
+
+    # Weld by position so triangles that meet actually share vertex ids.
+    ids, lookup = [], {}
+    for tri in tris:
+        for point in tri:
+            key = (round(point[0], 4), round(point[1], 4), round(point[2], 4))
+            ids.append(lookup.setdefault(key, len(lookup)))
+    faces = np.array(ids).reshape(-1, 3)
+
+    edge_faces = defaultdict(list)
+    for f, (a, b, c) in enumerate(faces):
+        for u, v in ((a, b), (b, c), (c, a)):
+            edge_faces[frozenset((u, v))].append(f)
+
+    flipped = np.zeros(len(faces), dtype=bool)
+    seen = np.zeros(len(faces), dtype=bool)
+    shells = []
+
+    def directed(f):
+        a, b, c = faces[f]
+        return [(c, b), (b, a), (a, c)] if flipped[f] else [(a, b), (b, c), (c, a)]
+
+    for start in range(len(faces)):
+        if seen[start]:
+            continue
+        seen[start] = True
+        shell, stack = [start], [start]
+        while stack:
+            f = stack.pop()
+            for u, v in directed(f):
+                for g in edge_faces[frozenset((u, v))]:
+                    if g == f or seen[g]:
+                        continue
+                    # Agreement means the neighbour walks this edge the other
+                    # way round; matching direction means it is inside out.
+                    if (u, v) in directed(g):
+                        flipped[g] = True
+                    seen[g] = True
+                    shell.append(g)
+                    stack.append(g)
+        shells.append(shell)
+
+    out_positions, out_normals = [], []
+    for shell in shells:
+        corners = np.array([
+            tris[f][::-1] if flipped[f] else tris[f] for f in shell
+        ])
+        # Signed volume by the divergence theorem: sum of a . (b x c) / 6.
+        volume = float(np.einsum(
+            'ij,ij->i',
+            corners[:, 0],
+            np.cross(corners[:, 1], corners[:, 2]),
+        ).sum()) / 6.0
+        if volume < 0:
+            corners = corners[:, ::-1]
+        for tri in corners:
+            face_normal = np.cross(tri[1] - tri[0], tri[2] - tri[0])
+            length = np.linalg.norm(face_normal)
+            face_normal = face_normal / length if length > 1e-12 else np.zeros(3)
+            for point in tri:
+                out_positions.extend(float(x) for x in point)
+                out_normals.extend(float(x) for x in face_normal)
+    return out_positions, out_normals
+
+
 def basis_for(normal):
     """An orthonormal 2D basis for a plane with the given normal."""
     n = normal / np.linalg.norm(normal)
@@ -317,7 +403,10 @@ def mesh_brep(brep):
             for p in pts3:
                 positions.extend([float(p[0]), float(p[1]), float(p[2])])
                 normals.extend([float(outward[0]), float(outward[1]), float(outward[2])])
-    return positions, normals
+
+    # The per-plane winding above is only a first guess -- see
+    # orient_consistently, which settles it from the topology.
+    return orient_consistently(positions, normals)
 
 
 # --- glTF writing -----------------------------------------------------------
