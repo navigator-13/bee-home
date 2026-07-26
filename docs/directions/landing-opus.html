@@ -311,87 +311,102 @@ figcaption b { color: var(--ink); font-weight: 400; }
 .faq code { font-family: var(--mono); font-size: 0.86em; }
 
 
-/* ---- the herbarium ----
-   Pressed specimens on mounts. In "her eyes" the plate inverts to ink, the
-   line work goes bone, and the nectar guides come up in the bee's periwinkle
-   -- the one colour the page keeps for the bees. */
+/* ---- the drift ----
+   Pressed plates fall across the section at their own scale and angle, the way
+   they do when a folder is tipped out. Absolutely placed rather than gridded,
+   because a grid turns specimens into a catalogue and this section is about
+   what a bee is flying through. */
 
-.regionBar {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 20px;
-  flex-wrap: wrap;
+.drift {
+  position: relative;
+  padding: clamp(50px, 8vh, 110px) 0 clamp(60px, 9vh, 120px);
+  overflow: hidden;
+  /* Labels hang below their plates, so the field needs room under it before
+     the note starts or the two collide. */
+  --drop: clamp(60px, 9vh, 110px);
 }
 
-.visionNote {
-  margin: 14px 0 0;
-  font-size: clamp(13px, 1vw, 16px);
-  color: var(--soft);
-  max-width: 52ch;
+.driftField {
+  position: relative;
+  height: clamp(480px, 74vh, 760px);
+  margin-bottom: var(--drop);
 }
 
-.herbarium {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr));
-  gap: clamp(14px, 1.8vw, 30px);
-  margin-top: clamp(24px, 3.4vh, 44px);
-}
+.driftFlight { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 2;
+               pointer-events: none; }
+.driftFlight path { fill: none; stroke: var(--bee); stroke-width: 2.2;
+                    stroke-linecap: round; vector-effect: non-scaling-stroke; }
 
 .mount {
-  border: 1px solid var(--rule);
-  background: var(--paper);
-  padding: 10px 10px 0;
-  transition: background 0.5s ease, border-color 0.5s ease;
+  position: absolute;
+  width: var(--w);
+  transform: rotate(var(--tilt));
+  transform-origin: 50% 60%;
 }
 
 .mount .plate { position: relative; aspect-ratio: 2 / 3; }
-.mount .plate svg { display: block; width: 100%; height: 100%; }
 
-/* The photographs: as-you-see-it under, as-she-sees-it over, cross-faded by
-   scroll. */
 .mount .ph {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: contain;
+  /* The specimen sits on the page, not on a card: a soft drop shadow is all
+     that separates a pressed plate from bone paper. */
+  filter: drop-shadow(0 6px 14px rgba(42, 41, 32, 0.14));
 }
 
 .mount .ph.uv { opacity: 0; }
 
+.mount .plate svg { display: block; width: 100%; height: 100%; }
 .mount .ln { transition: stroke 0.5s ease; }
-.mount .uv { opacity: 0; stroke: var(--bee); stroke-width: 2;
-             transition: opacity 0.5s ease; }
+.mount .uv { opacity: 0; stroke: var(--bee); stroke-width: 2; }
 
 .mountLabel {
-  border-top: 1px solid var(--rule);
-  padding: 8px 2px 10px;
-  transition: border-color 0.5s ease;
-}
-
-.mountLabel b { display: block; font-weight: 400; font-size: 14px; }
-.mountLabel i {
-  display: block;
-  font-size: 11.5px;
-  color: var(--soft);
+  margin-top: 8px;
+  padding-left: 1px;
+  transform-origin: 0 0;
   transition: color 0.5s ease;
 }
 
-/* Her eyes: the plate flips, one mount at a time as it scrolls past. */
-.mount.bee { background: var(--ink); border-color: var(--ink); }
-.mount.bee .ln { stroke: var(--paper); }
-.mount.bee .ln.leaf { fill: var(--ink); }
-.mount.bee .uv { opacity: 1; }
-.mount.bee .mountLabel { border-color: #4a4940; }
-.mount.bee .mountLabel b { color: var(--paper); }
-.mount.bee .mountLabel i { color: #8d8c81; }
+.mountLabel b {
+  display: block;
+  font-weight: 400;
+  font-size: clamp(11px, 0.85vw, 13px);
+  letter-spacing: 0.01em;
+}
 
+.mountLabel i {
+  display: block;
+  font-style: italic;
+  font-size: clamp(10px, 0.75vw, 11.5px);
+  color: var(--soft);
+}
+
+/* The honest note: species with no documented ultraviolet pattern say so,
+   and only once the plate has turned. */
+.mountLabel u {
+  display: block;
+  margin-top: 3px;
+  font-family: var(--mono);
+  font-size: 8.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: #a8a79c;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.mount.bee .mountLabel u { opacity: 1; }
+
+/* The aside under the drift: who comes, what they work, what to sow. */
 .regionAside {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
   gap: clamp(20px, 2.6vw, 46px);
-  margin-top: clamp(26px, 3.6vh, 48px);
+  margin-top: clamp(20px, 3vh, 36px);
 }
 
 .regionAside section { border-top: 1px solid var(--rule); padding-top: 14px; }
@@ -408,8 +423,32 @@ figcaption b { color: var(--ink); font-weight: 400; }
 
 .regionAside ul { margin: 0; padding: 0; list-style: none;
                   font-size: clamp(14px, 1vw, 16px); }
-.regionAside li { margin-bottom: 7px; line-height: 1.4; }
-.regionAside li i { display: block; font-style: normal; font-size: 0.8em; color: var(--soft); }
+.regionAside li { margin-bottom: 8px; line-height: 1.35; }
+.regionAside li i { display: block; font-style: italic; font-size: 0.82em;
+                    color: var(--soft); }
+
+.driftNote {
+  max-width: 62ch;
+  margin: clamp(28px, 4vh, 52px) auto 0;
+  padding: 0 clamp(22px, 4vw, 76px);
+  font-size: clamp(13px, 0.95vw, 16px);
+  line-height: 1.6;
+  color: var(--soft);
+}
+
+.eyesNote {
+  transition: color 0.4s ease;
+  align-self: flex-end;
+}
+
+.seedNote { text-transform: none; letter-spacing: 0.03em; line-height: 1.7; }
+
+@media (max-width: 760px) {
+  .driftField { height: auto; display: grid; grid-template-columns: 1fr 1fr;
+                gap: clamp(16px, 4vw, 28px); }
+  .mount { position: static; width: auto; transform: none; }
+  .driftFlight { display: none; }
+}
 
 /* ---- where you are ---- */
 
@@ -692,19 +731,38 @@ figcaption b { color: var(--ink); font-weight: 400; }
           <label class="label" for="regionPick">Where are you?</label>
           <select id="regionPick"></select>
         </div>
+        <p class="label eyesNote" id="eyesNote">Your eyes</p>
       </div>
-      <p class="visionNote">Keep scrolling. Bees see ultraviolet &#8212; many flowers
-        print landing guides in it. Invisible to you, signage to her.</p>
+    </div>
+  </section>
 
-      <!-- The herbarium: each plant pressed onto its own mount, grown by the
-           same L-system that draws the hero garden. -->
-      <div class="herbarium" id="herbarium"></div>
+  <!-- The herbarium. Not a grid: pressed plates fall across the section at
+       their own scale and angle, the way they do when a folder is tipped out.
+       Scrolling carries the whole field from human sight into bee sight, one
+       plate a beat behind the last, and bee lines thread between them. -->
+</div>
 
-      <div class="regionAside">
-        <section><h3>Who comes</h3><ul id="regionBees"></ul></section>
-        <section><h3>What they work</h3><ul id="regionCrops"></ul></section>
-        <section><h3>Seed</h3><p class="label" id="regionSeed" style="text-transform:none;letter-spacing:0.04em"></p></section>
-      </div>
+<section class="drift" id="drift" aria-label="Wildflowers for your region">
+    <svg class="driftFlight" id="driftFlight" aria-hidden="true"></svg>
+    <div class="pad">
+    <div class="driftField" id="herbarium"></div>
+    <p class="driftNote">
+      Bees see ultraviolet, and many flowers print landing guides in it. These
+      plates are bee-vision simulations, mapping the bee's ultraviolet, blue and
+      green receptors onto blue, green and red so a human screen can show them
+      &#8212; a legend, not what she sees. Where no ultraviolet pattern is
+      documented for a species we have left it plain rather than invent one.
+    </p>
+  </div>
+</section>
+
+<div class="pad">
+  <section class="band" id="who">
+    <p class="label">Who comes</p>
+    <div class="regionAside">
+      <section><h3>Cavity nesters recorded near you</h3><ul id="regionBees"></ul></section>
+      <section><h3>What they work locally</h3><ul id="regionCrops"></ul></section>
+      <section><h3>Seed</h3><p class="label seedNote" id="regionSeed"></p></section>
     </div>
   </section>
 
@@ -1481,59 +1539,77 @@ figcaption b { color: var(--ink); font-weight: 400; }
     return h >>> 0;
   }
 
-  /* One pressed specimen. The real thing is a pair of photographs dropped in
-     assets/pressed/ -- <slug>-rgb.png as you see it, <slug>-uv.png as she
-     does -- cross-faded by scroll. Until an image lands, the mount falls back
-     to the drawn plant so the section never renders holes. The brief for the
-     photographs is docs/ASSET-BRIEF.md. */
+  /* Which species have a documented ultraviolet pattern, from
+     docs/assets/RESEARCH.md. Seventeen of twenty-three do not, and the page
+     says so rather than implying every flower carries a bullseye. */
+  var UV_DOCUMENTED = {
+    'lotus-corniculatus': 'Banner and keel differ in UV',
+    'achillea-millefolium': 'Heads read UV-dark',
+    'papaver-rhoeas': 'UV-reflecting, Central European form',
+    'daucus-carota': 'Umbel reflects no UV',
+    'thymus-vulgaris': 'Weak, even petal reflectance',
+    'eschscholzia-californica': 'UV-dark petals, brighter anthers',
+  };
+
   function slug(latin) {
     return latin.toLowerCase().replace(/[^a-z -]/g, '').replace(/ +/g, '-');
   }
+
+  /* Where each plate falls. Hand-placed rather than rolled: a drift wants to
+     look scattered and be composed, which random placement never manages --
+     it clumps, and it collides. Values are fractions of the field. */
+  var DRIFT = [
+    { x: 0.015, y: 0.30, w: 0.19, tilt: -8 },
+    { x: 0.215, y: 0.03, w: 0.24, tilt: 4 },
+    { x: 0.455, y: 0.36, w: 0.21, tilt: -3 },
+    { x: 0.665, y: 0.05, w: 0.17, tilt: 7 },
+    { x: 0.825, y: 0.40, w: 0.20, tilt: -5 },
+    { x: 0.34, y: 0.62, w: 0.16, tilt: 9 },
+  ];
 
   function drawnFallback(mount, name, formIndex) {
     var form = FORMS[name] || FALLBACK[formIndex % FALLBACK.length];
     var rand = rng(hash(name));
     var plant = grow(SPECIES[form], 100, 288, 1.12, rand);
-
     var svg = document.createElementNS(NS, 'svg');
     svg.setAttribute('viewBox', '0 0 200 300');
     svg.setAttribute('aria-hidden', 'true');
     plant.stems.forEach(function (d) { path(svg, 'ln stem', d); });
     plant.leaves.forEach(function (d) { path(svg, 'ln leaf', d); });
     plant.heads.forEach(function (d) { path(svg, 'ln head', d); });
-    plant.anchors.forEach(function (a) {
-      if (a.kind === 'bell') {
-        path(svg, 'ln uv', dot(a.x, a.y, 3.4));
-      } else {
-        path(svg, 'ln uv', dot(a.x, a.y, form === 'umbel' ? 15 : 11));
-        for (var t = 0; t < 4; t++) {
-          var th = (t * 90 + 45) * Math.PI / 180;
-          var r0 = form === 'umbel' ? 22 : 18, r1 = r0 - 7;
-          path(svg, 'ln uv', 'M' + fmt(a.x + Math.cos(th) * r0) + ' ' + fmt(a.y + Math.sin(th) * r0)
-            + 'L' + fmt(a.x + Math.cos(th) * r1) + ' ' + fmt(a.y + Math.sin(th) * r1));
-        }
-      }
-    });
-    mount.classList.add('drawn');
     mount.querySelector('.plate').appendChild(svg);
   }
 
-  function specimen(name, latin, formIndex) {
+  function specimen(name, latin, formIndex, place) {
     var mount = document.createElement('figure');
     mount.className = 'mount';
+    mount.style.left = (place.x * 100) + '%';
+    mount.style.top = (place.y * 100) + '%';
+    mount.style.setProperty('--w', (place.w * 100) + '%');
+    mount.style.setProperty('--tilt', place.tilt + 'deg');
+
     var plate = document.createElement('div');
     plate.className = 'plate';
     mount.appendChild(plate);
 
+    // Published as one file, the plates ride along inlined; served from the
+    // repo they are ordinary files next door.
     var s = slug(latin);
+    var inlined = window.__PRESSED__ || null;
+    var srcFor = function (kind) {
+      var key = s + '-' + kind;
+      return inlined && inlined[key] ? inlined[key] : '../assets/pressed/' + key + '.png';
+    };
     var rgb = document.createElement('img');
     rgb.className = 'ph rgb';
+    rgb.loading = 'lazy';
     rgb.alt = name + ', pressed';
-    rgb.src = '../assets/pressed/' + s + '-rgb.png';
+    rgb.src = srcFor('rgb');
     var uv = document.createElement('img');
     uv.className = 'ph uv';
+    uv.loading = 'lazy';
     uv.alt = '';
-    uv.src = '../assets/pressed/' + s + '-uv.png';
+    uv.src = srcFor('uv');
     rgb.addEventListener('error', function () {
       rgb.remove(); uv.remove();
       drawnFallback(mount, name, formIndex);
@@ -1543,31 +1619,87 @@ figcaption b { color: var(--ink); font-weight: 400; }
 
     var label = document.createElement('figcaption');
     label.className = 'mountLabel';
-    label.innerHTML = '<b>' + name + '</b><i>' + latin + '</i>';
+    // Held level. Tilting the specimen is the drift; tilting its name with it
+    // is just crooked type.
+    label.style.transform = 'rotate(' + (-place.tilt) + 'deg)';
+    label.innerHTML = '<b>' + name + '</b><i>' + latin + '</i>'
+      + '<u>' + (UV_DOCUMENTED[s] || 'No UV pattern documented') + '</u>';
     mount.appendChild(label);
     return mount;
   }
 
-  /* The ultraviolet arrives on scroll: as a mount crosses the lower third of
-     the window it flips from your eyes to hers, each a beat after the last. */
+  /* The field crosses from human sight to bee sight as it scrolls, one plate
+     a beat behind the last, so the change sweeps across the drift instead of
+     snapping over all of it at once. */
   var mounts = [];
+  var driftField = document.getElementById('herbarium');
+  var driftFlight = document.getElementById('driftFlight');
+  var eyesNote = document.getElementById('eyesNote');
 
   function updateHerbarium() {
+    if (!driftField) return;
+    var r = driftField.getBoundingClientRect();
     var vh = innerHeight;
+    // 0 as the field arrives, 1 once it is well up the screen.
+    var p = Math.max(0, Math.min(1, (vh * 0.85 - r.top) / (vh * 0.75)));
+    var beeCount = 0;
     mounts.forEach(function (mount, i) {
-      var r = mount.getBoundingClientRect();
-      if (r.bottom < 0 || r.top > vh) return;
-      var u = (vh - r.top) / (vh * 0.85);
-      var k = seg(u, 0.62 + i * 0.05, 0.86 + i * 0.05);
-      mount.classList.toggle('bee', k > 0.45);
+      var t = seg(p, 0.12 + (i % DRIFT.length) * 0.055, 0.42 + (i % DRIFT.length) * 0.055);
       var uvImg = mount.querySelector('img.uv');
-      if (uvImg) uvImg.style.opacity = String(k);
+      if (uvImg) uvImg.style.opacity = String(t);
+      var on = t > 0.5;
+      mount.classList.toggle('bee', on);
+      if (on) beeCount++;
+    });
+    if (eyesNote) {
+      var bee = beeCount > mounts.length / 2;
+      eyesNote.textContent = bee ? 'Her eyes' : 'Your eyes';
+      eyesNote.style.color = bee ? 'var(--bee)' : '';
+    }
+    drawDriftFlight(p);
+  }
+
+  /* Bee lines threading between the plates, using the same turn the hero
+     uses. Sparse on purpose: three, so the drift stays a field of flowers
+     with bees in it rather than a diagram of flight paths. */
+  var driftLines = [];
+
+  function buildDriftFlight() {
+    if (!driftFlight || !driftField) return;
+    while (driftFlight.firstChild) driftFlight.removeChild(driftFlight.firstChild);
+    driftLines = [];
+    var W = driftField.clientWidth;
+    var H = driftField.clientHeight;
+    if (!W || !H) return;
+    driftFlight.setAttribute('viewBox', '0 0 ' + Math.round(W) + ' ' + Math.round(H));
+
+    [
+      { from: [-0.06, 0.22], h1: [0.3, 0.05], h2: [0.66, 0.4], to: [1.06, 0.2],
+        loops: [{ at: 0.46, r: 0.05, side: 1 }] },
+      { from: [-0.06, 0.7], h1: [0.26, 0.9], h2: [0.6, 0.5], to: [1.06, 0.72],
+        loops: [{ at: 0.55, r: 0.042, side: -1 }] },
+      { from: [0.2, 1.08], h1: [0.44, 0.72], h2: [0.72, 0.9], to: [1.06, 0.46],
+        loops: [{ at: 0.38, r: 0.038, side: 1 }] },
+    ].forEach(function (f) {
+      var px = function (pt) { return [pt[0] * W, pt[1] * H]; };
+      var d = flightPath(px(f.from), px(f.h1), px(f.h2), px(f.to),
+        { wander: 0.05, loops: f.loops }, W, H, -W);
+      var el = document.createElementNS(NS, 'path');
+      el.setAttribute('d', d);
+      driftFlight.appendChild(el);
+      var len = el.getTotalLength();
+      el.style.strokeDasharray = len;
+      el.style.strokeDashoffset = reduce ? 0 : len;
+      el._len = len;
+      driftLines.push(el);
     });
   }
 
-  addEventListener('scroll', function () {
-    requestAnimationFrame(updateHerbarium);
-  }, { passive: true });
+  function drawDriftFlight(p) {
+    driftLines.forEach(function (el, i) {
+      draw(el, seg(p, 0.3 + i * 0.1, 0.75 + i * 0.1));
+    });
+  }
 
   function rows(list, items) {
     list.innerHTML = items.map(function (item) {
@@ -1580,14 +1712,16 @@ figcaption b { color: var(--ink); font-weight: 400; }
     var r = REGIONS[pick.selectedIndex];
     herbarium.textContent = '';
     mounts = [];
-    r.plants.forEach(function (p, i) {
-      var mount = specimen(p[0], p[1], i);
+    r.plants.forEach(function (plant, i) {
+      var place = DRIFT[i % DRIFT.length];
+      var mount = specimen(plant[0], plant[1], i, place);
       herbarium.appendChild(mount);
       mounts.push(mount);
     });
     rows(beesList, r.bees);
     rows(cropsList, r.crops);
     seedNote.textContent = r.seed;
+    buildDriftFlight();
     updateHerbarium();
   }
 
@@ -1613,9 +1747,16 @@ figcaption b { color: var(--ink); font-weight: 400; }
     flights.forEach(function (f) { draw(f.el, 1); });
     frames.forEach(function (img) { img.style.opacity = img.dataset.n === '4' ? '1' : '0'; });
     phases[0].classList.add('on');
+    mounts.forEach(function (m) { var u = m.querySelector('img.uv'); if (u) u.style.opacity = '0'; });
   } else {
     addEventListener('scroll', onScroll, { passive: true });
-    addEventListener('resize', function () { buildFlights(); frame(); });
+    addEventListener('scroll', function () {
+      requestAnimationFrame(updateHerbarium);
+    }, { passive: true });
+    addEventListener('resize', function () {
+      buildFlights(); frame();
+      buildDriftFlight(); updateHerbarium();
+    });
     frame();
   }
 })();

@@ -30,6 +30,22 @@ html = html.replace(/src="((?:\.\.\/)[^"]+\.(?:png|jpg|webp))"/g, (whole, rel) =
   return `src="data:${mime};base64,${fs.readFileSync(abs).toString('base64')}"`;
 });
 
+// Plates the page requests at runtime rather than naming in its markup: the
+// herbarium picks a species per region and builds the src in script, so the
+// regex above never sees them. They go in as a map the page reads instead.
+const pressed = path.join(repo, 'docs/assets/pressed/web');
+if (fs.existsSync(pressed)) {
+  const plates = {};
+  for (const file of fs.readdirSync(pressed)) {
+    if (!file.endsWith('.webp')) continue;
+    plates[file.replace(/\.webp$/, '')] =
+      `data:image/webp;base64,${fs.readFileSync(path.join(pressed, file)).toString('base64')}`;
+  }
+  html = html.replace('</style>', () =>
+    `</style>\n<script>window.__PRESSED__ = ${JSON.stringify(plates)};</script>`);
+  console.log(`inlined ${Object.keys(plates).length} pressed plates`);
+}
+
 // The builder travels as base64. Raw source in a text/plain script looked
 // fine from disk but did not survive the artifact host re-serialising the
 // page: the payload spilled out as visible text where the builder should
