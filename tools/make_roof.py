@@ -18,7 +18,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from mesh_storeys import write_glb  # noqa: E402
+from mesh_storeys import rhino_to_three, write_glb  # noqa: E402
 
 OUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "viewer", "public", "models")
 
@@ -62,6 +62,8 @@ def box(width, depth, height):
 
 def main():
     positions, normals = box(WIDTH, DEPTH, THICKNESS)
+    positions = rhino_to_three(positions).flatten().tolist()
+    normals = rhino_to_three(normals).flatten().tolist()
     path = os.path.join(OUT_DIR, "roof.glb")
     write_glb(path, positions, normals)
 

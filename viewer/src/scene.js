@@ -72,6 +72,8 @@ export class Stage {
     this.scene.background = new THREE.Color(BACKDROP.timber);
 
     this.camera = new THREE.PerspectiveCamera(35, 1, 0.01, 100);
+    // Source -Y is the entrance face; after the Rhino Z-up -> three.js Y-up
+    // conversion it faces viewer +Z.
     this.camera.position.set(0.42, 0.3, 0.52);
 
     this.controls = new OrbitControls(this.camera, canvas);
