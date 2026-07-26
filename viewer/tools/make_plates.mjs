@@ -21,9 +21,12 @@ const ID = '01400APPM';
 
 fs.mkdirSync(out, { recursive: true });
 
-const browser = await chromium.launch({
-  executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
-});
+// Let Playwright pick its own browser, with an escape hatch for hosts that
+// ship Chromium separately -- this container being one of them.
+const launchOptions = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE
+  ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE }
+  : {};
+const browser = await chromium.launch(launchOptions);
 const page = await browser.newPage({
   viewport: { width: 760, height: 1284 },
   deviceScaleFactor: 1,
