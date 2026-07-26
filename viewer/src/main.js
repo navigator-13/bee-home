@@ -413,6 +413,15 @@ function buildControls() {
 
   el('specSheet').addEventListener('click', openSpecSheet);
 
+  // The drawer starts closed where it would cover the model. Opening it is a
+  // choice; the model never has to share a phone screen by default.
+  el('panelTab').addEventListener('click', () => {
+    document.body.classList.toggle('panelHidden');
+  });
+  if (matchMedia('(max-width: 820px)').matches) {
+    document.body.classList.add('panelHidden');
+  }
+
   // Hover: resting the pointer on a storey lights it and its rail chip.
   let hoverPending = false;
   el('stage').addEventListener('pointermove', (event) => {
