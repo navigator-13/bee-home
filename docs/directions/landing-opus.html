@@ -387,6 +387,7 @@ figcaption b { color: var(--ink); font-weight: 400; }
 
 .faq {
   margin: clamp(28px, 4vh, 52px) 0 0;
+  max-width: 860px;
   border-top: 1px solid var(--rule);
 }
 
@@ -408,6 +409,11 @@ figcaption b { color: var(--ink); font-weight: 400; }
    flat. One box holds both so they cross rather than sitting side by side. */
 .faq .mark {
   position: relative;
+  /* The hero's corner label is also .mark, absolute with top/left offsets.
+     position falls to this rule but the offsets survive it, and a relative
+     box honours them -- every plus sat 64px right and 30px below its row. */
+  top: 0;
+  left: 0;
   width: 13px;
   height: 13px;
   margin-left: auto;
@@ -534,157 +540,6 @@ figcaption b { color: var(--ink); font-weight: 400; }
 }
 
 .mount.bee .mountLabel u { opacity: 1; }
-
-/* The aside under the drift: who comes, what they work, what to sow. */
-.regionAside {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
-  gap: clamp(20px, 2.6vw, 46px);
-  margin-top: clamp(20px, 3vh, 36px);
-}
-
-.regionAside section { border-top: 1px solid var(--rule); padding-top: 14px; }
-
-.regionAside h3 {
-  margin: 0 0 10px;
-  font-family: var(--mono);
-  font-size: 10px;
-  font-weight: 400;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--soft);
-}
-
-.regionAside ul { margin: 0; padding: 0; list-style: none;
-                  font-size: clamp(14px, 1vw, 16px); }
-.regionAside li { margin-bottom: 8px; line-height: 1.35; }
-.regionAside li i { display: block; font-style: italic; font-size: 0.82em;
-                    color: var(--soft); }
-
-.driftNote {
-  max-width: 62ch;
-  margin: clamp(28px, 4vh, 52px) auto 0;
-  padding: 0 clamp(22px, 4vw, 76px);
-  font-size: clamp(13px, 0.95vw, 16px);
-  line-height: 1.6;
-  color: var(--soft);
-}
-
-/* Bees stand in the drift beside the flowers, at the flowers' own scale. Each
-   is the vision toggle; each wobbles when the pointer finds it, so which one
-   you press never matters. */
-.beeMount {
-  position: absolute;
-  width: var(--w);
-  padding: 0;
-  border: 0;
-  background: none;
-  cursor: pointer;
-  transform: rotate(var(--tilt));
-  transform-origin: 55% 60%;
-  z-index: 3;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.beeMount img { display: block; width: 100%; height: auto; }
-
-.beeMount:hover, .beeMount:focus-visible {
-  animation: wiggle 0.5s ease-in-out infinite;
-  outline: none;
-}
-
-@keyframes wiggle {
-  0%, 100% { transform: rotate(calc(var(--tilt) - 7deg)) scale(1.04); }
-  50%      { transform: rotate(calc(var(--tilt) + 8deg)) scale(1.04); }
-}
-
-.beeName {
-  position: absolute;
-  left: 0;
-  top: 100%;
-  margin-top: 8px;
-  display: block;
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  text-align: left;
-  white-space: nowrap;
-  opacity: 0;
-  transition: opacity 0.25s ease;
-}
-
-.beeMount:hover .beeName, .beeMount:focus-visible .beeName { opacity: 1; }
-.beeName b { display: block; font-weight: 400; color: var(--ink); }
-.beeName i { display: block; font-style: italic; text-transform: none;
-             letter-spacing: 0.06em; color: var(--soft); }
-
-/* The explainer, popped when the toggle is first pressed. */
-.eyePop {
-  position: fixed;
-  left: 50%;
-  bottom: 28px;
-  transform: translateX(-50%) translateY(16px);
-  max-width: 42ch;
-  padding: 16px 20px;
-  background: var(--ink);
-  color: var(--paper);
-  border-radius: 4px;
-  font-size: 13px;
-  line-height: 1.55;
-  box-shadow: 0 10px 40px rgba(42, 41, 32, 0.3);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.35s ease, transform 0.35s ease;
-  z-index: 20;
-}
-
-.eyePop.on { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
-.eyePop b { font-weight: 400; color: var(--bee); }
-.eyePop button {
-  margin-left: 10px;
-  border: 0;
-  background: none;
-  color: #a8a79c;
-  font: inherit;
-  cursor: pointer;
-  text-decoration: underline;
-}
-
-.seedNote { text-transform: none; letter-spacing: 0.03em; line-height: 1.7; }
-
-@media (max-width: 760px) {
-  .driftField { height: auto; display: grid; grid-template-columns: 1fr 1fr;
-                gap: clamp(16px, 4vw, 28px); }
-  .mount { position: static; width: auto; transform: none; }
-  .driftFlight { display: none; }
-}
-
-/* ---- where you are ---- */
-
-
-.cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
-  gap: clamp(20px, 2.6vw, 46px);
-  margin-top: clamp(24px, 3.4vh, 44px);
-}
-
-.cards section { border-top: 1px solid var(--rule); padding-top: 16px; }
-.cards h3 {
-  margin: 0 0 12px;
-  font-family: var(--mono);
-  font-size: 10px;
-  font-weight: 400;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--soft);
-}
-
-.cards ul { margin: 0; padding: 0; list-style: none; font-size: clamp(14px, 1.05vw, 17px); }
-.cards li { margin-bottom: 8px; line-height: 1.4; }
-.cards li i { display: block; font-style: normal; font-size: 0.8em; color: var(--soft); }
-#regionSeed { margin-top: clamp(20px, 3vh, 34px); max-width: 60ch; line-height: 1.8; }
 
 /* The builder is the page, not a door to another one. */
 .builder {
@@ -823,8 +678,7 @@ figcaption b { color: var(--ink); font-weight: 400; }
       <h2 class="lede">Download the design files for free and share them with a makerspace.</h2>
       <div class="packCall">
         <p class="packFor">Your design <b id="packId">&#8212;</b></p>
-        <p>Elevations, a cut list with the timber you chose, and the assembly order.
-          Two A4 pages to hand over or email ahead.</p>
+        <p>Elevations, cut list and assembly order &#8212; two A4 pages.</p>
         <button id="getPack" class="pill">Download build pack</button>
       </div>
     </div>
@@ -832,8 +686,8 @@ figcaption b { color: var(--ink); font-weight: 400; }
       <p>A makerspace is an open workshop with access to a variety of fabrication tools.
         Think of a gym, but for makers, where you either have a membership or pay per
         visit. Most have a CNC milling machine, which is what cuts the storeys.</p>
-      <p>Search for <b>makerspace</b>, <b>fab lab</b> or <b>hackspace</b> and your city.
-        Most will quote from the files without you joining first.
+      <p>Search for makerspace, fab lab or hackspace and your city. Most will quote
+        from the files without you joining first.
         <a href="https://www.google.com/maps/search/makerspace+near+me" target="_blank"
            rel="noopener noreferrer">Find one near you</a>.</p>
     </div>
@@ -923,6 +777,7 @@ figcaption b { color: var(--ink); font-weight: 400; }
       &#8212; a legend, not what she sees. Where no ultraviolet pattern is
       documented for a species we have left it plain rather than invent one.
     </p>
+    <p class="regionNote"><span id="regionCrops"></span> <span id="regionSeed"></span></p>
   </div>
 </section>
 
@@ -943,13 +798,6 @@ figcaption b { color: var(--ink); font-weight: 400; }
 </div>
 
 <div class="pad">
-  <section class="band" id="who">
-    <div class="regionAside">
-      <section><h3>What they pollinate near you</h3><ul id="regionCrops"></ul></section>
-      <section><h3>Seed</h3><p class="label seedNote" id="regionSeed"></p></section>
-    </div>
-  </section>
-
   <section class="band" id="about">
     <h2 class="lede">Reviving an open-source project that went offline.</h2>
     <p class="aboutMe">Bee Home was published, used, and then quietly disappeared when
@@ -959,7 +807,7 @@ figcaption b { color: var(--ink); font-weight: 400; }
       it. It is open, so the next person does not have to wait for me either.</p>
     <div class="faq">
       <details>
-        <summary>What is this?<i class="mark"></i></summary>
+        <summary>What is Bee Home?<i class="mark"></i></summary>
         <div>Bee Home was released by SPACE10, IKEA's research lab, on
           <b>20 May 2020</b> &#8212; World Bee Day. A parametric bee hotel anyone
           could configure and have cut locally, free, under CC BY 4.0. SPACE10 closed
@@ -969,7 +817,7 @@ figcaption b { color: var(--ink); font-weight: 400; }
           what is theirs is listed below.</div>
       </details>
       <details>
-        <summary>What is original and what did you rebuild?<i class="mark"></i></summary>
+        <summary>What&#8217;s original and what&#8217;s rebuilt?<i class="mark"></i></summary>
         <div>The storeys are the project's own solids, meshed straight from
           <code>BEEHOME GEOMETRIES.3dm</code>, and the stacking rules are the
           recovered ones. Everything you are looking at around them is new: the
@@ -1014,14 +862,11 @@ figcaption b { color: var(--ink); font-weight: 400; }
   </section>
 
   <p class="foot">
-    Concept pass. The Bee Home is rendered from the project's own geometry &#8212;
-    <code>BEEHOME GEOMETRIES.3dm</code> &#8212; not illustrated. Copy adapted from the
-    original beehome.design, recovered from the Wayback Machine. Plants are grown by a
-    bracketed L-system after Prusinkiewicz &amp; Lindenmayer,
-    <i>The Algorithmic Beauty of Plants</i>.<br />
+    The Bee Home is rendered from the project's own geometry file, not illustrated.
+    Copy adapted from the original beehome.design, recovered from the Wayback
+    Machine.<br />
     Original Bee Home CC BY 4.0 &#8212; SPACE10, Bakken &amp; B&aelig;ck, Tanita Klein.
-    This revival and everything new in it, also CC BY 4.0 &#8212; Ivan, 2026.
-  </p>
+    This revival and everything new in it, also CC BY 4.0 &#8212; Ivan, 2026.</p>
 </div>
 
 <script>
@@ -1939,13 +1784,6 @@ figcaption b { color: var(--ink); font-weight: 400; }
     });
   }
 
-  function rows(list, items) {
-    list.innerHTML = items.map(function (item) {
-      return typeof item === 'string' ? '<li>' + item + '</li>'
-        : '<li>' + item[0] + '<i>' + item[1] + '</i></li>';
-    }).join('');
-  }
-
   /* The bees get their portraits. Fifteen were photographed for this and one
      was being used, on a toggle; a list of latin names is the one place on the
      page where a reader most wants to see the animal. Species with no portrait
@@ -2010,7 +1848,10 @@ figcaption b { color: var(--ink); font-weight: 400; }
       herbarium.appendChild(mount);
       beeMounts.push(mount);
     });
-    rows(cropsList, r.crops);
+    // One breath, not a band: crops as a sentence, seed advice after it.
+    cropsList.textContent = 'The bees here work '
+      + r.crops.slice(0, -1).join(', ').toLowerCase()
+      + ' and ' + r.crops[r.crops.length - 1].toLowerCase() + '.';
     seedNote.textContent = r.seed;
     buildDriftFlight();
     paintVision();
