@@ -67,6 +67,20 @@ def true_bounds(brep):
     return points.min(axis=0), points.max(axis=0)
 
 
+def rhino_to_three(values):
+    """Convert Rhino's Z-up coordinates to three.js' Y-up coordinates.
+
+    The source parts lie flat in Rhino's XY plane and are 30 mm tall on Z.
+    Passing those coordinates through unchanged makes the 160 mm depth stand
+    vertically in three.js. Because the viewer then advances each storey by
+    its 30 mm Z size, adjacent parts overlap by 130 mm and their cavities read
+    as one impossible, merged facade. Keep X, move Z to Y, and flip source Y
+    into viewer Z to preserve a right-handed coordinate system.
+    """
+    array = np.asarray(values, dtype=float).reshape(-1, 3)
+    return array[:, [0, 2, 1]] * np.array([1.0, 1.0, -1.0])
+
+
 def basis_for(normal):
     """An orthonormal 2D basis for a plane with the given normal."""
     n = normal / np.linalg.norm(normal)
@@ -396,8 +410,14 @@ def main():
             pts = np.array(positions).reshape(-1, 3)
             shift = np.array([(lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2, lo[2]])
             pts -= shift
+            pts = rhino_to_three(pts)
+            viewer_normals = rhino_to_three(np.array(normals).reshape(-1, 3))
             name = f"{letter}_{variant}"
-            write_glb(f"{OUT_DIR}/{name}.glb", pts.flatten().tolist(), normals)
+            write_glb(
+                f"{OUT_DIR}/{name}.glb",
+                pts.flatten().tolist(),
+                viewer_normals.flatten().tolist(),
+            )
             index["storeys"].setdefault(letter, {})[variant] = {
                 "file": f"models/{name}.glb",
                 "size_mm": [round(float(hi[i] - lo[i]), 2) for i in range(3)],
@@ -424,7 +444,13 @@ def main():
         positions, normals = mesh_brep(geo)
         pts = np.array(positions).reshape(-1, 3)
         pts -= np.array([(lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2, lo[2]])
-        write_glb(f"{OUT_DIR}/{name}.glb", pts.flatten().tolist(), normals)
+        pts = rhino_to_three(pts)
+        viewer_normals = rhino_to_three(np.array(normals).reshape(-1, 3))
+        write_glb(
+            f"{OUT_DIR}/{name}.glb",
+            pts.flatten().tolist(),
+            viewer_normals.flatten().tolist(),
+        )
         index["guides"].append({
             "name": name, "file": f"models/{name}.glb", "size_mm": [w, d, h],
         })

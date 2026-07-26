@@ -17,13 +17,17 @@ import { fileURLToPath } from 'node:url';
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const out = path.join(repo, 'docs/plates');
 const base = process.env.VIEWER_URL || 'http://127.0.0.1:5173/';
-const ID = '01400APPM';
+// A legal, non-repeating cross-section of the recovered A-P floor catalogue.
+const ID = '01400KACJ';
 
 fs.mkdirSync(out, { recursive: true });
 
-const browser = await chromium.launch({
-  executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
-});
+// Let Playwright select its installed browser, with an escape hatch for hosts
+// that provide Chromium/Chrome separately (CI images and developer machines).
+const launchOptions = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE
+  ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE }
+  : {};
+const browser = await chromium.launch(launchOptions);
 const page = await browser.newPage({
   viewport: { width: 760, height: 1284 },
   deviceScaleFactor: 1,

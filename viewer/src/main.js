@@ -8,7 +8,11 @@ import { DEFAULT_WOOD, WOODS, finishSpec, woodByKey } from './woods.js';
 const state = {
   position: 'standing',
   heightMm: 400,
-  stack: ['A', 'P', 'P', 'M'],
+  // Four different cavity families make the recovered floor system legible at
+  // first load. APPM remains a valid historical example, but repeating P in
+  // the default made the product look like one generic apartment copied four
+  // times instead of the configurable A-P system shown in the archive.
+  stack: ['K', 'A', 'C', 'J'],
   woods: ['birch', 'birch', 'walnut', 'birch'],
   variant: 'a',
   mode: 'timber',
@@ -25,7 +29,7 @@ const el = (id) => document.getElementById(id);
  * Plate mode: the same builder, driven by the URL, used to draw the measured
  * views that go into the downloadable spec sheet.
  *
- *   ?id=01400APPM&plate=iso&explode=70&clean=1
+ *   ?id=01400KACJ&plate=iso&explode=70&clean=1
  *
  * Keeping this in the builder rather than a separate renderer means the
  * drawings in someone's PDF are literally the thing they configured.
