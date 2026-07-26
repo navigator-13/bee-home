@@ -436,9 +436,79 @@ figcaption b { color: var(--ink); font-weight: 400; }
   color: var(--soft);
 }
 
-.eyesNote {
-  transition: color 0.4s ease;
+/* The bee toggle. Click it and the whole drift crosses into bee vision; it
+   wiggles on hover, the way one does before it settles. */
+.eyeSwap {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px 6px 6px;
+  border: 1px solid var(--ink);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  cursor: pointer;
   align-self: flex-end;
+  transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+.eyeBee {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  transform-origin: 60% 60%;
+}
+
+.eyeSwap:hover .eyeBee {
+  animation: wiggle 0.5s ease-in-out infinite;
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(-6deg); }
+  50% { transform: rotate(8deg); }
+}
+
+.eyeSwap[aria-pressed="true"] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+}
+
+.eyeSwap:focus-visible { outline: 2px solid var(--bee); outline-offset: 3px; }
+
+/* The explainer, popped when the toggle is first pressed. */
+.eyePop {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%) translateY(16px);
+  max-width: 42ch;
+  padding: 16px 20px;
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: 4px;
+  font-size: 13px;
+  line-height: 1.55;
+  box-shadow: 0 10px 40px rgba(42, 41, 32, 0.3);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  z-index: 20;
+}
+
+.eyePop.on { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+.eyePop b { font-weight: 400; color: var(--bee); }
+.eyePop button {
+  margin-left: 10px;
+  border: 0;
+  background: none;
+  color: #a8a79c;
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline;
 }
 
 .seedNote { text-transform: none; letter-spacing: 0.03em; line-height: 1.7; }
@@ -731,7 +801,10 @@ figcaption b { color: var(--ink); font-weight: 400; }
           <label class="label" for="regionPick">Where are you?</label>
           <select id="regionPick"></select>
         </div>
-        <p class="label eyesNote" id="eyesNote">Your eyes</p>
+        <button class="eyeSwap" id="eyeSwap" aria-pressed="false">
+          <img src="../assets/bees/web/osmia-bicornis.webp" alt="" class="eyeBee" />
+          <span id="eyeSwapLabel">See in bee vision</span>
+        </button>
       </div>
     </div>
   </section>
@@ -1124,77 +1197,48 @@ figcaption b { color: var(--ink); font-weight: 400; }
    * line, which necessarily crosses itself at the neck. A Catmull-Rom spline
    * through the whole sequence smooths it into one continuous stroke.
    */
-  function flightPath(from, h1, h2, to, shape, W, H, clear) {
-    var loops = shape.loops || [];
-    var wander = shape.wander || 0;
-    var steps = 44;
+  /**
+   * One bee's path, as a smooth line with at most one loop.
+   *
+   * Waypoints are given sparsely in stage fractions; the Catmull-Rom spline
+   * above turns them into a continuous curve, so nothing here is jagged. A
+   * loop is a real loop -- a teardrop the line enters and leaves at the same
+   * point, crossing itself once -- inserted between two waypoints and left to
+   * the spline to smooth. Loops are placed by hand at spread-out spots rather
+   * than rolled, because the old version put every loop where the routes
+   * happened to converge and they piled into one knot.
+   */
+  function smoothFlight(waypoints, loop, W, H) {
     var scale = Math.min(W, H);
-
-    function at(t) {
-      var u = 1 - t;
-      return [
-        u * u * u * from[0] + 3 * u * u * t * h1[0] + 3 * u * t * t * h2[0] + t * t * t * to[0],
-        u * u * u * from[1] + 3 * u * u * t * h1[1] + 3 * u * t * t * h2[1] + t * t * t * to[1],
-      ];
-    }
-    function tangent(t) {
-      var u = 1 - t;
-      var dx = 3 * u * u * (h1[0] - from[0]) + 6 * u * t * (h2[0] - h1[0]) + 3 * t * t * (to[0] - h2[0]);
-      var dy = 3 * u * u * (h1[1] - from[1]) + 6 * u * t * (h2[1] - h1[1]) + 3 * t * t * (to[1] - h2[1]);
-      var len = Math.hypot(dx, dy) || 1;
-      return [dx / len, dy / len];
-    }
-
     var pts = [];
-    for (var i = 0; i <= steps; i++) {
-      var t = i / steps;
-      var p = at(t);
-      // A slow lazy drift along the whole run, flattened while the line is
-      // still crossing the copy so it cannot wander into a headline.
-      if (wander) {
-        var d = tangent(t);
-        var free = Math.max(0, Math.min(1, (p[0] - clear * 0.55) / (W * 0.16)));
-        var push = Math.sin(Math.PI * t) * Math.sin(Math.PI * 1.5 * t)
-          * wander * scale * free;
-        p = [p[0] - d[1] * push, p[1] + d[0] * push];
-      }
-      pts.push(p);
+    for (var i = 0; i < waypoints.length; i++) {
+      var wp = waypoints[i];
+      pts.push([wp[0] * W, wp[1] * H]);
+      if (!loop || loop.after !== i || i >= waypoints.length - 1) continue;
 
-      // Insert a whole turn where one is asked for.
-      for (var k = 0; k < loops.length; k++) {
-        var spec = loops[k];
-        if (t < spec.at || (i > 0 && (i - 1) / steps >= spec.at)) continue;
-        var dir = tangent(t);
-        var r = (spec.r || 0.05) * scale;
-        var side = spec.side || 1;
-        // Centre sits one radius off the track; the turn starts and ends at
-        // the point on the track, so the neck of the loop is a crossing.
-        var cx = p[0] - dir[1] * side * r;
-        var cy = p[1] + dir[0] * side * r;
-        // Entry angle measured in the travel frame, since the turn is an
-        // ellipse aligned to it.
-        var ex = (p[0] - cx) * dir[0] + (p[1] - cy) * dir[1];
-        var ey = -(p[0] - cx) * dir[1] + (p[1] - cy) * dir[0];
-        var a0 = Math.atan2(ey, ex / 1.75);
-        var turns = 18;
-        // Stretched along the direction of travel, not a circle. A bee's
-        // turn is a teardrop: it carries its momentum through the loop, so
-        // the shape is long in the direction it was already going.
-        var along = 1.75;
-        for (var m = 1; m <= turns; m++) {
-          var f = m / turns;
-          var a = a0 + side * 2 * Math.PI * f;
-          // A little outward growth so the turn leaves on a different track
-          // from the one it arrived on, which is what opens the neck.
-          var rr = r * (1 + 0.2 * f);
-          var ox = Math.cos(a) * rr * along;
-          var oy = Math.sin(a) * rr;
-          // Rotate the ellipse into the travel frame.
-          pts.push([
-            cx + dir[0] * ox - dir[1] * oy,
-            cy + dir[1] * ox + dir[0] * oy,
-          ]);
-        }
+      var a = [wp[0] * W, wp[1] * H];
+      var b = [waypoints[i + 1][0] * W, waypoints[i + 1][1] * H];
+      var dl = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
+      var dir = [(b[0] - a[0]) / dl, (b[1] - a[1]) / dl];
+      var side = loop.side || 1;
+      var r = (loop.r || 0.06) * scale;
+      var along = 1.7; // a bee keeps its momentum through the turn: long the way it was going
+
+      // Centre sits one radius off the track, on `side`. The turn starts at
+      // the waypoint, so the neck of the loop is where it crosses itself.
+      var cx = a[0] - dir[1] * side * r;
+      var cy = a[1] + dir[0] * side * r;
+      var vx = (a[0] - cx) * dir[0] + (a[1] - cy) * dir[1];
+      var vy = -(a[0] - cx) * dir[1] + (a[1] - cy) * dir[0];
+      var a0 = Math.atan2(vy, vx / along);
+      var turns = 22;
+      for (var m = 1; m <= turns; m++) {
+        var f = m / turns;
+        var ang = a0 + side * 2 * Math.PI * f;
+        var rr = r * (1 + 0.12 * f); // opens the neck so it leaves on a fresh track
+        var ox = Math.cos(ang) * rr * along;
+        var oy = Math.sin(ang) * rr;
+        pts.push([cx + dir[0] * ox - dir[1] * oy, cy + dir[1] * ox + dir[0] * oy]);
       }
     }
     return spline(pts);
@@ -1215,148 +1259,56 @@ figcaption b { color: var(--ink); font-weight: 400; }
     flightSvg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
     flightFront.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
 
-    // Aim at the near edge of the cavity face, not the middle of the plate:
-    // the model's faces are filled in the page colour and would swallow the
-    // last third of any line that ended behind them.
-    // Land on the bore face, and on a different storey each time. Aimed at the
-    // silhouette edge instead, the lines stopped beside the object rather than
-    // at it -- they never found the home.
-    // Bores on both visible faces. The near face is the left one in this
-    // plate; the right face carries the channel reveals and takes arrivals
-    // too, because a real Bee Home is drilled on more than one side.
-    var HOMES = [
-      [0.23, 0.28], [0.34, 0.34], [0.18, 0.44],
-      [0.62, 0.31], [0.70, 0.38], [0.58, 0.46],
-      [0.30, 0.52],
-    ];
+    // The bores, as fractions of the model box; converted to stage fractions
+    // so the whole path can be authored in one coordinate system.
+    var HOMES = [[0.16, 0.30], [0.30, 0.24], [0.20, 0.44], [0.62, 0.33], [0.72, 0.42]];
     function home(i) {
       var f = HOMES[i % HOMES.length];
-      return [m.left + m.width * f[0] - s.left, m.top + m.height * f[1] - s.top];
+      return [(m.left + m.width * f[0] - s.left) / W, (m.top + m.height * f[1] - s.top) / H];
     }
-    var tx = home(0)[0];
-    var ty = home(0)[1];
 
-    // Sweeps run above the headline or below it and only turn towards the
-    // object once they are clear of the text, so a line never cuts a word in
-    // half on the way past.
+    // On one column the headline sits over the object and there is far less
+    // room, so a smaller, simpler set is used.
     var c = copyEl.getBoundingClientRect();
-
-    // On one column the headline sits above the object, so there is no free
-    // band to its left to fly through and every line uses the space below it.
     var stacked = c.right > m.left;
-    var lane = [Math.max(H * 0.05, c.top - s.top - H * 0.06),
-      c.bottom - s.top + H * 0.04, H * 0.78];
-    var clear = stacked ? W * 0.3 : Math.max(c.right - s.left + W * 0.03, W * 0.4);
-    var r2 = rng(7);
 
-    // This is their home: nearly every bee lands on it. Seven arrive at the
-    // bore face, each on its own hole, and two pass through -- traffic, not
-    // decoration.
-    //
-    // Bees do not all arrive from the same side, so the lines enter off every
-    // edge. Two coordinate systems are in play, and which one a point uses is
-    // what keeps the drawing off the type:
-    //
-    //   'hi' / 'lo'  a fraction of the free band above or below the headline.
-    //                Only these are safe on the left, where the text lives.
-    //   'x' / 'y'    a plain fraction of the stage. Used to the right of the
-    //                copy, where there is nothing to run into.
-    //
-    // Each line is authored rather than rolled, so the sweeps read as
-    // deliberately different rather than as a family of parallel contours.
-    //
-    //     entry edge and position | two handles | exit (null = arrives home)
-    var L = 'l', T = 't', R = 'r';
-    // An arriving line carries its own final approach: the last control point
-    // is an offset from the bore it lands on, so the line turns and settles
-    // onto the face instead of ruling itself across the whole object. That is
-    // the difference between traffic and tangle.
-    // Shape, not just destination. A bee does not fly a bezier: it sweeps,
-    // circles, overshoots and comes back. `arc` is how far the line bulges
-    // off the straight run, `loop` how many turns it takes on the way, and
-    // `behind` sends it round the far side of the object -- cut by the plate
-    // for the whole of its passage, so it reappears having gone around.
-    //
-    //  entry | handle | exit or null | approach offset | shape
-    var LINES = [
-      // The one that stays a clean sweep, for contrast.
-      [L, 'hi', 0.12, ['hi', 0.92], null, [-0.16, 0.015], {}],
-      [L, 'hi', 0.74, ['hi', 0.16], [R, 'hi', 0.34], null,
-        { wander: 0.05, loops: [{ at: 0.34, r: 0.038, side: 1 }] }],
-      [L, 'lo', 0.26, ['lo', 0.9], null, [-0.13, -0.03],
-        { wander: 0.06, loops: [{ at: 0.46, r: 0.046, side: -1 }] }],
-      [T, 'x', 0.7, ['x', 0.66, 'y', 0.14], null, [-0.05, -0.14],
-        { wander: 0.04, loops: [{ at: 0.58, r: 0.034, side: 1 }] }],
-      [T, 'x', 0.88, ['x', 0.84, 'y', 0.2], [R, 'y', 0.62], null,
-        { wander: 0.05, loops: [{ at: 0.4, r: 0.04, side: -1 }] }],
-      // Round the back: enters left, passes behind the object, lands on the
-      // far face.
-      [L, 'hi', 0.05, ['hi', 0.42], null, [0.26, 0.06],
-        { wander: 0.07, behind: true, loops: [{ at: 0.28, r: 0.05, side: 1 }] }],
-      [L, 'hi', 0.94, ['hi', 0.3], null, [0.22, -0.02],
-        { wander: 0.05, behind: true, loops: [{ at: 0.52, r: 0.042, side: -1 }] }],
+    // Each line is authored: an entry off some edge, a couple of waypoints
+    // that keep it clear of the copy (top band above the headline, or the
+    // strip below it), a loop placed in open space, and a landing on a bore.
+    // The loops sit at (roughly) 0.26/0.14, 0.16/0.70, 0.44/0.74, 0.80/0.15 --
+    // four corners of the frame, never the same spot twice.
+    var WIDE = [
+      { front: true, home: 0, loop: null,
+        wp: [[-0.06, 0.10], [0.30, 0.07], [0.54, 0.15]] },
+      { front: true, home: 1, loop: { after: 1, r: 0.05, side: 1 },
+        wp: [[-0.06, 0.20], [0.26, 0.15], [0.52, 0.22]] },
+      { front: true, home: 2, loop: { after: 1, r: 0.055, side: -1 },
+        wp: [[-0.06, 0.73], [0.16, 0.74], [0.42, 0.70], [0.58, 0.52]] },
+      { front: true, home: 3, loop: { after: 1, r: 0.045, side: 1 },
+        wp: [[0.30, 1.06], [0.44, 0.74], [0.58, 0.55]] },
+      { front: false, home: 4, loop: { after: 1, r: 0.05, side: -1 },
+        wp: [[0.94, -0.06], [0.80, 0.15], [0.66, 0.30]] },
     ];
 
-    // Stacked, the object fills most of the width, the headline owns the top
-    // of the screen and there is far less room to move in. Five lines read as
-    // intent there; seven read as a scribble.
-    var NARROW = [0, 1, 2, 3, 5];
+    // Narrow: come up the left margin and under the copy, no top-band routes.
+    var NARROW = [
+      { front: true, home: 0, loop: { after: 1, r: 0.05, side: 1 },
+        wp: [[-0.06, 0.62], [0.22, 0.66], [0.5, 0.5]] },
+      { front: true, home: 2, loop: { after: 1, r: 0.05, side: -1 },
+        wp: [[-0.06, 0.82], [0.28, 0.8], [0.55, 0.6]] },
+      { front: true, home: 3, loop: null,
+        wp: [[0.34, 1.06], [0.5, 0.82], [0.62, 0.62]] },
+    ];
 
-    // Nothing flies below the planting: at ground level the sweeps and the
-    // stems are the same weight and the two just turn into mud.
-    function band(kind, f) {
-      return kind === 'hi' && !stacked ? lane[0] * f : lane[1] + (lane[2] - lane[1]) * f;
-    }
-
-    /** A handle given either in band fractions or in plain stage fractions.
-        Band handles have no x of their own: the first sits early in the run,
-        the second past the far edge of the text. */
-    function handle(h, second) {
-      if (h.length > 2) return [W * h[1], H * h[3]];
-      return [second ? clear + W * r2() * 0.14 : W * (0.1 + r2() * 0.14),
-        band(h[0], h[1])];
-    }
-
-    function enter(edge, kind, f) {
-      if (edge === L) return [-W * 0.07, band(kind, f)];
-      if (edge === R) return [W * 1.07, kind === 'y' ? H * Math.min(f, 0.78) : band(kind, f)];
-      return [W * f, edge === T ? -H * 0.07 : H * 1.07];
-    }
-
-    var arrivals = 0;
-    LINES.filter(function (line, i) { return !stacked || NARROW.indexOf(i) >= 0; })
-      .forEach(function (line) {
-        var come = line[4] === null;
-        var from = enter(line[0], line[1], line[2]);
-        // An arrival's first handle sits past the far edge of the text, so
-        // the line holds its lane the whole way across the copy and only
-        // then turns down to the bore. Dropped earlier, it cut the headline.
-        var h1 = handle(line[3], come);
-        var to;
-        var h2;
-        if (come) {
-          to = home(arrivals++);
-          h2 = [to[0] + W * line[5][0], to[1] + H * line[5][1]];
-        } else {
-          to = enter(line[4][0], line[4][1], line[4][2]);
-          h2 = handle(line[3], true);
-        }
-        // Stacked, the clear runs at the object are the left margin and under
-        // the copy; fan the arrivals so they do not braid into one rope.
-        if (come && stacked) {
-          var n = arrivals - 1;
-          from = [-W * 0.07, H * (0.98 - n * 0.06)];
-          h1 = [W * (0.1 + n * 0.06), H * (0.9 - n * 0.07)];
-          h2 = [to[0] - W * (0.2 - n * 0.03), to[1] + H * (0.1 + n * 0.02)];
-        }
-        var shape = line[6] || {};
-        var layer = shape.behind ? flightSvg : (come ? flightFront : flightSvg);
-        flights.push({
-          come: come,
-          el: path(layer, 'ln ' + (come ? 'come' : 'fly'),
-            flightPath(from, h1, h2, to, shape, W, H, clear)),
-        });
+    (stacked ? NARROW : WIDE).forEach(function (line) {
+      var wp = line.wp.slice();
+      wp.push(home(line.home)); // land on the bore
+      flights.push({
+        come: true,
+        el: path(line.front ? flightFront : flightSvg, 'ln come',
+          smoothFlight(wp, line.loop, W, H)),
       });
+    });
     measure(flights.map(function (f) { return f.el; }));
   }
 
@@ -1634,28 +1586,24 @@ figcaption b { color: var(--ink); font-weight: 400; }
   var mounts = [];
   var driftField = document.getElementById('herbarium');
   var driftFlight = document.getElementById('driftFlight');
-  var eyesNote = document.getElementById('eyesNote');
+  var eyeSwap = document.getElementById('eyeSwap');
+  var eyeSwapLabel = document.getElementById('eyeSwapLabel');
+
+  var beeVision = false;
+
+  function paintVision() {
+    mounts.forEach(function (mount) {
+      var uvImg = mount.querySelector('img.uv');
+      if (uvImg) uvImg.style.opacity = beeVision ? '1' : '0';
+      mount.classList.toggle('bee', beeVision);
+    });
+  }
 
   function updateHerbarium() {
     if (!driftField) return;
     var r = driftField.getBoundingClientRect();
     var vh = innerHeight;
-    // 0 as the field arrives, 1 once it is well up the screen.
     var p = Math.max(0, Math.min(1, (vh * 0.85 - r.top) / (vh * 0.75)));
-    var beeCount = 0;
-    mounts.forEach(function (mount, i) {
-      var t = seg(p, 0.12 + (i % DRIFT.length) * 0.055, 0.42 + (i % DRIFT.length) * 0.055);
-      var uvImg = mount.querySelector('img.uv');
-      if (uvImg) uvImg.style.opacity = String(t);
-      var on = t > 0.5;
-      mount.classList.toggle('bee', on);
-      if (on) beeCount++;
-    });
-    if (eyesNote) {
-      var bee = beeCount > mounts.length / 2;
-      eyesNote.textContent = bee ? 'Her eyes' : 'Your eyes';
-      eyesNote.style.color = bee ? 'var(--bee)' : '';
-    }
     drawDriftFlight(p);
   }
 
@@ -1673,19 +1621,18 @@ figcaption b { color: var(--ink); font-weight: 400; }
     if (!W || !H) return;
     driftFlight.setAttribute('viewBox', '0 0 ' + Math.round(W) + ' ' + Math.round(H));
 
+    // Three lines, each in its own horizontal band so they thread through the
+    // drift rather than knot in the middle. Loops at distinct x, one per line.
     [
-      { from: [-0.06, 0.22], h1: [0.3, 0.05], h2: [0.66, 0.4], to: [1.06, 0.2],
-        loops: [{ at: 0.46, r: 0.05, side: 1 }] },
-      { from: [-0.06, 0.7], h1: [0.26, 0.9], h2: [0.6, 0.5], to: [1.06, 0.72],
-        loops: [{ at: 0.55, r: 0.042, side: -1 }] },
-      { from: [0.2, 1.08], h1: [0.44, 0.72], h2: [0.72, 0.9], to: [1.06, 0.46],
-        loops: [{ at: 0.38, r: 0.038, side: 1 }] },
+      { wp: [[-0.06, 0.16], [0.30, 0.12], [0.7, 0.2], [1.06, 0.14]],
+        loop: { after: 1, r: 0.05, side: 1 } },
+      { wp: [[-0.06, 0.5], [0.28, 0.56], [0.66, 0.46], [1.06, 0.54]],
+        loop: { after: 2, r: 0.042, side: -1 } },
+      { wp: [[-0.06, 0.86], [0.34, 0.8], [0.72, 0.88], [1.06, 0.82]],
+        loop: { after: 1, r: 0.045, side: 1 } },
     ].forEach(function (f) {
-      var px = function (pt) { return [pt[0] * W, pt[1] * H]; };
-      var d = flightPath(px(f.from), px(f.h1), px(f.h2), px(f.to),
-        { wander: 0.05, loops: f.loops }, W, H, -W);
       var el = document.createElementNS(NS, 'path');
-      el.setAttribute('d', d);
+      el.setAttribute('d', smoothFlight(f.wp, f.loop, W, H));
       driftFlight.appendChild(el);
       var len = el.getTotalLength();
       el.style.strokeDasharray = len;
@@ -1693,7 +1640,7 @@ figcaption b { color: var(--ink); font-weight: 400; }
       el._len = len;
       driftLines.push(el);
     });
-  }
+    }
 
   function drawDriftFlight(p) {
     driftLines.forEach(function (el, i) {
@@ -1722,6 +1669,7 @@ figcaption b { color: var(--ink); font-weight: 400; }
     rows(cropsList, r.crops);
     seedNote.textContent = r.seed;
     buildDriftFlight();
+    paintVision();
     updateHerbarium();
   }
 
@@ -1732,6 +1680,35 @@ figcaption b { color: var(--ink); font-weight: 400; }
   });
   pick.addEventListener('change', showRegion);
   showRegion();
+
+  /* Bee vision on demand. The explainer pops the first time only -- after
+     that the toggle speaks for itself and a repeated popover is a nag. */
+  var pop = document.createElement('div');
+  pop.className = 'eyePop';
+  pop.innerHTML = '<b>This is a simulation, not her view.</b> Bees see ultraviolet '
+    + 'and have no red receptor. These plates map her ultraviolet, blue and green '
+    + 'receptors onto blue, green and red so a screen can show them &#8212; a legend. '
+    + 'Where no ultraviolet pattern is documented for a species, we left it plain.'
+    + '<button type="button">Got it</button>';
+  document.body.appendChild(pop);
+  pop.querySelector('button').addEventListener('click', function () {
+    pop.classList.remove('on');
+  });
+  var explained = false;
+
+  if (eyeSwap) {
+    eyeSwap.addEventListener('click', function () {
+      beeVision = !beeVision;
+      eyeSwap.setAttribute('aria-pressed', String(beeVision));
+      eyeSwapLabel.textContent = beeVision ? 'Back to your eyes' : 'See in bee vision';
+      paintVision();
+      if (beeVision && !explained) {
+        explained = true;
+        pop.classList.add('on');
+        setTimeout(function () { pop.classList.remove('on'); }, 9000);
+      }
+    });
+  }
 
   var ticking = false;
   function onScroll() {

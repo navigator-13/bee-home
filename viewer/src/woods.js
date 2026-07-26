@@ -25,7 +25,7 @@ export const WOODS = [
   { key: 'charred', name: 'Charred', tint: '#2b2724', roughness: 0.55, note: 'Yakisugi — burnt surface' },
 ];
 
-export const DEFAULT_WOOD = 'birch';
+export const DEFAULT_WOOD = 'douglas';
 
 export const woodByKey = (key) => WOODS.find((w) => w.key === key) ?? WOODS[0];
 

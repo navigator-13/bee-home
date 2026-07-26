@@ -90,10 +90,14 @@ def orient_consistently(positions, normals):
     tris = np.asarray(positions, dtype=float).reshape(-1, 3, 3)
 
     # Weld by position so triangles that meet actually share vertex ids.
+    # round(3) = 1 micron, far finer than the 5 mm smallest feature, yet loose
+    # enough to weld a tip whose faces each compute the apex slightly
+    # differently. round(4) split the ground spike's point into four separate
+    # vertices, tearing the shell so the walk could not orient it.
     ids, lookup = [], {}
     for tri in tris:
         for point in tri:
-            key = (round(point[0], 4), round(point[1], 4), round(point[2], 4))
+            key = (round(point[0], 3), round(point[1], 3), round(point[2], 3))
             ids.append(lookup.setdefault(key, len(lookup)))
     faces = np.array(ids).reshape(-1, 3)
 

@@ -11,7 +11,7 @@ const state = {
   // above it, which is both how they are usually set and a better first look.
   heightMm: 180,
   stack: ['A', 'P', 'P', 'M'],
-  woods: ['birch', 'birch', 'walnut', 'birch'],
+  woods: ['douglas', 'douglas', 'douglas', 'douglas'],
   variant: 'a',
   mode: 'timber',
   selected: -1,
