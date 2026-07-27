@@ -25,6 +25,11 @@ SRC = ROOT / "viewer/bee-globe-standalone.html"
 OUT = ROOT / "viewer/public/bee-globe.html"
 PAPER = "#e9e9e1"
 
+# Filling the frame rather than floating in it. Mobile keeps the prototype's
+# 80% relationship to desktop.
+DESK_GLOBE, DESK_BEE = ".96", "1.24"
+MOBILE_GLOBE, MOBILE_BEE = ".77", "1.00"
+
 html = SRC.read_text(encoding="utf-8")
 before = len(html)
 
@@ -71,6 +76,18 @@ if hide not in html:
 
 # The prototype's own backdrop colour goes with it.
 html = html.replace("background:#f5f4f0", "background:transparent")
+
+# Scale. The prototype framed its globe against a whole viewport, where 31% of
+# the canvas was right; dropped into a column beside a heading it left the
+# frame mostly empty. setLayout() derives everything from these two values —
+# including the bee's foot contact, l.position.y = globe + 0.1 * bee — so
+# raising them here is the one change that cannot break the rig. Both stay
+# inside the ranges the sliders declare: globe .15-1.00, bee .20-1.45.
+old_scale = "u.value=v?.25:.31,f.value=v?.32:.4"
+new_scale = f"u.value=v?{MOBILE_GLOBE}:{DESK_GLOBE},f.value=v?{MOBILE_BEE}:{DESK_BEE}"
+if old_scale not in html:
+    raise SystemExit("scale initialiser not found — has the prototype changed?")
+html = html.replace(old_scale, new_scale)
 
 OUT.parent.mkdir(parents=True, exist_ok=True)
 OUT.write_text(html, encoding="utf-8")
