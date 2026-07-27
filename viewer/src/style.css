@@ -618,6 +618,7 @@ body.clean .masthead,
 body.clean .rail,
 body.clean .viewToggle,
 body.clean .panelTab,
+body.clean .shuffleOutside,
 body.clean .preview,
 body.clean .readout { display: none; }
 

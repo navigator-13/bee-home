@@ -89,6 +89,16 @@ if old_scale not in html:
     raise SystemExit("scale initialiser not found — has the prototype changed?")
 html = html.replace(old_scale, new_scale)
 
+# The globe is a bee on a world, next to a question about which bees live near
+# you — so pressing it should do what pressing any other bee on this page does.
+# It cannot reach the page itself from inside a frame, so it says so upstairs.
+click = (
+    "<script>addEventListener('click',function(){"
+    "try{parent.postMessage({type:'beehome:globe-click'},'*')}catch(e){}"
+    "});document.documentElement.style.cursor='pointer';</script>"
+)
+html = html.replace("</body>", click + "</body>", 1)
+
 OUT.parent.mkdir(parents=True, exist_ok=True)
 OUT.write_text(html, encoding="utf-8")
 print(f"  {count} textures to webp, {saved // 1024}KB of base64 saved")

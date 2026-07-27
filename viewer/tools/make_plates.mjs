@@ -17,7 +17,10 @@ import { fileURLToPath } from 'node:url';
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const out = path.join(repo, 'docs/plates');
 const base = process.env.VIEWER_URL || 'http://127.0.0.1:5173/';
-const ID = '01400APPM';
+// 280mm of leg. The plates were first drawn when the slider meant total
+// height, so 400 there left 280 under a 120mm stack; the slider is the
+// mounting height now, and 280 is what keeps the hero's proportions.
+const ID = '01280APPM';
 
 fs.mkdirSync(out, { recursive: true });
 

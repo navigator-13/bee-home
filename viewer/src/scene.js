@@ -72,7 +72,7 @@ export class Stage {
     this.scene.background = new THREE.Color(BACKDROP.timber);
 
     this.camera = new THREE.PerspectiveCamera(35, 1, 0.01, 100);
-    this.camera.position.set(0.42, 0.3, 0.52);
+    this.camera.position.set(0.52, 0.3, -0.42);
 
     this.controls = new OrbitControls(this.camera, canvas);
     this.controls.enableDamping = true;
@@ -521,7 +521,9 @@ export class Stage {
         -extent * aspect, extent * aspect, extent, -extent, 0.001, 40,
       );
       if (axis === 'front') {
-        camera.position.set(centre.x, centre.y, centre.z + 2);
+        // -Z, not +Z. The elevation on a drawing sheet is the front elevation,
+        // and the front is the face carrying the cavity openings.
+        camera.position.set(centre.x, centre.y, centre.z - 2);
       } else {
         camera.position.set(centre.x, centre.y + 2, centre.z);
         camera.up.set(0, 0, -1);
@@ -609,11 +611,18 @@ export class Stage {
     const box = new THREE.Box3().setFromObject(this.root);
     if (box.isEmpty()) return;
     const radius = box.getSize(new THREE.Vector3()).length();
+    /* Quarter turn off the axis this used to open on. The storeys carry their
+       cavity openings and stepped reveals on one face and a plain back on the
+       other, and the old default put the plain side and the T-shaped joint
+       cuts to camera -- the object's least designed view was the first one
+       anybody saw. Rotating the azimuth by +90 degrees (x' = z, z' = -x) puts
+       the cavity fronts forward, which is the view the object is designed
+       around. */
     const target = this.controls.target;
     this.camera.position.set(
-      target.x + radius * 0.42 * distanceScale,
+      target.x + radius * 0.5 * distanceScale,
       target.y + radius * 0.3 * distanceScale,
-      target.z + radius * 0.5 * distanceScale,
+      target.z - radius * 0.42 * distanceScale,
     );
     this.controls.update();
   }
