@@ -100,6 +100,31 @@ function selectStorey(index) {
   syncControls();
 }
 
+/**
+ * A random stack, the same way the original site's shuffle worked: legal at
+ * every join, not just legal letters in a random order. Built one storey at a
+ * time from `allowedNext`, which already knows what the rules forbid above
+ * whatever has been placed so far -- there is no separate validity check
+ * afterward because an invalid stack is never reachable in the first place.
+ *
+ * Length is random too, three to seven, which is a taller spread than most
+ * people build by hand and exactly the point: a shuffle is for seeing a
+ * configuration you would not have picked.
+ */
+function shuffleStack() {
+  const target = 3 + Math.floor(Math.random() * 5);
+  const stack = [];
+  while (stack.length < target) {
+    const options = allowedNext(stack, rules);
+    // The rules can paint a stack into a corner with nothing left to add.
+    // Stopping there beats forcing an illegal storey on top just to hit a
+    // length nobody asked for.
+    if (!options.length) break;
+    stack.push(options[Math.floor(Math.random() * options.length)]);
+  }
+  return stack;
+}
+
 /** Total height of the storey stack in millimetres. */
 function stackHeight() {
   return state.stack.reduce(
@@ -397,6 +422,13 @@ function buildControls() {
 
   el('variant').addEventListener('change', async (event) => {
     state.variant = event.target.checked ? 'b' : 'a';
+    await rebuild();
+  });
+
+  el('shuffle').addEventListener('click', async () => {
+    state.stack = shuffleStack();
+    state.selected = -1;
+    syncControls();
     await rebuild();
   });
 

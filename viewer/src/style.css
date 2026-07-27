@@ -176,6 +176,8 @@ body.drawing .panelTab {
 
 .chip:hover { border-color: var(--bone); color: var(--bone); }
 
+.chip svg { display: inline-block; vertical-align: -1px; margin-right: 4px; }
+
 .chip.active {
   background: var(--bone);
   border-color: var(--bone);
