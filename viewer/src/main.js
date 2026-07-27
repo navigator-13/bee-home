@@ -174,6 +174,9 @@ async function rebuild() {
     // height on screen; measured with the roof included, the top chip came out
     // half again as tall as its neighbours and sat on them.
     roofMesh.userData.roof = true;
+    // Its edges too. The drawn views hide the roof to see what is under it,
+    // and a hidden slab whose outline stayed behind is the same square.
+    roofMesh.userData.lines.userData.roof = true;
   }
 
   if (state.position !== 'fixed') {
@@ -225,128 +228,278 @@ async function rebuild() {
 }
 
 /**
- * The build pack, from the browser. Until now the two-page spec sheet only
- * existed as an offline tool (viewer/tools/make_spec_sheet.mjs, driven by
- * Playwright) — upstream of the builder, not part of it. This is the real
- * thing: the live scene is captured to three measured views and laid out as
- * two A4 pages, and the print dialog does the PDF.
+ * The display face, as bytes.
+ *
+ * The pack has to survive being saved and opened somewhere else, so the font
+ * travels inside it. Fetched as a plain relative path: that is the string the
+ * single-file bundle's fetch shim matches on, and in a served build the same
+ * string resolves next to the app. Without it the sheet still prints, in the
+ * system sans.
  */
-function buildPackHtml() {
-  const views = stage.captureViews();
+let displayFontUri = null;
+async function displayFont() {
+  if (displayFontUri !== null) return displayFontUri;
+  try {
+    const res = await fetch('fonts/S10Beehome-Display.woff2');
+    if (!res.ok) throw new Error(String(res.status));
+    const bytes = new Uint8Array(await res.arrayBuffer());
+    let bin = '';
+    for (let i = 0; i < bytes.length; i += 1) bin += String.fromCharCode(bytes[i]);
+    displayFontUri = `data:font/woff2;base64,${btoa(bin)}`;
+  } catch {
+    displayFontUri = '';
+  }
+  return displayFontUri;
+}
+
+const POSITION_LABEL = {
+  standing: 'Standing, on legs',
+  grounded: 'Grounded, on a spike',
+  fixed: 'Wall-fixed',
+};
+
+/**
+ * The build pack, from the browser.
+ *
+ * The two-page sheet began as an offline tool driven by Playwright
+ * (viewer/tools/make_spec_sheet.mjs) — upstream of the builder, and so only
+ * ever as current as the last time somebody ran it. This is that drawing
+ * sheet built from the live scene instead: title block, spec row, measured
+ * views, and a cut list carrying the profile of every board. Laid out for A4
+ * and printed through the browser's own dialog.
+ */
+async function buildPackHtml() {
+  // Fanned for the axonometric, closed for the measured views.
+  const views = stage.captureViews({ explodeMm: 64 });
+  const plates = stage.capturePlates(state.stack.length);
+  const font = await displayFont();
+
   const id = formatId(state);
   const gh = exportString(state);
-  const woods = state.woods.slice(0, state.stack.length);
+  const sizes = state.stack.map((l) => index.storeys[l][state.variant].size_mm);
+  const stackMm = Math.round(sizes.reduce((t, s) => t + s[2], 0));
+  const overallMm = Math.round(stackHeight() + liftMm());
+  const width = Math.max(...sizes.map((s) => s[0]));
+  const depth = Math.max(...sizes.map((s) => s[1]));
 
+  const species = [...new Set(state.stack.map((unused, i) => woodByKey(woodFor(i)).name))];
+  const timber = species.length === 1 ? species[0] : `Mixed · ${species.length} species`;
+
+  /* Every row carries its own drawing. The numbers cannot do this job on
+     their own: in a stack of four different letters each one measures
+     120 × 160 × 30, and what separates an A from an M is the profile. */
+  const cell = (art) => (art ? `<img src="${art}" alt="" />` : '');
   const rows = state.stack.map((letter, i) => {
     const size = index.storeys[letter][state.variant].size_mm;
-    return `<tr><td>${i + 1}</td><td>${letter}${state.variant === 'b' ? ' · plain' : ''}</td>`
-      + `<td>${size[0]} × ${size[1]} × ${size[2]}</td><td>${woodByKey(woodFor(i)).name}</td></tr>`;
+    return `<tr>
+      <td class="n">${String(i + 1).padStart(2, '0')}</td>
+      <td class="thumb">${cell(plates[i])}</td>
+      <td class="n">${letter}${state.variant === 'b' ? ' · plain' : ''}</td>
+      <td class="n">${size[0]} × ${size[1]} mm</td>
+      <td class="n">${size[2]} mm</td>
+      <td>${woodByKey(woodFor(i)).name}</td>
+    </tr>`;
   }).join('');
 
   const roof = index.guides.find((g) => g.name === 'roof');
   const base = index.guides.find((g) => g.name === 'base');
+  const hardware = (name, size, wood) => `<tr class="hw">
+    <td class="n">—</td><td class="thumb"></td><td>${name}</td>
+    <td class="n">${size[0]} × ${size[1]} mm</td><td class="n">${size[2]} mm</td>
+    <td>${wood}</td></tr>`;
+
   const parts = [];
   if (state.position !== 'fixed' && base) {
-    parts.push(`<tr><td>—</td><td>Base plate</td><td>${base.size_mm.join(' × ')}</td><td>${woodByKey(woodFor(0)).name}</td></tr>`);
+    parts.push(hardware('Base plate', base.size_mm, woodByKey(woodFor(0)).name));
   }
   if (roof) {
-    parts.push(`<tr><td>—</td><td>Roof slab</td><td>${roof.size_mm.join(' × ')}</td><td>${woodByKey(woodFor(state.stack.length - 1)).name}</td></tr>`);
+    parts.push(hardware('Roof slab', roof.size_mm,
+      woodByKey(woodFor(state.stack.length - 1)).name));
   }
   const support = liftMm();
-  if (state.position === 'standing' && support > 0) {
-    parts.push(`<tr><td>—</td><td>Legs × 4</td><td>15 × 30 × ${Math.round(support - base.size_mm[2])}</td><td>${woodByKey(woodFor(0)).name}</td></tr>`);
+  if (base && support > 0 && state.position === 'standing') {
+    parts.push(hardware('Legs × 4', [15, 30, Math.round(support - base.size_mm[2])],
+      woodByKey(woodFor(0)).name));
   }
-  if (state.position === 'grounded' && support > 0) {
-    parts.push(`<tr><td>—</td><td>Ground spike</td><td>30 × 30 × ${Math.round(support - base.size_mm[2])}</td><td>${woodByKey(woodFor(0)).name}</td></tr>`);
+  if (base && support > 0 && state.position === 'grounded') {
+    parts.push(hardware('Ground spike', [30, 30, Math.round(support - base.size_mm[2])],
+      woodByKey(woodFor(0)).name));
   }
 
-  return `<!doctype html><html><head><meta charset="utf-8">
-<title>Bee Home ${id} — build pack</title>
-<style>
-  @page { size: A4; margin: 14mm; }
-  * { box-sizing: border-box; }
-  body { margin: 0; font: 12px/1.5 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #2a2920; }
-  .sheet { page-break-after: always; }
-  .sheet:last-child { page-break-after: auto; }
-  h1 { font-size: 21px; font-weight: 400; margin: 0; }
-  h2 { font-size: 10px; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase;
-       color: #7d7d73; margin: 18px 0 6px; }
-  .meta { display: flex; gap: 28px; margin: 6px 0 14px; padding-bottom: 10px;
-          border-bottom: 1px solid #d3d3ce; }
-  .meta code { font: 12px/1.4 Menlo, Consolas, monospace; }
-  .meta span { display: block; font-size: 8px; letter-spacing: 0.14em; text-transform: uppercase;
-               color: #7d7d73; }
-  .views { display: grid; grid-template-columns: 1.35fr 1fr; gap: 6mm; align-items: start; }
-  .views img { width: 100%; border: 1px solid #e3e3dc; }
-  .views figure { margin: 0 0 4mm; }
-  .views figcaption { font: 8px/1.4 Menlo, monospace; letter-spacing: 0.14em;
-                      text-transform: uppercase; color: #7d7d73; margin-top: 2mm; }
-  table { width: 100%; border-collapse: collapse; margin-top: 4px; }
-  th { text-align: left; font-size: 8px; letter-spacing: 0.14em; text-transform: uppercase;
-       color: #7d7d73; font-weight: 500; padding: 3px 8px 3px 0; border-bottom: 1px solid #2a2920; }
-  td { padding: 4px 8px 4px 0; border-bottom: 1px solid #e3e3dc; font-size: 11px; }
-  .cols { columns: 2; column-gap: 10mm; }
-  .cols p { margin: 0 0 8px; break-inside: avoid; }
-  .foot { margin-top: 10mm; padding-top: 3mm; border-top: 1px solid #d3d3ce;
-          font: 8px/1.6 Menlo, monospace; letter-spacing: 0.08em; color: #7d7d73; }
-</style></head><body>
-<div class="sheet">
-  <h1>Bee Home</h1>
-  <div class="meta">
-    <div><span>Bee Home ID</span><code>${id}</code></div>
-    <div><span>Grasshopper export</span><code>${gh}</code></div>
-    <div><span>Height overall</span><code>${Math.round(stackHeight() + liftMm())} mm</code></div>
+  const titleBlock = (heading, sub) => `<div class="titleblock">
+    <div><h1>${heading}</h1><p class="sub">${sub}</p></div>
+    <div class="idblock"><div class="id">${id}</div>
+      <div class="meta">Bee Home identification</div></div>
   </div>
-  <div class="views">
-    <figure><img src="${views.iso}" alt=""><figcaption>Axonometric</figcaption></figure>
-    <div>
-      <figure><img src="${views.front}" alt=""><figcaption>Elevation</figcaption></figure>
-      <figure><img src="${views.plan}" alt=""><figcaption>Plan</figcaption></figure>
+  <hr class="rule" />`;
+
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8">
+<title>Bee Home ${id} — build drawings and cut list</title>
+<style>
+${font ? `@font-face { font-family:'S10'; src:url(${font}) format('woff2'); }` : ''}
+@page { size: A4; margin: 12mm; }
+* { box-sizing: border-box; }
+body { margin:0; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; color:#2a2920;
+  font-size:8.6pt; line-height:1.5; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+.page { page-break-after: always; min-height: 273mm; display:flex; flex-direction:column; }
+.page:last-child { page-break-after: auto; }
+.mono { font-family:'SFMono-Regular',Menlo,Consolas,monospace; }
+.rule { border:0; border-top:1px solid #2a2920; margin:0; }
+.hair { border:0; border-top:1px solid #c9c7bc; margin:0; }
+
+.titleblock { display:grid; grid-template-columns: 1fr auto; align-items:flex-end;
+  gap:12mm; padding-bottom:2.5mm; }
+.titleblock h1 { font-family:'S10','Helvetica Neue',sans-serif; font-weight:400;
+  font-size:22pt; margin:0; letter-spacing:.02em; }
+.titleblock .sub { color:#7d7d73; font-size:7.6pt; letter-spacing:.14em;
+  text-transform:uppercase; margin-top:1mm; }
+.idblock { text-align:right; }
+.idblock .id { font-family:'SFMono-Regular',Menlo,monospace; font-size:14pt; letter-spacing:.06em; }
+.idblock .meta { color:#7d7d73; font-size:7pt; letter-spacing:.1em; text-transform:uppercase; }
+
+.specrow { display:grid; grid-template-columns: repeat(4, 1fr); gap:4mm; padding:2.5mm 0; }
+.specrow div span { display:block; color:#7d7d73; font-size:6.6pt; letter-spacing:.14em;
+  text-transform:uppercase; }
+.specrow div b { font-weight:500; font-size:9pt; font-family:'SFMono-Regular',Menlo,monospace; }
+
+.drawings { display:grid; grid-template-columns: 1.5fr 1fr; gap:6mm; padding:4mm 0; }
+.plate { border:1px solid #d8d6cb; position:relative; display:flex; align-items:center;
+  justify-content:center; overflow:hidden; min-height:0; }
+.plate img { width:100%; height:100%; object-fit:contain; }
+.plate .cap { position:absolute; left:2mm; bottom:1.6mm; font-size:6.4pt; letter-spacing:.14em;
+  text-transform:uppercase; color:#7d7d73; }
+.stackviews { display:grid; grid-template-rows:1fr 1fr; gap:6mm; min-height:0; }
+.drawings > .plate { min-height:104mm; }
+
+table { width:100%; border-collapse:collapse; font-size:7.6pt; }
+th { text-align:left; font-weight:400; color:#7d7d73; font-size:6.6pt; letter-spacing:.14em;
+  text-transform:uppercase; border-bottom:1px solid #2a2920; padding:1.4mm 2mm 1.4mm 0; }
+td { padding:1.3mm 2mm 1.3mm 0; border-bottom:1px solid #e6e4da; font-variant-numeric:tabular-nums;
+  vertical-align:middle; }
+td.n { font-family:'SFMono-Regular',Menlo,monospace; }
+td.thumb { width:22mm; padding:1.5mm 2mm 1.5mm 0; }
+td.thumb img { display:block; width:19mm; height:19mm; object-fit:contain;
+  border:1px solid #e6e4da; }
+tr.hw td { color:#57564d; }
+
+.ghline { margin:3mm 0 0; color:#7d7d73; font-size:7pt; letter-spacing:.06em; }
+.ghline code { font-family:'SFMono-Regular',Menlo,monospace; color:#2a2920; font-size:7.6pt; }
+
+.cols { display:grid; grid-template-columns:1fr 1fr; gap:8mm; }
+h2 { font-size:8.4pt; letter-spacing:.16em; text-transform:uppercase; color:#7d7d73;
+  font-weight:500; margin:0 0 2mm; padding-top:3mm; border-top:1px solid #2a2920; }
+ol,ul { margin:0 0 4mm; padding-left:4.5mm; }
+li { margin-bottom:1.6mm; }
+p { margin:0 0 3mm; }
+.note { border-left:2px solid #a5b7e6; background:#f2f4fa; padding:2.5mm 3mm; margin:0 0 4mm; }
+.warn { border-left:2px solid #c98a3c; background:#faf4ea; padding:2.5mm 3mm; margin:0 0 4mm; }
+.foot { margin-top:auto; padding-top:2mm; border-top:1px solid #2a2920; display:flex;
+  justify-content:space-between; color:#7d7d73; font-size:6.6pt; letter-spacing:.1em;
+  text-transform:uppercase; }
+</style></head><body>
+
+<section class="page">
+  ${titleBlock('Bee Home', 'Build drawings &amp; cut list')}
+
+  <div class="specrow">
+    <div><span>Position</span><b>${POSITION_LABEL[state.position] || state.position}</b></div>
+    <div><span>Overall height</span><b>${overallMm} mm</b></div>
+    <div><span>Storeys</span><b>${state.stack.length} · ${stackMm} mm</b></div>
+    <div><span>Timber</span><b>${timber}</b></div>
+  </div>
+  <hr class="hair" />
+
+  <div class="drawings">
+    <div class="plate"><img src="${views.iso}" alt="Exploded axonometric" />
+      <span class="cap">Exploded axonometric · storeys fanned in build order</span></div>
+    <div class="stackviews">
+      <div class="plate"><img src="${views.front}" alt="Front elevation" />
+        <span class="cap">Front elevation · ${width} mm wide · stack ${stackMm} mm</span></div>
+      <div class="plate"><img src="${views.plan}" alt="Plan" />
+        <span class="cap">Plan · ${width} × ${depth} mm · roof removed</span></div>
     </div>
   </div>
-  <h2>Cut list — dimensions in mm, storeys bottom first</h2>
+
+  <h2>Cut list — ${state.stack.length} storeys, bottom to top</h2>
   <table>
-    <tr><th>No.</th><th>Part</th><th>W × D × H</th><th>Timber</th></tr>
-    ${rows}${parts.join('')}
+    <thead><tr>
+      <th style="width:7%">Order</th><th style="width:16%">Profile</th>
+      <th style="width:11%">Storey</th><th style="width:23%">Footprint</th>
+      <th style="width:14%">Thickness</th><th>Timber</th>
+    </tr></thead>
+    <tbody>${rows}${parts.join('')}</tbody>
   </table>
-</div>
-<div class="sheet">
-  <h1>Making it</h1>
-  <div class="meta"><div><span>Bee Home ID</span><code>${id}</code></div></div>
-  <h2>At the makerspace</h2>
+  <p class="ghline">Grasshopper export · paste into <b class="mono">BEEHOME.gh</b> to regenerate
+    the cutting files &nbsp; <code>${gh}</code></p>
+
+  <div class="foot"><span>Sheet 1 of 2 · the build</span><span>${id}</span></div>
+</section>
+
+<section class="page">
+  ${titleBlock('Make it, site it, keep it', 'Everything after the cutting')}
+
   <div class="cols">
-    <p>Share this pack and the design files with a local makerspace — an open workshop
-    where you pay per visit or hold a membership. You need a CNC milling machine and
-    someone who runs it; most spaces will do this with you rather than for you.</p>
-    <p>Cut each storey from a single board. The letters are the storeys, bottom
-    first; the ID above encodes the whole design, so anyone with it can check the
-    stack against this sheet.</p>
+    <div>
+      <h2>What to hand your maker space</h2>
+      <p>A maker space is an open workshop where you pay per visit or hold a membership.
+        Most will do this with you rather than for you. Three things matter:</p>
+      <ul>
+        <li><b>This sheet, and the export string above it.</b> Dropped into
+          <span class="mono">BEEHOME.gh</span> it regenerates the cutting files for exactly
+          this design.</li>
+        <li><b>Untreated hardwood or exterior-grade ply.</b> Nothing chemically preserved —
+          it has to be safe for the occupants.</li>
+        <li><b>A CNC router and someone who runs it.</b> Every storey is cut from a single
+          board.</li>
+      </ul>
+      <p>No CNC nearby? Every part is a flat profile. It is slower but entirely possible with
+        a jigsaw, a drill and a chisel — print this sheet at 100% scale and use the cut list
+        profiles as templates.</p>
+
+      <h2>Assembly</h2>
+      <ol>
+        <li>Lay the storeys out in cut-list order, cavities facing the same way.</li>
+        <li>Base plate first, then the storeys bottom to top, then the roof slab.</li>
+        <li>The parts register on each other. No glue, no screws.</li>
+        <li>Fit the legs or the spike last.</li>
+      </ol>
+      <div class="note"><b>It is meant to come apart.</b> If a joint needs forcing, check the
+        storey is the right way round before you reach for a mallet.</div>
+    </div>
+
+    <div>
+      <h2>Where to put it</h2>
+      <ul>
+        <li><b>Facing the morning sun</b> — south to south-east in the northern hemisphere.
+          Cold cavities do not get used.</li>
+        <li><b>Sheltered from rain</b>, under an eave or with the roof overhanging well.</li>
+        <li><b>Firmly fixed.</b> Anything that swings or rattles gets abandoned.</li>
+        <li><b>One to two metres off the ground</b>, with flowers within about 300 m.</li>
+      </ul>
+
+      <h2>Every autumn</h2>
+      <ol>
+        <li>Take it down once the season's activity has stopped.</li>
+        <li>Split the storeys apart.</li>
+        <li>Brush the cavities out dry. No detergent, no pressure washer.</li>
+        <li>Store somewhere cold, dry and mouse-proof; put it back out in early spring.</li>
+      </ol>
+      <div class="warn"><b>This is not optional.</b> Cavities that are never cleaned build up
+        mites and fungal disease, and an uncleaned bee hotel does more harm than no bee hotel
+        at all. The joinery exists so that this takes ten minutes.</div>
+
+      <h2>Which bees this actually helps</h2>
+      <p>Cavity-nesting solitary bees — mason and leafcutter bees. Around seventy per cent of
+        solitary bee species nest in the ground instead and will never use a box like this. To
+        help those too, leave a patch of bare, unmulched, sunny soil undisturbed.</p>
+    </div>
   </div>
-  <h2>Assembly</h2>
-  <div class="cols">
-    <p>Base plate first, then the storeys in the order of the cut list, then the
-    roof slab. The parts register on each other and need no fixings — assembling it
-    requires just your hands and a few minutes of your time.</p>
-    <p>To mount the wall-fixed version, use a drill and two screws through the back
-    plate. Keep the bore holes horizontal at all times.</p>
+
+  <div class="foot">
+    <span>Sheet 2 of 2 · make, site, maintain</span>
+    <span>CC BY 4.0 · SPACE10, Bakken &amp; Bæck, Tanita Klein</span>
   </div>
-  <h2>Where it goes</h2>
-  <div class="cols">
-    <p>Facing the morning sun, within 300 metres of flowers, protected from strong
-    wind. Anywhere outside works — a rooftop, a balcony or a garden.</p>
-    <p>Plant native wildflowers nearby. Solitary bees are friendly: they produce no
-    honey, have nothing to defend, and are safe around kids and pets.</p>
-  </div>
-  <h2>Each autumn</h2>
-  <div class="cols">
-    <p>Brush the fronts clean and clear any cavity that stayed empty two seasons
-    running. A Bee Home lasts anywhere between five and thirty years, depending on
-    the wood, the location, and how well you look after it.</p>
-  </div>
-  <p class="foot">Bee Home — open source, CC BY 4.0 · SPACE10, Bakken &amp; Bæck, Tanita Klein ·
-  drawings generated from the design geometry, not to scale · beehome.design</p>
-</div>
-<script>addEventListener('load', () => setTimeout(() => print(), 150));<\/script>
+</section>
 </body></html>`;
 }
 
@@ -359,8 +512,8 @@ function buildPackHtml() {
  * is posted up instead, so the button that lives outside the iframe can do
  * the download from a context that is allowed to.
  */
-function downloadBuildPack() {
-  const html = buildPackHtml();
+async function downloadBuildPack() {
+  const html = await buildPackHtml();
   const name = `bee-home-${formatId(state)}.html`;
   if (window.parent !== window) {
     window.parent.postMessage({ type: 'beehome:buildpack', name, html }, '*');

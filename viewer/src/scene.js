@@ -280,6 +280,11 @@ export class Stage {
     // Plates are composited onto the page, so they render on transparency.
     this.scene.background = this.plateAlpha ? null
       : new THREE.Color(this.plateWhite ? '#ffffff' : BACKDROP[mode]);
+    /* The occluder's whole job is to hide the edges behind a face, which it
+       can only do by being the same colour as what it sits on. Left at the
+       on-screen bone while a plate renders on white, every part came out as a
+       grey silhouette on the printed sheet instead of a line drawing. */
+    this.occluder().color.set(this.plateWhite ? '#ffffff' : BACKDROP.drawing);
     this.shadowFloor.visible = mode === 'timber';
     for (const child of this.root.children) {
       if (child.isLineSegments) {
@@ -450,15 +455,12 @@ export class Stage {
    * orthographics. Renders through temporary cameras so the interactive one
    * is never touched, and puts the mode back the way it found it.
    */
-  captureViews() {
+  captureViews({ explodeMm = 0 } = {}) {
     const previous = { mode: this.mode, white: this.plateWhite, selected: this.selected };
     this.plateWhite = true;
     this.setMode('drawing');
     this.setSelected(-1);
 
-    const box = new THREE.Box3().setFromObject(this.root);
-    const size = box.getSize(new THREE.Vector3());
-    const centre = box.getCenter(new THREE.Vector3());
     const aspect = this.camera.aspect || 1;
     const shot = (camera) => {
       this.renderer.render(this.scene, camera);
@@ -467,11 +469,50 @@ export class Stage {
       return this.renderer.domElement.toDataURL('image/png');
     };
 
-    const radius = size.length();
-    const iso = new THREE.PerspectiveCamera(28, aspect, 0.01, 100);
-    iso.position.set(centre.x + radius * 1.15, centre.y + radius * 0.82, centre.z + radius * 1.4);
-    iso.lookAt(centre);
+    const measure = () => {
+      const box = new THREE.Box3().setFromObject(this.root);
+      return { size: box.getSize(new THREE.Vector3()), centre: box.getCenter(new THREE.Vector3()) };
+    };
 
+    /* Fanning the storeys apart, in place. The axonometric on the sheet shows
+       the stack opened up, because every joint and cavity is legible that way
+       and none of them are when the boards sit on each other. Shifting what is
+       already loaded rather than rebuilding: the geometry is identical, only
+       where it draws changes, and a rebuild here would be async. */
+    const fan = (mm) => {
+      if (!mm) return;
+      for (const child of this.root.children) {
+        const i = child.userData.storey;
+        if (typeof i !== 'number' || i < 0) continue;
+        // The roof shares the top storey's index so the rail chip measures
+        // right; in an exploded view it needs its own step or it stays welded
+        // to the storey underneath it.
+        child.position.y += (mm / 1000) * (child.userData.roof ? i + 1 : i);
+      }
+    };
+
+    const setRoof = (visible) => {
+      for (const child of this.root.children) {
+        if (child.userData.roof) child.visible = visible;
+      }
+    };
+
+    fan(explodeMm);
+    const open = measure();
+    const radius = open.size.length();
+    const iso = new THREE.PerspectiveCamera(28, aspect, 0.01, 100);
+    iso.position.set(
+      open.centre.x + radius * 1.15,
+      open.centre.y + radius * 0.82,
+      open.centre.z + radius * 1.4,
+    );
+    iso.lookAt(open.centre);
+    const views = { iso: shot(iso) };
+    fan(-explodeMm);
+
+    // The measured views are of the thing assembled, so they are framed after
+    // the stack has closed back up.
+    const { size, centre } = measure();
     const ortho = (axis) => {
       const extent = axis === 'front'
         ? Math.max(size.x, size.y) * 0.62
@@ -489,16 +530,79 @@ export class Stage {
       return camera;
     };
 
-    const views = {
-      iso: shot(iso),
-      front: shot(ortho('front')),
-      plan: shot(ortho('plan')),
-    };
+    views.front = shot(ortho('front'));
+
+    /* Looking down on the finished object, the roof is the drawing: a 140x160
+       slab laid over everything a plan exists to show. Taking it off leaves
+       the top storey's cavity layout, which is the thing worth measuring. */
+    setRoof(false);
+    views.plan = shot(ortho('plan'));
+    setRoof(true);
 
     this.plateWhite = previous.white;
     this.setMode(previous.mode);
     this.setSelected(previous.selected);
     return views;
+  }
+
+  /**
+   * One drawing per storey, alone and seen from above.
+   *
+   * The cut list can only give a bounding box, and in a stack of four
+   * different letters every row reads 120 x 160 x 30 — the numbers cannot
+   * tell an A from an M. What differs is the cavity layout milled into each
+   * board, and that only exists as a drawing.
+   */
+  capturePlates(count) {
+    const previous = { mode: this.mode, white: this.plateWhite, selected: this.selected };
+    const wasVisible = this.root.children.map((child) => child.visible);
+    this.plateWhite = true;
+    this.setMode('drawing');
+    this.setSelected(-1);
+
+    /* Square buffer, so a plate is the storey rather than the storey between
+       two fields of margin. The third argument leaves the canvas's CSS size
+       alone, so nothing on the page reflows while this runs.
+
+       Deliberately small. These print about 18mm wide, and WebGL draws every
+       line at one pixel whatever the buffer — captured at 900 and scaled down
+       to 18mm the edges landed on a fifth of a pixel and the profiles came out
+       blank. Capturing near the size it prints at keeps the line a line. */
+    this.renderer.setSize(300, 300, false);
+
+    const plates = [];
+    for (let i = 0; i < count; i++) {
+      let drawn = false;
+      for (const child of this.root.children) {
+        const own = child.userData.storey === i && !child.userData.roof;
+        child.visible = own;
+        if (own && child.isMesh) drawn = true;
+      }
+      if (!drawn) { plates.push(null); continue; }
+
+      const box = new THREE.Box3();
+      for (const child of this.root.children) {
+        if (child.visible && child.isMesh) box.expandByObject(child);
+      }
+      const size = box.getSize(new THREE.Vector3());
+      const centre = box.getCenter(new THREE.Vector3());
+      const extent = Math.max(size.x, size.z) * 0.54;
+      const camera = new THREE.OrthographicCamera(
+        -extent, extent, extent, -extent, 0.001, 40,
+      );
+      camera.position.set(centre.x, centre.y + 2, centre.z);
+      camera.up.set(0, 0, -1);
+      camera.lookAt(centre);
+      this.renderer.render(this.scene, camera);
+      plates.push(this.renderer.domElement.toDataURL('image/png'));
+    }
+
+    this.root.children.forEach((child, i) => { child.visible = wasVisible[i]; });
+    this.plateWhite = previous.white;
+    this.setMode(previous.mode);
+    this.setSelected(previous.selected);
+    this.resize();
+    return plates;
   }
 
   lookFrom(distanceScale = 2.6) {
