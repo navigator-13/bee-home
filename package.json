@@ -1,0 +1,14 @@
+{
+  "name": "bee-home",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Bee Home: a revival of SPACE10's open-source parametric bee hotel",
+  "license": "CC-BY-4.0",
+  "type": "module",
+  "scripts": {
+    "build:viewer": "npm --prefix viewer run build -- --base=./ --outDir=dist-site",
+    "build": "npm run build:viewer && node docs/tools/build_site.mjs",
+    "build:artifact": "npm --prefix viewer run build && node viewer/tools/bundle_single_file.mjs && node docs/tools/build_landing.mjs",
+    "serve": "node --eval \"import('node:http').then(async ({default:http})=>{const fs=await import('node:fs');const path=await import('node:path');const T={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp','.svg':'image/svg+xml','.glb':'model/gltf-binary','.woff2':'font/woff2'};http.createServer((q,s)=>{let p=path.join('site',decodeURIComponent(q.url.split('?')[0]));if(!fs.existsSync(p)||fs.statSync(p).isDirectory())p=path.join(p,'index.html');if(!fs.existsSync(p)){s.writeHead(404);return s.end('not found')}s.writeHead(200,{'Content-Type':T[path.extname(p)]||'application/octet-stream'});fs.createReadStream(p).pipe(s)}).listen(8765,()=>console.log('http://127.0.0.1:8765'))})\""
+  }
+}

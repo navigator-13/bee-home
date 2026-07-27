@@ -1,0 +1,75 @@
+# Publishing the site
+
+There are two builds of the same page, for two different situations.
+
+## `npm run build` — the static site
+
+Produces `site/`: an ordinary `index.html` with ordinary files beside it, and
+the builder as its own app under `site/builder/`. This is what a web host
+serves.
+
+```
+site/
+  index.html              88 KB
+  favicon.svg
+  plates/                 4 files    hero drawing
+  assets/
+    final-scenes/web/     3 files    photographs
+    banner/web/           1 file     closing image
+    pressed/web/          46 files   herbarium plates
+    bees/web/             15 files   portraits
+  builder/                47 files   the viewer, base './'
+```
+
+About 4.4 MB of assets, but a visitor downloads a fraction of it: the four
+plates their region uses, not all 46, and the builder only when they scroll to
+it. Everything is cacheable.
+
+## `npm run build:artifact` — the single file
+
+Produces one ~6 MB HTML file with every asset as a data URI and the builder
+embedded as base64. Right for a published artifact, an email attachment or a
+`file://` preview — anywhere sibling requests are blocked or cannot resolve.
+Wrong for a website: nothing caches, and the first paint waits for all of it.
+
+## Deploying to Vercel
+
+`vercel.json` is set up already. Connect the repo and it will run
+`npm run build` and serve `site/`.
+
+1. Import the repo at vercel.com/new.
+2. Leave the framework preset as **Other** — `vercel.json` supplies the build
+   command and output directory.
+3. Add your domain under Settings → Domains, and point the registrar's
+   nameservers or an ALIAS/CNAME at Vercel as instructed there.
+4. Optional: set `SITE_URL` to `https://your-domain` in the project's
+   environment variables. It makes the Open Graph image an absolute URL, which
+   some link previewers need in order to show a picture at all.
+
+Caching headers are in `vercel.json`. The builder's hashed bundles get a year
+and `immutable`; images and meshes get a month with revalidation; the document
+itself is left alone so a deploy is visible immediately.
+
+## Running it locally
+
+```
+npm run build && npm run serve      # http://127.0.0.1:8765
+```
+
+## Notes for whoever touches this next
+
+The page is authored at `docs/directions/landing-opus.html` and has **no
+`<head>`** — the artifact host supplies one, so adding one there would produce
+two. `build_site.mjs` assembles the document instead. The viewport meta it adds
+is load-bearing: without it a phone lays the page out at desktop width and
+every media query in the stylesheet sits idle.
+
+Assets the script names at runtime rather than in markup (herbarium plates, bee
+portraits) resolve through `window.__ASSETS__`, which the site build sets to
+`''` and which defaults to `'../'` so the file still works opened straight from
+`docs/directions/`.
+
+The viewer is built twice, differently. `--base=./` for the site, so its asset
+URLs resolve under `/builder/`; the default `/` for the artifact, because
+`bundle_single_file.mjs` matches CSS `url()` references against that shape.
+Changing the default base breaks font inlining in the single-file build.

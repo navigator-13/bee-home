@@ -1076,13 +1076,20 @@ figcaption b { color: var(--ink); font-weight: 400; }
     Machine. The images are new, generated from the original source material and
     this rebuild's design intent.<br />
     Original Bee Home CC BY 4.0 &#8212; SPACE10, Bakken &amp; B&aelig;ck, Tanita Klein.
-    This revival and everything new in it, also CC BY 4.0 &#8212; Ivan, 2026.</p>
+    This revival and everything new in it, also CC BY 4.0 &#8212; Iv&aacute;n
+    Langesfeld, 2026.</p>
 </div>
 
 <script>
 (function () {
   var NS = 'http://www.w3.org/2000/svg';
   var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* Where the plates and portraits live, for the ones this script builds a
+     src for rather than naming in the markup. Authored, this file sits in
+     docs/directions and reaches up one level; built into a site it sits at the
+     root with the assets beside it, and the build sets this to ''. */
+  var ASSET_BASE = window.__ASSETS__ != null ? window.__ASSETS__ : '../';
 
   var section = document.getElementById('build');
   var stage = document.getElementById('stage');
@@ -1928,12 +1935,16 @@ figcaption b { color: var(--ink); font-weight: 400; }
     mount.appendChild(plate);
 
     // Published as one file, the plates ride along inlined; served from the
-    // repo they are ordinary files next door.
+    // repo or from a built site they are ordinary files next door. The webp
+    // set, not the originals beside it: those are the working PNGs, several
+    // megabytes each, and nothing should ever send them to a browser.
     var s = slug(latin);
     var inlined = window.__PRESSED__ || null;
     var srcFor = function (kind) {
       var key = s + '-' + kind;
-      return inlined && inlined[key] ? inlined[key] : '../assets/pressed/' + key + '.png';
+      return inlined && inlined[key]
+        ? inlined[key]
+        : ASSET_BASE + 'assets/pressed/web/' + key + '.webp';
     };
     var rgb = document.createElement('img');
     rgb.className = 'ph rgb';
@@ -2084,7 +2095,9 @@ figcaption b { color: var(--ink); font-weight: 400; }
     var key = latin.toLowerCase().replace(/[^a-z]+/g, '-');
     var inlined = window.__BEEPIC__;
     if (inlined) return inlined[key] || null;
-    return BEE_PORTRAITS.indexOf(key) < 0 ? null : '../assets/bees/web/' + key + '.webp';
+    return BEE_PORTRAITS.indexOf(key) < 0
+      ? null
+      : ASSET_BASE + 'assets/bees/web/' + key + '.webp';
   }
 
   var BEE_PORTRAITS = ['chelostoma-florisomne', 'heriades-truncorum',

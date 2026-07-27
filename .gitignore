@@ -15,3 +15,7 @@ docs/exports/
 
 # CC0 assets fetched by tools/fetch_assets.py — re-fetchable, not committed
 assets/third_party/
+
+# static site build output, and the viewer build that feeds it
+site/
+viewer/dist-site/

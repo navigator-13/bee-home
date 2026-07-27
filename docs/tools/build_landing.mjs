@@ -46,20 +46,11 @@ if (fs.existsSync(pressed)) {
   console.log(`inlined ${Object.keys(plates).length} pressed plates`);
 }
 
-// The loose heads above the region question, same treatment: the page builds
-// their src in script, so nothing in the markup points at them.
-const heads = path.join(repo, 'docs/assets/pressed/heads');
-if (fs.existsSync(heads)) {
-  const crops = {};
-  for (const file of fs.readdirSync(heads)) {
-    if (!file.endsWith('.webp')) continue;
-    crops[file.replace(/\.webp$/, '')] =
-      `data:image/webp;base64,${fs.readFileSync(path.join(heads, file)).toString('base64')}`;
-  }
-  html = html.replace('</style>', () =>
-    `</style>\n<script>window.__HEADS__ = ${JSON.stringify(crops)};</script>`);
-  console.log(`inlined ${Object.keys(crops).length} head crops`);
-}
+// The loose head crops that used to scatter around the region question are no
+// longer drawn -- the band they belonged to came out. They stay on disk, since
+// the plates they were cut from are still the source of the drift, but there
+// is nothing left to read the map, and inlining it cost 356KB of base64 in
+// every build. If the heads come back, so does this block.
 
 // Bee portraits, same story -- the region list builds their src in script.
 const bees = path.join(repo, 'docs/assets/bees/web');
