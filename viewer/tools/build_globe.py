@@ -107,11 +107,12 @@ click = (
 html = html.replace("</body>", click + "</body>", 1)
 
 # A brisker walk on a small screen. The gait is one number -- seconds per
-# cycle -- so 1.25/1.2 is exactly 20% faster, and nothing else about the rig
-# moves. Read from matchMedia directly rather than reusing the layout flag, so
-# this survives the prototype reordering its own boot.
+# cycle -- so dividing it is exactly a speed-up, and nothing else about the rig
+# moves. 1.25 / 1.2 / 1.15 is 20% then a further 15%. Read from matchMedia
+# directly rather than reusing the layout flag, so this survives the prototype
+# reordering its own boot.
 old_gait = "cycleDuration:1.25"
-new_gait = 'cycleDuration:matchMedia("(max-width: 300px)").matches?1.0417:1.25'
+new_gait = 'cycleDuration:matchMedia("(max-width: 300px)").matches?0.9058:1.25'
 if old_gait not in html:
     raise SystemExit("gait constant not found -- has the prototype changed?")
 html = html.replace(old_gait, new_gait, 1)

@@ -286,15 +286,26 @@ const POSITION_LABEL = {
   fixed: 'Wall-fixed',
 };
 
+/* The sheet is printed for one design, so it can say the one thing that
+   applies to it rather than all three. SPACE10's own siting advice, split the
+   way the builder splits the mountings. */
+const SITING = {
+  standing: 'A stable spot with an even surface.',
+  grounded: 'Firm soil, with the spike 20 cm into the ground.',
+  fixed: 'A wall, at least a metre off the ground, two screws.',
+};
+
 /**
  * The build pack, from the browser.
  *
- * The two-page sheet began as an offline tool driven by Playwright
+ * The sheet set began as an offline tool driven by Playwright
  * (viewer/tools/make_spec_sheet.mjs) — upstream of the builder, and so only
  * ever as current as the last time somebody ran it. This is that drawing
  * sheet built from the live scene instead: title block, spec row, measured
  * views, and a cut list carrying the profile of every board. Laid out for A4
- * and printed through the browser's own dialog.
+ * and printed through the browser's own dialog. Two sheets for most designs;
+ * a stack tall enough that its profiles would print too small to read gets the
+ * cut list on a sheet of its own rather than squeezed or spilled.
  */
 async function buildPackHtml() {
   // Fanned for the axonometric, closed for the measured views.
@@ -379,6 +390,38 @@ async function buildPackHtml() {
   </div>
   <hr class="rule" />`;
 
+  /* Where the cut list goes, and how big its profile drawings are.
+
+     Everything else on the drawings sheet is fixed -- title block, spec row,
+     the three views, the export line and the foot -- which leaves about 91mm
+     of printable page for the rows. Divided among the storeys, minus the
+     hardware rows, that is the tallest a thumbnail can be there. Below about
+     8mm the milled profile stops reading as a shape, and that is the point at
+     which the list is better off on a sheet of its own, where a whole page of
+     rows is available and the drawings are legible again. The numbers cannot
+     do this job alone: in a stack of four different letters every row reads
+     120 x 160 x 30, and what separates an A from an M is the profile. */
+  const UNDER_DRAWINGS_MM = 91;
+  const OWN_SHEET_MM = 232;
+  const rowFor = (budget) => (budget - 6.9 * parts.length)
+    / Math.max(1, state.stack.length);
+  const listAlone = rowFor(UNDER_DRAWINGS_MM) < 11.4;
+  const rowMm = rowFor(listAlone ? OWN_SHEET_MM : UNDER_DRAWINGS_MM);
+  const thumbMm = Math.round(Math.max(8, Math.min(19, rowMm - 3.4)) * 10) / 10;
+
+  const cutList = `
+  ${listAlone ? '' : `<h2>Cut list — ${state.stack.length} storeys, bottom to top</h2>`}
+  <table>
+    <thead><tr>
+      <th style="width:7%">Order</th><th style="width:16%">Profile</th>
+      <th style="width:11%">Storey</th><th style="width:23%">Footprint</th>
+      <th style="width:14%">Thickness</th><th>Timber</th>
+    </tr></thead>
+    <tbody>${rows}${parts.join('')}</tbody>
+  </table>
+  <p class="ghline">Grasshopper export · paste into <b class="mono">BEEHOME.gh</b> to regenerate
+    the cutting files &nbsp; <code>${gh}</code></p>`;
+
   return `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <title>Bee Home ${id} — build drawings and cut list</title>
 <style>
@@ -387,7 +430,7 @@ ${font ? `@font-face { font-family:'S10'; src:url(${font}) format('woff2'); }` :
 * { box-sizing: border-box; }
 body { margin:0; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; color:#2a2920;
   font-size:8.6pt; line-height:1.5; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-.page { page-break-after: always; min-height: 273mm; display:flex; flex-direction:column; }
+.page { page-break-after: always; min-height: 268mm; display:flex; flex-direction:column; }
 .page:last-child { page-break-after: auto; }
 .mono { font-family:'SFMono-Regular',Menlo,Consolas,monospace; }
 .rule { border:0; border-top:1px solid #2a2920; margin:0; }
@@ -408,35 +451,58 @@ body { margin:0; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; color:
   text-transform:uppercase; }
 .specrow div b { font-weight:500; font-size:9pt; font-family:'SFMono-Regular',Menlo,monospace; }
 
-.drawings { display:grid; grid-template-columns: 1.5fr 1fr; gap:6mm; padding:4mm 0; }
+/* A definite height, not a minimum. Left to size themselves the three plates
+   took their height from the images inside them -- the render buffer is wider
+   than the frame it prints in -- and pushed sheet 1 to 360mm of content in a
+   273mm page. */
+.drawings { display:grid; grid-template-columns: 1.5fr 1fr; gap:6mm; margin:4mm 0;
+  height:104mm; }
 .plate { border:1px solid #d8d6cb; position:relative; display:flex; align-items:center;
-  justify-content:center; overflow:hidden; min-height:0; }
+  justify-content:center; overflow:hidden; min-height:0;
+  /* Room at the foot so the caption sits on paper rather than on the legs. */
+  padding:2.5mm 2.5mm 6mm; }
 .plate img { width:100%; height:100%; object-fit:contain; }
 .plate .cap { position:absolute; left:2mm; bottom:1.6mm; font-size:6.4pt; letter-spacing:.14em;
   text-transform:uppercase; color:#7d7d73; }
 .stackviews { display:grid; grid-template-rows:1fr 1fr; gap:6mm; min-height:0; }
-.drawings > .plate { min-height:104mm; }
 
 table { width:100%; border-collapse:collapse; font-size:7.6pt; }
+/* A stack tall enough to run the list past the foot of the sheet carries its
+   column headings onto the next page rather than leaving bare numbers. */
+thead { display:table-header-group; }
+tr { break-inside:avoid; page-break-inside:avoid; }
 th { text-align:left; font-weight:400; color:#7d7d73; font-size:6.6pt; letter-spacing:.14em;
   text-transform:uppercase; border-bottom:1px solid #2a2920; padding:1.4mm 2mm 1.4mm 0; }
 td { padding:1.3mm 2mm 1.3mm 0; border-bottom:1px solid #e6e4da; font-variant-numeric:tabular-nums;
   vertical-align:middle; }
 td.n { font-family:'SFMono-Regular',Menlo,monospace; }
-td.thumb { width:22mm; padding:1.5mm 2mm 1.5mm 0; }
-td.thumb img { display:block; width:19mm; height:19mm; object-fit:contain;
+td.thumb { width:${thumbMm + 3}mm; padding:1.5mm 2mm 1.5mm 0; }
+td.thumb img { display:block; width:${thumbMm}mm; height:${thumbMm}mm; object-fit:contain;
   border:1px solid #e6e4da; }
 tr.hw td { color:#57564d; }
 
 .ghline { margin:3mm 0 0; color:#7d7d73; font-size:7pt; letter-spacing:.06em; }
 .ghline code { font-family:'SFMono-Regular',Menlo,monospace; color:#2a2920; font-size:7.6pt; }
 
-.cols { display:grid; grid-template-columns:1fr 1fr; gap:8mm; }
+/* Two columns that fill rather than two columns of fixed width: the second
+   page is prose, and a grid gave whichever side held the DXF a full column
+   while the other ran out two thirds of the way down. Flowed, the browser
+   balances them. Headings stay with the text under them and the callouts stay
+   whole; everything else breaks wherever it lands. */
+/* A definite height, because a multi-column block without one fragments
+   across printed pages instead of balancing inside one: sheet 2 came out three
+   pages long with two thirds of each empty. Given a height it balances into
+   the space that is actually there. */
+.cols { columns:2; column-gap:8mm; flex:1 1 auto; min-height:0; }
+.page.prose { font-size:8.2pt; }
 h2 { font-size:8.4pt; letter-spacing:.16em; text-transform:uppercase; color:#7d7d73;
-  font-weight:500; margin:0 0 2mm; padding-top:3mm; border-top:1px solid #2a2920; }
+  font-weight:500; margin:0 0 2mm; padding-top:3mm; border-top:1px solid #2a2920;
+  break-after:avoid; page-break-after:avoid; }
+.prose h2 { font-size:9pt; }
 ol,ul { margin:0 0 4mm; padding-left:4.5mm; }
 li { margin-bottom:1.6mm; }
 p { margin:0 0 3mm; }
+.note, .warn { break-inside:avoid; page-break-inside:avoid; }
 .note { border-left:2px solid #a5b7e6; background:#f2f4fa; padding:2.5mm 3mm; margin:0 0 4mm; }
 .warn { border-left:2px solid #c98a3c; background:#faf4ea; padding:2.5mm 3mm; margin:0 0 4mm; }
 .foot { margin-top:auto; padding-top:2mm; border-top:1px solid #2a2920; display:flex;
@@ -445,7 +511,7 @@ p { margin:0 0 3mm; }
 </style></head><body>
 
 <section class="page">
-  ${titleBlock('Bee Home', 'Build drawings &amp; cut list')}
+  ${titleBlock('Bee Home', listAlone ? 'Build drawings' : 'Build drawings &amp; cut list')}
 
   <div class="specrow">
     <div><span>Position</span><b>${POSITION_LABEL[state.position] || state.position}</b></div>
@@ -462,114 +528,134 @@ p { margin:0 0 3mm; }
     <div class="stackviews">
       <div class="plate"><img src="${views.front}" alt="Front elevation" />
         <span class="cap">Front elevation · ${width} mm wide · stack ${stackMm} mm</span></div>
-      <div class="plate"><img src="${views.plan}" alt="Plan" />
-        <span class="cap">Plan · ${width} × ${depth} mm · roof removed</span></div>
+      <div class="plate"><img src="${views.side}" alt="Side elevation" />
+        <span class="cap">Side elevation · ${depth} mm deep · cavities in section</span></div>
     </div>
   </div>
 
-  <h2>Cut list — ${state.stack.length} storeys, bottom to top</h2>
-  <table>
-    <thead><tr>
-      <th style="width:7%">Order</th><th style="width:16%">Profile</th>
-      <th style="width:11%">Storey</th><th style="width:23%">Footprint</th>
-      <th style="width:14%">Thickness</th><th>Timber</th>
-    </tr></thead>
-    <tbody>${rows}${parts.join('')}</tbody>
-  </table>
-  <p class="ghline">Grasshopper export · paste into <b class="mono">BEEHOME.gh</b> to regenerate
-    the cutting files &nbsp; <code>${gh}</code></p>
-
-  <div class="foot"><span>Sheet 1 of 2 · the build</span><span>${id}</span></div>
+  ${listAlone ? '' : cutList}
+  <div class="foot"><span>Sheet 1 · the drawings</span><span>${id}</span></div>
 </section>
 
-<section class="page">
-  ${titleBlock('Build it, plant it, maintain it', 'Everything after the cutting')}
+${listAlone ? `<section class="page">
+  ${titleBlock('Cut list', `${state.stack.length} storeys, bottom to top`)}
+  ${cutList}
+  <div class="foot"><span>Sheet 2 · the cut list</span><span>${id}</span></div>
+</section>` : ''}
+
+<section class="page prose">
+  ${titleBlock('The Build and the Bees', 'Everything after the cutting')}
 
   <div class="cols">
-    <div>
-      ${state.variant === 'b' && dxf ? `<div class="warn"><b>Plain fronts are a
-        preview.</b> The cutting library holds one set of storey profiles, the
-        patterned ones, and that is what the DXF here cuts. Nothing in the
-        original production files corresponds to the plain option, so a
-        maker space cannot make it from this folder.</div>` : ''}
-      <h2>What to hand your maker space</h2>
-      <p><b>Email them the whole folder this sheet came in.</b> A maker space is an open
-        workshop where you pay per visit or hold a membership; most will do this with you
-        rather than for you. Search for a maker space, fab lab or hackspace in your city —
-        most will quote from these files without you joining first. Four things matter:</p>
-      <ul>
-        ${dxf ? `<li><b>The DXF in the folder</b> —
-          <span class="mono">Bee Home ${id} CNC.dxf</span>. The ${dxf.parts.length} storeys
-          laid out side by side, 1:1 in millimetres, R12. This is the production cutting
-          geometry from the original Rhino file, not a tracing of the pictures on this
-          sheet: native lines and arcs, and the inside-corner relief a round cutter needs.
-          The layer names are the original ones and they carry the work —
-          <span class="mono">POCKET-INSIDE_T6MM_20.00MM</span> is an inside pocket, 6&nbsp;mm
-          cutter, 20&nbsp;mm deep.</li>` : ''}
-        <li><b>This sheet, and the export string above it.</b> Dropped into
-          <span class="mono">BEEHOME.gh</span> it regenerates the cutting files for exactly
-          this design. That is the authoritative source and the one to settle any
-          disagreement against.</li>
-        <li><b>Untreated hardwood or exterior-grade ply.</b> Nothing chemically preserved —
-          it has to be safe for the occupants.</li>
-        <li><b>A CNC router and someone who runs it.</b> Every storey is cut from a single
-          board.</li>
-      </ul>
-      ${dxf ? `<div class="warn"><b>Read the DXF's layers, do not just plot it.</b>
-        Everything is drawn flat at Z=0 and the depth of cut lives in the layer name and
-        nowhere else. Two things are not recorded in the source file and have
-        <b>not been verified</b> here: whether each pocket curve is a finished wall or a tool
-        centreline, and which face its depth is measured from. The outside profile is the
-        part outline. Check the pockets against <span class="mono">BEEHOME.gh</span> before
-        cutting a full set. There are no lead-ins, no tabs and no feeds and speeds. The base
-        plate, legs and spike are not in the DXF — the library holds a base plate under each
-        storey variant and nothing says which goes with which mounting, so they stay on the
-        cut list above as stock sizes.</div>` : ''}
-      <p>No CNC nearby? Every part is a flat profile. It is slower but entirely possible with
-        a jigsaw, a drill and a chisel — print this sheet at 100% scale and use the cut list
-        profiles as templates.</p>
+    ${state.variant === 'b' && dxf ? `<div class="warn"><b>Plain fronts are a
+      preview.</b> The cutting library holds one set of storey profiles, the patterned
+      ones, and that is what the DXF cuts. Nothing in the original production files
+      matches the plain option.</div>` : ''}
 
-      <h2>Assembly</h2>
-      <ol>
-        <li>Lay the storeys out in cut-list order, cavities facing the same way.</li>
-        <li>Base plate first, then the storeys bottom to top, then the roof slab.</li>
-        <li>The parts register on each other. No glue, no screws.</li>
-        <li>Fit the legs or the spike last.</li>
-      </ol>
-      <div class="note"><b>It is meant to come apart.</b> If a joint needs forcing, check the
-        storey is the right way round before you reach for a mallet.</div>
+    <div class="topic">
+    <h2>What to hand your maker space</h2>
+    <p><b>Email them the whole folder this sheet came in.</b> A maker space is an open
+      workshop with a CNC router in it. Most will quote from these files without you
+      joining, and most will do the work with you rather than for you.</p>
+    <ul>
+      ${dxf ? `<li><b>The DXF in the folder</b>,
+        <span class="mono">Bee Home ${id} CNC.dxf</span>. The ${dxf.parts.length} storeys
+        side by side, 1:1 in millimetres, R12. Production cutting geometry out of the
+        original Rhino file, not a tracing of the pictures on sheet 1: native lines and
+        arcs, with the inside-corner relief a round cutter needs. The original layer names
+        carry the depths, so <span class="mono">POCKET-INSIDE_T6MM_20.00MM</span> is an
+        inside pocket, 6&nbsp;mm cutter, 20&nbsp;mm deep.</li>` : ''}
+      <li><b>This sheet, and the export string on sheet 1.</b> Dropped into
+        <span class="mono">BEEHOME.gh</span> it regenerates the cutting files for exactly
+        this design. That is the authoritative source; settle any disagreement against
+        it.</li>
+      <li><b>Untreated hardwood or exterior-grade ply.</b> Nothing chemically preserved.
+        It has to be safe for the occupants.</li>
+      <li><b>Someone who runs the router.</b> Every storey is cut from a single board.</li>
+    </ul>
+    ${dxf ? `<div class="warn"><b>Read the layers, do not just plot it.</b> Everything is
+      drawn flat at Z=0 and the depth of cut lives in the layer name. The pocket curves are
+      finished walls, not tool centrelines: a 6.00&nbsp;mm pocket cut with a 6&nbsp;mm
+      cutter is one pass, and the outside profiles match the cut list to the millimetre.
+      Which face each depth is measured from is not recorded, so cut one storey and check
+      before committing to a full set. No lead-ins, no tabs, no feeds and speeds. The base
+      plate, legs and spike are not in the DXF and stay on the cut list as stock
+      sizes.</div>` : ''}
+    <p>No CNC nearby? Every part is a flat profile. It is slower but entirely possible with
+      a jigsaw, a drill and a chisel. Print sheet 1 at 100% scale and use the cut list
+      profiles as templates.</p>
+
     </div>
 
-    <div>
-      <h2>Where to put it</h2>
-      <ul>
-        <li><b>Facing the morning sun</b> — south to south-east in the northern hemisphere.
-          Cold cavities do not get used.</li>
-        <li><b>Sheltered from rain</b>, under an eave or with the roof overhanging well.</li>
-        <li><b>Firmly fixed.</b> Anything that swings or rattles gets abandoned.</li>
-        <li><b>One to two metres off the ground</b>, with flowers within about 300 m.</li>
-      </ul>
+    <div class="topic">
+    <h2>Assembly</h2>
+    <ol>
+      <li>Lay the storeys out in cut-list order, cavities facing the same way.</li>
+      <li>Base plate first, then the storeys bottom to top, then the roof slab.</li>
+      <li>The parts register on each other. No glue, no screws.</li>
+      <li>Fit the ${state.position === 'grounded' ? 'spike' : 'legs'} last.</li>
+    </ol>
+    <div class="note"><b>It is meant to come apart.</b> If a joint needs forcing, check the
+      storey is the right way round before you reach for a mallet.</div>
+    </div>
 
-      <h2>Every autumn</h2>
-      <ol>
-        <li>Take it down once the season's activity has stopped.</li>
-        <li>Split the storeys apart.</li>
-        <li>Brush the cavities out dry. No detergent, no pressure washer.</li>
-        <li>Store somewhere cold, dry and mouse-proof; put it back out in early spring.</li>
-      </ol>
-      <div class="warn"><b>This is not optional.</b> Cavities that are never cleaned build up
-        mites and fungal disease, and an uncleaned bee hotel does more harm than no bee hotel
-        at all. The joinery exists so that this takes ten minutes.</div>
+    <div class="topic">
+    <h2>Finish and lifespan</h2>
+    <p>Natural oil if you want one, and nothing in or around the cavities: bees prefer bare
+      wood and will not move into anything that smells of chemistry. Expect five to thirty
+      years, depending on the timber, the spot and how well it gets cleaned.</p>
 
-      <h2>Which bees this actually helps</h2>
-      <p>Cavity-nesting solitary bees — mason and leafcutter bees. Around seventy per cent of
-        solitary bee species nest in the ground instead and will never use a box like this. To
-        help those too, leave a patch of bare, unmulched, sunny soil undisturbed.</p>
+    </div>
+
+    <div class="topic">
+    <h2>Where to put it</h2>
+    <ul>
+      <li><b>${SITING[state.position] || SITING.standing}</b></li>
+      <li><b>Facing the morning sun</b>, south to south-east in the northern hemisphere.
+        Cold cavities do not get used.</li>
+      <li><b>Sheltered from rain and strong wind</b>, under an eave or with the roof
+        overhanging well. Keep the cavities horizontal.</li>
+      <li><b>Firmly fixed.</b> Anything that swings or rattles gets abandoned.</li>
+      <li><b>Flowers within about 300&nbsp;m.</b> Native wildflowers do the most work.</li>
+    </ul>
+
+    </div>
+
+    <div class="topic">
+    <h2>Every autumn</h2>
+    <ol>
+      <li>Take it down once the season's activity has stopped.</li>
+      <li>Split the storeys apart.</li>
+      <li>Brush the cavities out dry. No detergent, no pressure washer.</li>
+      <li>Store somewhere cold, dry and mouse-proof; put it back out in early spring.</li>
+    </ol>
+    <div class="warn"><b>This is not optional.</b> Cavities that are never cleaned build up
+      mites and fungal disease, and an uncleaned bee hotel does more harm than no bee hotel
+      at all. The joinery exists so that this takes ten minutes.</div>
+
+    </div>
+
+    <div class="topic">
+    <h2>What to expect</h2>
+    <p>Bees are free-living and nobody can promise they will come; planting for them close
+      by is what changes the odds. A used cavity gets sealed shut with mud or chewed leaf.
+      Leave it: the young are inside for the winter and break the seal themselves on the
+      way out.</p>
+
+    </div>
+
+    <div class="topic">
+    <h2>Which bees this helps</h2>
+    <p>Cavity-nesting solitary bees: mason bees and leafcutter bees. Every female is a
+      queen. They make no honey, so they have nothing to defend, and they are safe around
+      children and pets.</p>
+    <p>Around seventy per cent of solitary bee species nest in the ground and will never
+      use a box like this. Leave them a patch of bare, unmulched, sunny soil.</p>
     </div>
   </div>
 
   <div class="foot">
-    <span>Sheet 2 of 2 · build, plant, maintain</span>
+    <span>Sheet ${listAlone ? 3 : 2} · the build and the bees</span>
     <span>CC BY 4.0 · SPACE10, Bakken &amp; Bæck, Tanita Klein</span>
   </div>
 </section>

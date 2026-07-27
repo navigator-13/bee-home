@@ -494,32 +494,54 @@ export class Stage {
       }
     };
 
-    const setRoof = (visible) => {
-      for (const child of this.root.children) {
-        if (child.userData.roof) child.visible = visible;
+    /* Frame the box, not the sphere around it. Standing this camera off at a
+       fixed multiple of the bounding radius is generous sideways and short of
+       the roof: a fanned four-storey stack is far taller than it is wide, and
+       on a wide canvas the vertical is the tight axis. Solve for the distance
+       instead. Every corner, decomposed along the camera's own axes, demands
+       some distance to stay inside the frustum; take the largest. */
+    const frame = (camera, direction, box, pad = 1.06) => {
+      const centre = box.getCenter(new THREE.Vector3());
+      const dir = direction.clone().normalize();
+      const right = new THREE.Vector3().crossVectors(dir, new THREE.Vector3(0, 1, 0))
+        .normalize();
+      const up = new THREE.Vector3().crossVectors(right, dir).normalize();
+      const tanV = Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2);
+      const tanH = tanV * camera.aspect;
+      const corner = new THREE.Vector3();
+      let distance = 0;
+      for (let i = 0; i < 8; i += 1) {
+        corner.set(
+          i & 1 ? box.max.x : box.min.x,
+          i & 2 ? box.max.y : box.min.y,
+          i & 4 ? box.max.z : box.min.z,
+        ).sub(centre);
+        const toward = corner.dot(dir);
+        distance = Math.max(
+          distance,
+          toward + Math.abs(corner.dot(right)) / tanH,
+          toward + Math.abs(corner.dot(up)) / tanV,
+        );
       }
+      camera.position.copy(centre).addScaledVector(dir, distance * pad);
+      camera.lookAt(centre);
     };
 
     fan(explodeMm);
-    const open = measure();
-    const radius = open.size.length();
+    const openBox = new THREE.Box3().setFromObject(this.root);
     const iso = new THREE.PerspectiveCamera(28, aspect, 0.01, 100);
-    iso.position.set(
-      open.centre.x + radius * 1.15,
-      open.centre.y + radius * 0.82,
-      open.centre.z + radius * 1.4,
-    );
-    iso.lookAt(open.centre);
+    frame(iso, new THREE.Vector3(1.15, 0.82, 1.4), openBox);
     const views = { iso: shot(iso) };
     fan(-explodeMm);
 
     // The measured views are of the thing assembled, so they are framed after
     // the stack has closed back up.
     const { size, centre } = measure();
+    /* Half-extents solved from the two axes the view actually spans, so a
+       narrow canvas crops the drawing no more than a wide one does. */
     const ortho = (axis) => {
-      const extent = axis === 'front'
-        ? Math.max(size.x, size.y) * 0.62
-        : Math.max(size.x, size.z) * 0.62;
+      const across = (axis === 'front' ? size.x : size.z) / 2;
+      const extent = Math.max(size.y / 2, across / (aspect || 1)) * 1.14;
       const camera = new THREE.OrthographicCamera(
         -extent * aspect, extent * aspect, extent, -extent, 0.001, 40,
       );
@@ -528,8 +550,7 @@ export class Stage {
         // and the front is the face carrying the cavity openings.
         camera.position.set(centre.x, centre.y, centre.z - 2);
       } else {
-        camera.position.set(centre.x, centre.y + 2, centre.z);
-        camera.up.set(0, 0, -1);
+        camera.position.set(centre.x + 2, centre.y, centre.z);
       }
       camera.lookAt(centre);
       return camera;
@@ -537,12 +558,12 @@ export class Stage {
 
     views.front = shot(ortho('front'));
 
-    /* Looking down on the finished object, the roof is the drawing: a 140x160
-       slab laid over everything a plan exists to show. Taking it off leaves
-       the top storey's cavity layout, which is the thing worth measuring. */
-    setRoof(false);
-    views.plan = shot(ortho('plan'));
-    setRoof(true);
+    /* Seen from the side, the cavities read as depths through the board. That
+       is the one number the cut list cannot carry and the DXF hides in a layer
+       name, so it is worth a view. A plan is not: the roof covers everything
+       worth measuring, and with the roof lifted off it is a larger copy of one
+       row of the cut list's profile column. */
+    views.side = shot(ortho('side'));
 
     this.plateWhite = previous.white;
     this.setMode(previous.mode);
