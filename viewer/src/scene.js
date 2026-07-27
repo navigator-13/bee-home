@@ -72,7 +72,7 @@ export class Stage {
     this.scene.background = new THREE.Color(BACKDROP.timber);
 
     this.camera = new THREE.PerspectiveCamera(35, 1, 0.01, 100);
-    this.camera.position.set(0.52, 0.3, -0.42);
+    this.camera.position.set(0.26, 0.3, -0.64);
 
     this.controls = new OrbitControls(this.camera, canvas);
     this.controls.enableDamping = true;
@@ -281,10 +281,13 @@ export class Stage {
     this.scene.background = this.plateAlpha ? null
       : new THREE.Color(this.plateWhite ? '#ffffff' : BACKDROP[mode]);
     /* The occluder's whole job is to hide the edges behind a face, which it
-       can only do by being the same colour as what it sits on. Left at the
-       on-screen bone while a plate renders on white, every part came out as a
-       grey silhouette on the printed sheet instead of a line drawing. */
-    this.occluder().color.set(this.plateWhite ? '#ffffff' : BACKDROP.drawing);
+       can only do by being the same colour as whatever the drawing ends up
+       sitting on. On the printed sheet that is white; composited onto the page
+       -- which is what plateAlpha means -- it is the paper, and painting those
+       plates white filled every shape with a white slab over the background. */
+    this.occluder().color.set(
+      this.plateWhite && !this.plateAlpha ? '#ffffff' : BACKDROP.drawing,
+    );
     this.shadowFloor.visible = mode === 'timber';
     for (const child of this.root.children) {
       if (child.isLineSegments) {
@@ -620,9 +623,9 @@ export class Stage {
        around. */
     const target = this.controls.target;
     this.camera.position.set(
-      target.x + radius * 0.5 * distanceScale,
+      target.x + radius * 0.24 * distanceScale,
       target.y + radius * 0.3 * distanceScale,
-      target.z - radius * 0.42 * distanceScale,
+      target.z - radius * 0.62 * distanceScale,
     );
     this.controls.update();
   }

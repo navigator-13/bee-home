@@ -282,7 +282,21 @@ async function buildPackHtml() {
   // the DXF made it into that folder.
   const library = await toolpathLibrary();
   const dxf = library ? buildDxf(library, { id, exportString: gh }) : null;
-  const sizes = state.stack.map((l) => index.storeys[l][state.variant].size_mm);
+  /* Footprints come from the cutting library where it has an opinion. The
+     display meshes ship one shape per letter, but production cuts H 140 deep
+     as a storey and 150 as a roof, so a cut list read off the meshes told
+     someone to buy stock the DXF then cut past. The export string already
+     encodes which production variant each storey is -- 2 topmost, 1 second
+     from top under a fixed mounting, 0 otherwise -- so the digits in it are
+     the lookup key. */
+  const variantDigits = gh.split(',').slice(1).map((f) => f.slice(-1));
+  const partFor = (letter, i) => (library
+    ? library.parts[letter + (variantDigits[i] || '0')] : null);
+  const footprint = (letter, i) => {
+    const part = partFor(letter, i);
+    return (part && part.size_mm) || index.storeys[letter][state.variant].size_mm;
+  };
+  const sizes = state.stack.map((l, i) => footprint(l, i));
   const stackMm = Math.round(sizes.reduce((t, s) => t + s[2], 0));
   const overallMm = Math.round(stackHeight() + liftMm());
   const width = Math.max(...sizes.map((s) => s[0]));
@@ -296,7 +310,7 @@ async function buildPackHtml() {
      120 × 160 × 30, and what separates an A from an M is the profile. */
   const cell = (art) => (art ? `<img src="${art}" alt="" />` : '');
   const rows = state.stack.map((letter, i) => {
-    const size = index.storeys[letter][state.variant].size_mm;
+    const size = footprint(letter, i);
     return `<tr>
       <td class="n">${String(i + 1).padStart(2, '0')}</td>
       <td class="thumb">${cell(plates[i])}</td>
@@ -446,6 +460,11 @@ p { margin:0 0 3mm; }
 
   <div class="cols">
     <div>
+      ${state.variant === 'b' && dxf ? `<div class="warn"><b>Plain fronts are a
+        preview.</b> The cutting library holds one set of storey profiles, the
+        patterned ones, and that is what the DXF here cuts. Nothing in the
+        original production files corresponds to the plain option, so a
+        maker space cannot make it from this folder.</div>` : ''}
       <h2>What to hand your maker space</h2>
       <p><b>Email them the whole folder this sheet came in.</b> A maker space is an open
         workshop where you pay per visit or hold a membership; most will do this with you
