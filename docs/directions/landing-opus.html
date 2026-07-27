@@ -276,7 +276,7 @@ figcaption b { color: var(--ink); font-weight: 400; }
    sitting at one fixed pixel size in a column that grew around it. */
 .askGlobe {
   position: relative;
-  width: clamp(150px, 23vw, 430px);
+  width: clamp(118px, 17vw, 320px);
   aspect-ratio: 1;
   justify-self: end;
   overflow: hidden;
@@ -301,9 +301,13 @@ figcaption b { color: var(--ink); font-weight: 400; }
    folding on any window narrower than about a laptop -- including the panel
    this page gets reviewed in, which is why the globe kept turning up centred
    under the picker instead of beside it. */
-@media (max-width: 560px) {
-  .ask { grid-template-columns: 1fr; gap: clamp(12px, 3vh, 26px); }
-  .askGlobe { justify-self: center; width: min(62vw, 260px); }
+/* Beside the question rather than under it, all the way down. Stacked, the
+   globe sat in a band of its own with a screen of empty paper above and below
+   -- in the right-hand column it is a mark next to the picker, which is what
+   it is for. Only the narrowest phones give that up. */
+@media (max-width: 380px) {
+  .ask { grid-template-columns: 1fr; gap: clamp(10px, 2vh, 20px); }
+  .askGlobe { justify-self: center; width: min(44vw, 170px); }
 }
 
 .askQ {
@@ -1657,8 +1661,15 @@ figcaption b { color: var(--ink); font-weight: 400; }
 
     // On one column the headline sits over the object and there is far less
     // room, so a smaller, simpler set is used.
+    /* Which route set, decided once per layout. This asks whether the copy
+       overlaps the object, and .ground carries a fixed aspect ratio -- so its
+       width, and therefore m.left, moves whenever the viewport height does. A
+       phone's address bar was enough to flip the answer mid-scroll, and the
+       two sets keep separate high-water marks, so flipping handed the trails a
+       bank of zeroes and every one of them drew itself again. */
     var c = copyEl.getBoundingClientRect();
-    var stacked = c.right > m.left;
+    if (frameStacked === null) frameStacked = c.right > m.left;
+    var stacked = frameStacked;
 
     // Routes only -- the curling is the trochoid's business, and none of it
     // is placed by hand. What is placed by hand is where a trail enters and
@@ -1790,7 +1801,11 @@ figcaption b { color: var(--ink); font-weight: 400; }
      actually changes the layout, so only a width change refreshes this. */
   var frameW = innerWidth;
   var frameSpan = 0;
-  var measureSpan = function () { frameSpan = section.offsetHeight - innerHeight; };
+  var frameStacked = null;
+  var measureSpan = function () {
+    frameSpan = section.offsetHeight - innerHeight;
+    frameStacked = null;
+  };
   measureSpan();
   addEventListener('resize', function () {
     // Width is what actually relayouts. A height-only change is the address
