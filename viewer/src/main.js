@@ -91,6 +91,32 @@ async function boot() {
   document.body.dataset.plateReady = '1';
 }
 
+/**
+ * Which production cut a storey at position `i` actually is, and the mesh that
+ * matches it.
+ *
+ * The same letter is cut three ways depending on where it lands: the topmost
+ * storey is the ROOF cut, the one below it the FIXED cut when the whole thing
+ * is wall-mounted, everything else DEFAULT. exportString() has always encoded
+ * that in the trailing digits -- this is the same rule, so the model on screen
+ * and the profile in the DXF stay the same part. The library only carries a
+ * separate mesh where the cut genuinely differs; anything without one falls
+ * back to the default.
+ */
+function cutVariant(i) {
+  const top = state.stack.length - 1;
+  if (i === top) return '2';
+  if (state.position === 'fixed' && i === top - 1) return '1';
+  return '0';
+}
+
+function storeyEntry(letter, i) {
+  const slot = index.storeys[letter];
+  if (state.variant === 'b') return slot.b;
+  const cut = cutVariant(i);
+  return (cut !== '0' && slot['a' + cut]) || slot.a;
+}
+
 /** Species for storey `i`, falling back as the stack grows. */
 function woodFor(i) {
   return state.woods[i] ?? DEFAULT_WOOD;
@@ -130,7 +156,7 @@ function shuffleStack() {
 /** Total height of the storey stack in millimetres. */
 function stackHeight() {
   return state.stack.reduce(
-    (total, letter) => total + index.storeys[letter][state.variant].size_mm[2], 0,
+    (total, letter, i) => total + storeyEntry(letter, i).size_mm[2], 0,
   );
 }
 
@@ -155,7 +181,7 @@ async function rebuild() {
 
   let y = lift;
   for (const [i, letter] of state.stack.entries()) {
-    const entry = index.storeys[letter][state.variant];
+    const entry = storeyEntry(letter, i);
     const geometry = await stage.load(entry.file);
     // The exploded plate fans the storeys apart vertically so every joint and
     // cavity is legible in a single drawing.
@@ -1012,7 +1038,7 @@ async function hoverStorey(i, withPreview = true) {
     el('preview').classList.remove('on');
     return;
   }
-  const entry = index.storeys[letter][state.variant];
+  const entry = storeyEntry(letter, i);
   const geometry = await stage.load(entry.file);
   // The pointer may have moved on while that awaited.
   if (stage.hovered !== i) return;

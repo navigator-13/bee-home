@@ -78,7 +78,11 @@ VARIANT = "0"
 # the R3.2 corner fillets into two chords each: a fifth of the 1.35 mm the old
 # meshes were out by for having no fillets at all, and under a pixel at the
 # size these render.
-ARC_SAGITTA_MM = 0.25
+# 0.25 chorded each R3.2 fillet finely enough that the chord dihedral came in
+# under EdgesGeometry's 20-degree threshold, so every rounded corner drew as
+# three hairlines instead of one. 0.7 puts a fillet at two segments, which is
+# all it is worth at the size these render, and halves the triangle count.
+ARC_SAGITTA_MM = 0.7
 
 # Clipping a pocket that breaks out through an edge against the outside profile
 # leaves slivers where the two curves run together. Anything under this is
@@ -457,24 +461,64 @@ def main():
     library = json.load(open(SRC))
     index = json.load(open(INDEX))
     total = 0
+    extra = 0
+
     for letter in LETTERS:
-        part = library["parts"][letter + VARIANT]
-        positions, normals = build(part)
-        verify(part, positions)
-        write_glb(os.path.join(OUT_DIR, f"{letter}_a.glb"), positions, normals)
+        # Variant 0 keeps the original filename and the `a` slot, so anything
+        # that only knows about one mesh per letter still works.
+        shapes = {}
+        for variant in ("0", "1", "2"):
+            key = letter + variant
+            if key not in library["parts"]:
+                continue
+            part = library["parts"][key]
+            positions, normals = build(part)
+            verify(part, positions)
+            shapes[variant] = (part, positions, normals)
+
+        base = shapes["0"]
+        write_glb(os.path.join(OUT_DIR, f"{letter}_a.glb"), base[1], base[2])
         entry = index["storeys"][letter]["a"]
-        entry["size_mm"] = [float(v) for v in part["size_mm"]]
-        entry["triangles"] = len(positions) // 9
-        entry["source"] = f"toolpaths {letter}{VARIANT} "\
-                          f"({library['variants'][VARIANT]})"
+        entry["size_mm"] = [float(v) for v in base[0]["size_mm"]]
+        entry["triangles"] = len(base[1]) // 9
+        entry["source"] = f"toolpaths {letter}0 ({library['variants']['0']})"
         total += entry["triangles"]
+        note = ""
+
+        # A storey is cut differently depending on where it lands in the stack:
+        # topmost is ROOF, second from top is FIXED under a fixed mounting.
+        # Only emit those where the geometry actually differs -- most letters
+        # are the same part in more than one position, and a duplicate mesh per
+        # letter per variant would put a megabyte into the single-file build
+        # for nothing.
+        for variant in ("1", "2"):
+            if variant not in shapes:
+                index["storeys"][letter].pop("a" + variant, None)
+                continue
+            part, positions, normals = shapes[variant]
+            if positions == base[1]:
+                index["storeys"][letter].pop("a" + variant, None)
+                continue
+            name = f"{letter}_a{variant}.glb"
+            write_glb(os.path.join(OUT_DIR, name), positions, normals)
+            index["storeys"][letter]["a" + variant] = {
+                "file": f"models/{name}",
+                "size_mm": [float(v) for v in part["size_mm"]],
+                "triangles": len(positions) // 9,
+                "source": f"toolpaths {letter}{variant} "
+                          f"({library['variants'][variant]})",
+            }
+            total += len(positions) // 9
+            extra += 1
+            note += f" +{variant}"
+
         print(f"{letter}_a: {entry['triangles']:4d} tris, "
-              f"{'x'.join(f'{v:g}' for v in part['size_mm'])} mm")
+              f"{'x'.join(f'{v:g}' for v in base[0]['size_mm'])} mm{note}")
 
     with open(INDEX, "w") as fh:
         json.dump(index, fh, indent=1)
-    print(f"\nwrote 16 storey meshes from variant {VARIANT} "
-          f"({library['variants'][VARIANT]}), {total} triangles")
+    print(f"\nwrote 16 default meshes plus {extra} positional variants, "
+          f"{total} triangles")
 
 
 if __name__ == "__main__":

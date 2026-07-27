@@ -9,7 +9,7 @@
      160.0,
      30.0
     ],
-    "triangles": 764,
+    "triangles": 604,
     "source": "toolpaths A0 (DEFAULT)"
    },
    "b": {
@@ -20,6 +20,26 @@
      30.0
     ],
     "triangles": 130
+   },
+   "a1": {
+    "file": "models/A_a1.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 848,
+    "source": "toolpaths A1 (FIXED)"
+   },
+   "a2": {
+    "file": "models/A_a2.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 648,
+    "source": "toolpaths A2 (ROOF)"
    }
   },
   "B": {
@@ -30,7 +50,7 @@
      160.0,
      30.0
     ],
-    "triangles": 788,
+    "triangles": 628,
     "source": "toolpaths B0 (DEFAULT)"
    },
    "b": {
@@ -41,6 +61,26 @@
      30.0
     ],
     "triangles": 128
+   },
+   "a1": {
+    "file": "models/B_a1.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 1012,
+    "source": "toolpaths B1 (FIXED)"
+   },
+   "a2": {
+    "file": "models/B_a2.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 592,
+    "source": "toolpaths B2 (ROOF)"
    }
   },
   "C": {
@@ -51,7 +91,7 @@
      160.0,
      30.0
     ],
-    "triangles": 970,
+    "triangles": 778,
     "source": "toolpaths C0 (DEFAULT)"
    },
    "b": {
@@ -62,6 +102,26 @@
      30.0
     ],
     "triangles": 148
+   },
+   "a1": {
+    "file": "models/C_a1.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 1046,
+    "source": "toolpaths C1 (FIXED)"
+   },
+   "a2": {
+    "file": "models/C_a2.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 726,
+    "source": "toolpaths C2 (ROOF)"
    }
   },
   "D": {
@@ -72,7 +132,7 @@
      160.0,
      30.0
     ],
-    "triangles": 292,
+    "triangles": 216,
     "source": "toolpaths D0 (DEFAULT)"
    },
    "b": {
@@ -83,6 +143,26 @@
      30.0
     ],
     "triangles": 64
+   },
+   "a1": {
+    "file": "models/D_a1.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 496,
+    "source": "toolpaths D1 (FIXED)"
+   },
+   "a2": {
+    "file": "models/D_a2.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 260,
+    "source": "toolpaths D2 (ROOF)"
    }
   },
   "E": {
@@ -93,7 +173,7 @@
      160.0,
      30.0
     ],
-    "triangles": 936,
+    "triangles": 768,
     "source": "toolpaths E0 (DEFAULT)"
    },
    "b": {
@@ -104,6 +184,26 @@
      30.0
     ],
     "triangles": 172
+   },
+   "a1": {
+    "file": "models/E_a1.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 856,
+    "source": "toolpaths E1 (FIXED)"
+   },
+   "a2": {
+    "file": "models/E_a2.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 812,
+    "source": "toolpaths E2 (ROOF)"
    }
   },
   "F": {
@@ -114,7 +214,7 @@
      160.0,
      30.0
     ],
-    "triangles": 616,
+    "triangles": 480,
     "source": "toolpaths F0 (DEFAULT)"
    },
    "b": {
@@ -125,6 +225,26 @@
      30.0
     ],
     "triangles": 140
+   },
+   "a1": {
+    "file": "models/F_a1.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 828,
+    "source": "toolpaths F1 (FIXED)"
+   },
+   "a2": {
+    "file": "models/F_a2.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 464,
+    "source": "toolpaths F2 (ROOF)"
    }
   },
   "G": {
@@ -135,7 +255,7 @@
      160.0,
      30.0
     ],
-    "triangles": 572,
+    "triangles": 452,
     "source": "toolpaths G0 (DEFAULT)"
    },
    "b": {
@@ -146,6 +266,26 @@
      30.0
     ],
     "triangles": 124
+   },
+   "a1": {
+    "file": "models/G_a1.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 724,
+    "source": "toolpaths G1 (FIXED)"
+   },
+   "a2": {
+    "file": "models/G_a2.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 484,
+    "source": "toolpaths G2 (ROOF)"
    }
   },
   "H": {
@@ -156,7 +296,7 @@
      140.0,
      30.0
     ],
-    "triangles": 456,
+    "triangles": 360,
     "source": "toolpaths H0 (DEFAULT)"
    },
    "b": {
@@ -167,6 +307,26 @@
      30.0
     ],
     "triangles": 108
+   },
+   "a1": {
+    "file": "models/H_a1.glb",
+    "size_mm": [
+     120.0,
+     150.0,
+     30.0
+    ],
+    "triangles": 728,
+    "source": "toolpaths H1 (FIXED)"
+   },
+   "a2": {
+    "file": "models/H_a2.glb",
+    "size_mm": [
+     120.0,
+     150.0,
+     30.0
+    ],
+    "triangles": 404,
+    "source": "toolpaths H2 (ROOF)"
    }
   },
   "I": {
@@ -177,7 +337,7 @@
      160.0,
      30.0
     ],
-    "triangles": 732,
+    "triangles": 588,
     "source": "toolpaths I0 (DEFAULT)"
    },
    "b": {
@@ -188,6 +348,26 @@
      30.0
     ],
     "triangles": 148
+   },
+   "a1": {
+    "file": "models/I_a1.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 814,
+    "source": "toolpaths I1 (FIXED)"
+   },
+   "a2": {
+    "file": "models/I_a2.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 636,
+    "source": "toolpaths I2 (ROOF)"
    }
   },
   "J": {
@@ -198,7 +378,7 @@
      160.0,
      30.0
     ],
-    "triangles": 600,
+    "triangles": 480,
     "source": "toolpaths J0 (DEFAULT)"
    },
    "b": {
@@ -209,6 +389,26 @@
      30.0
     ],
     "triangles": 140
+   },
+   "a1": {
+    "file": "models/J_a1.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 828,
+    "source": "toolpaths J1 (FIXED)"
+   },
+   "a2": {
+    "file": "models/J_a2.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 464,
+    "source": "toolpaths J2 (ROOF)"
    }
   },
   "K": {
@@ -219,7 +419,7 @@
      160.0,
      30.0
     ],
-    "triangles": 500,
+    "triangles": 388,
     "source": "toolpaths K0 (DEFAULT)"
    },
    "b": {
@@ -230,6 +430,26 @@
      30.0
     ],
     "triangles": 76
+   },
+   "a1": {
+    "file": "models/K_a1.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 652,
+    "source": "toolpaths K1 (FIXED)"
+   },
+   "a2": {
+    "file": "models/K_a2.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 352,
+    "source": "toolpaths K2 (ROOF)"
    }
   },
   "L": {
@@ -240,7 +460,7 @@
      160.0,
      30.0
     ],
-    "triangles": 792,
+    "triangles": 632,
     "source": "toolpaths L0 (DEFAULT)"
    },
    "b": {
@@ -251,6 +471,26 @@
      30.0
     ],
     "triangles": 140
+   },
+   "a1": {
+    "file": "models/L_a1.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 872,
+    "source": "toolpaths L1 (FIXED)"
+   },
+   "a2": {
+    "file": "models/L_a2.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 516,
+    "source": "toolpaths L2 (ROOF)"
    }
   },
   "M": {
@@ -261,7 +501,7 @@
      160.0,
      30.0
     ],
-    "triangles": 500,
+    "triangles": 388,
     "source": "toolpaths M0 (DEFAULT)"
    },
    "b": {
@@ -272,6 +512,26 @@
      30.0
     ],
     "triangles": 76
+   },
+   "a1": {
+    "file": "models/M_a1.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 652,
+    "source": "toolpaths M1 (FIXED)"
+   },
+   "a2": {
+    "file": "models/M_a2.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 352,
+    "source": "toolpaths M2 (ROOF)"
    }
   },
   "N": {
@@ -282,7 +542,7 @@
      160.0,
      30.0
     ],
-    "triangles": 340,
+    "triangles": 244,
     "source": "toolpaths N0 (DEFAULT)"
    },
    "b": {
@@ -293,6 +553,26 @@
      30.0
     ],
     "triangles": 84
+   },
+   "a1": {
+    "file": "models/N_a1.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 500,
+    "source": "toolpaths N1 (FIXED)"
+   },
+   "a2": {
+    "file": "models/N_a2.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 288,
+    "source": "toolpaths N2 (ROOF)"
    }
   },
   "O": {
@@ -303,7 +583,7 @@
      160.0,
      30.0
     ],
-    "triangles": 872,
+    "triangles": 696,
     "source": "toolpaths O0 (DEFAULT)"
    },
    "b": {
@@ -314,6 +594,26 @@
      30.0
     ],
     "triangles": 204
+   },
+   "a1": {
+    "file": "models/O_a1.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 940,
+    "source": "toolpaths O1 (FIXED)"
+   },
+   "a2": {
+    "file": "models/O_a2.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 740,
+    "source": "toolpaths O2 (ROOF)"
    }
   },
   "P": {
@@ -324,7 +624,7 @@
      160.0,
      30.0
     ],
-    "triangles": 1064,
+    "triangles": 856,
     "source": "toolpaths P0 (DEFAULT)"
    },
    "b": {
@@ -335,6 +635,26 @@
      30.0
     ],
     "triangles": 172
+   },
+   "a1": {
+    "file": "models/P_a1.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 1252,
+    "source": "toolpaths P1 (FIXED)"
+   },
+   "a2": {
+    "file": "models/P_a2.glb",
+    "size_mm": [
+     120.0,
+     160.0,
+     30.0
+    ],
+    "triangles": 748,
+    "source": "toolpaths P2 (ROOF)"
    }
   }
  },
