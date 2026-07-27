@@ -690,8 +690,8 @@ ${listAlone ? `<section class="page">
       joining, and most will do the work with you rather than for you.</p>
     <ul>
       ${dxf ? `<li><b>The DXF in the folder</b>,
-        <span class="mono">Bee Home ${id} CNC.dxf</span>. The ${dxf.parts.length} storeys
-        side by side, 1:1 in millimetres, R12. Production cutting geometry out of the
+        <span class="mono">Bee Home ${id} CNC.dxf</span>. The ${dxf.parts.length} sheet
+        parts side by side, 1:1 in millimetres, R12. Production cutting geometry out of the
         original Rhino file, not a tracing of the pictures on sheet 1: native lines and
         arcs, with the inside-corner relief a round cutter needs. The original layer names
         carry the depths, so <span class="mono">POCKET-INSIDE_T6MM_20.00MM</span> is an
@@ -710,9 +710,12 @@ ${listAlone ? `<section class="page">
       cutter is one pass, and the outside profiles match the cut list to the millimetre.
       Which face each depth is measured from is not recorded, so cut one storey and check
       before committing to a full set. No lead-ins, no tabs, no feeds and speeds. The base
-      plate, roof slab, legs and spike are not in the DXF and stay on the cut list as
-      stock sizes; their dimensions are measured off the display model rather than taken
-      from the production file, so treat them as nominal.</div>` : ''}
+      roof slab in it is derived rather than authored: no roof exists in the toolpath
+      library, so its outline is the base plate's production profile — the two share a
+      140 × 160 footprint where every storey is 120 wide — and its 22 mm thickness is
+      measured off the display model. The base plate, legs and spike are not in the DXF
+      at all. They are stock rather than sheet parts, and the cut list carries their
+      sizes.</div>` : ''}
     <p>No CNC nearby? Every part is a flat profile. It is slower but entirely possible with
       a jigsaw, a drill and a chisel. Print sheet 1 at 100% scale and use the cut list
       profiles as templates.</p>

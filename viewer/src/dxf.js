@@ -26,6 +26,9 @@ const LABEL_BAND = 13;   // room reserved under each row for the label
 
 const VARIANT_WORD = { 0: 'default', 1: 'fixed', 2: 'roof' };
 
+// The roof slab's thickness, measured off the display model. See buildDxf.
+const ROOF_MM = 22;
+
 /**
  * The part keys for a design, read off the export string.
  *
@@ -201,6 +204,39 @@ export function buildDxf(library, {
     })
     .filter(Boolean);
 
+  /* The roof, derived rather than authored.
+     
+     There is no roof slab in the toolpath library -- nothing in it is thinner
+     than 30mm -- and the display mesh is a plain box, 36 vertices and no
+     features. That box is not evidence the real part is featureless: the base
+     plate's display mesh is a plain box too, while the production base plate
+     has a through-pocket and two sockets in it. So the display model tells us
+     the roof's size and nothing about its face.
+     
+     What is solid is the footprint. The roof and the base plate are both
+     140 x 160 while every storey is 120 wide, so the cap and the foot share an
+     outline, and the base plate's outline is production geometry. Cutting the
+     roof from it is better than leaving a maker to draw a rectangle by eye. The
+     thickness comes off the display model, which is why the label says so. */
+  const basePlate = library.parts.BASE0;
+  if (basePlate && wanted.length) {
+    const profile = basePlate.ops.find((op) => op.op === 'CUT-OUTSIDE');
+    if (profile) {
+      wanted.push({
+        letter: 'ROOF',
+        variant: 'derived',
+        size_mm: [basePlate.size_mm[0], basePlate.size_mm[1], ROOF_MM],
+        ops: [{ ...profile, layer: `CUT-OUTSIDE_T6MM_${ROOF_MM.toFixed(2)}MM`,
+          depth_mm: ROOF_MM }],
+        key: 'ROOF',
+        order: wanted.length + 1,
+        label: `${String(wanted.length + 1).padStart(2, '0')} ROOF SLAB`
+          + ` ${basePlate.size_mm[0]}x${basePlate.size_mm[1]}x${ROOF_MM}`
+          + ' - OUTLINE FROM BASE PLATE, THICKNESS NOMINAL',
+      });
+    }
+  }
+
   const placed = layout(wanted, { gapMm, rowMm });
 
   let body = '';
@@ -226,18 +262,22 @@ export function buildDxf(library, {
      never saw the email it arrived in. */
   const tools = [...new Set(placed.flatMap((p) => p.ops.map((o) => o.tool_mm)))].sort();
   const notes = [
-    `BEE HOME ${id} - ${placed.length} STOREYS, MILLIMETRES, 1:1`,
+    `BEE HOME ${id} - ${placed.length} PARTS, MILLIMETRES, 1:1`,
     'PRODUCTION TOOLPATHS AS AUTHORED IN BEEHOME GEOMETRIES.3DM. GEOMETRY IS COPIED,',
     'NOT REDRAWN: NATIVE LINES AND ARCS, NO FLATTENING, CORNER RELIEF AS CUT.',
     'LAYER NAMES CARRY THE OPERATION, THE CUTTER AND THE DEPTH OF CUT, E.G.',
     'POCKET-INSIDE_T6MM_20.00MM = INSIDE POCKET, ' + tools.map((t) => `${t}MM`).join('/')
       + ' CUTTER, 20MM DEEP.',
     'EVERYTHING IS DRAWN AT Z=0; DEPTH LIVES IN THE LAYER NAME ONLY.',
-    'CHECK BEFORE RUNNING: WHETHER EACH POCKET CURVE IS A FINISHED WALL OR A TOOL',
-    'CENTRELINE, AND WHICH FACE ITS DEPTH IS MEASURED FROM, ARE NOT RECORDED IN THE',
-    'FILE AND HAVE NOT BEEN VERIFIED HERE. THE OUTSIDE PROFILE IS THE PART OUTLINE.',
-    'NO LEAD-INS, NO TABS, NO FEEDS AND SPEEDS. THE BASE PLATE, LEGS AND SPIKE ARE',
-    'NOT INCLUDED. THE FULL SOURCE IS BEEHOME.GH WITH THE EXPORT STRING:',
+    'POCKET CURVES ARE FINISHED WALLS, NOT TOOL CENTRELINES: A 6.00MM POCKET CUT',
+    'WITH A 6MM CUTTER IS ONE PASS AND THE OUTSIDE PROFILES MATCH THE FOOTPRINTS.',
+    'WHICH FACE EACH DEPTH IS MEASURED FROM IS NOT RECORDED. CUT EVERY PART THE',
+    'SAME WAY UP, IN ONE SETUP, AND CHECK ONE STOREY BEFORE COMMITTING TO A SET.',
+    'NO LEAD-INS, NO TABS, NO FEEDS AND SPEEDS. THE STOREYS ARE AS AUTHORED. THE',
+    'ROOF SLAB IS DERIVED - ITS OUTLINE IS THE BASE PLATE\'S, ITS THICKNESS IS OFF',
+    'THE DISPLAY MODEL. THE BASE PLATE, LEGS AND SPIKE ARE NOT INCLUDED: THEY ARE',
+    'STOCK, AND THE CUT LIST CARRIES THEIR SIZES.',
+    'THE FULL SOURCE IS BEEHOME.GH WITH THE EXPORT STRING:',
     exportString || '(see the drawings sheet)',
   ];
   const noteTop = box[3] + 24;

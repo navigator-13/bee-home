@@ -99,6 +99,21 @@ plates took their height from the render buffer rather than the frame they print
 in, putting 360 mm of content in a 273 mm page, and a multi-column block with no
 definite height fragments across printed pages instead of balancing inside one.
 
+**The legs and the spike are stock, not sheet parts.** A 200 mm spike and a
+50 mm leg do not come off a 30 mm sheet, so no DXF would carry them. Their
+sections are corroborated rather than guessed: the base plates hold a
+32.2 × 32.2 mm socket, and 32.2 against a 30 mm member is 1.1 mm of clearance a
+side — the same clearance the 32.2 mm wide leg recesses give a 30 mm leg. Length
+comes from the mounting height, which the cut list already computes.
+
+**Duplicate coincident curves on the base plate.** `BASE0` carries its two
+122 × 32 leg recesses twice over: one pair identical to within rounding, the
+other differing by 2% of area. Read even-odd — which is how every other pocket
+in the library has to be read — a curve drawn twice cancels itself and the
+recess disappears. It is the only part of the 51 with this problem, and the base
+plate is not in the DXF, so nothing downstream is affected. Worth knowing before
+anyone promotes the base plate to a cut part.
+
 **The variant labels are the originals'.** DEFAULT, FIXED and ROOF are read from
 text sitting beside each column in the Rhino file, not inferred from position.
 
@@ -125,9 +140,16 @@ topmost part nor the one below it — and that the other two are what the
 definition emits for a row that has no meaning in those columns. Worth one test
 cut before it goes in the DXF.
 
-**The roof slab, legs and spike have no production geometry.** Nothing in the
-toolpath library is thinner than 30 mm, and the roof slab is 22 mm. Their sizes
-are measured off the display model and travel on the cut list as nominal stock.
+**The roof slab has no production geometry, and is now derived.** Nothing in the
+toolpath library is thinner than 30 mm. The display mesh is no help either: it
+is a plain box, 36 vertices and twelve triangles, and so is the base plate's,
+while the production base plate has a through-pocket and two sockets in it. A
+plain display box is evidence of a simplified display model, not of a featureless
+part. What is solid is the footprint — the roof and the base plate are both
+140 × 160 while every storey is 120 wide — so the DXF now cuts the roof from the
+base plate's own production outline, labelled on the drawing as derived with a
+nominal thickness. If the real part has a register recess on its underside, this
+one will sit flat instead of locating.
 
 ## Rebuilt rather than recovered
 
