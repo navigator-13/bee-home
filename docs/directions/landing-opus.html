@@ -192,6 +192,12 @@ body {
    in after the hero, not resuming after a line. */
 .band:first-of-type { border-top: 0; padding-top: clamp(72px, 11vh, 150px); }
 
+/* The questions are first-of-type only because they open a new padded column;
+   what they actually follow is the drift, which already ends on 9vh of its own
+   clear space. Inheriting the hero's settling-in gap on top of that left the
+   best part of a dead screen between the flowers and the heading. */
+#about { padding-top: clamp(28px, 3.6vh, 56px); }
+
 .lede {
   font-weight: 400;
   font-size: clamp(23px, 3.1vw, 46px);
@@ -369,18 +375,16 @@ figcaption b { color: var(--ink); font-weight: 400; }
   .ledeSplit { grid-template-columns: 1fr; gap: 18px; }
 }
 
-/* The band between the hero and the builder. The join has to land on the line
-   the flowers stand on, not on the bottom of the stage: the garden artwork
-   carries about 7% of its own height as clear ground beneath the lowest stem,
-   and left alone that became a strip of dead paper above the photograph. The
-   pull-up is in svh because the stage is sized in svh, so the two stay locked
-   together at any viewport. z-index is needed because the stage is sticky, and
-   a positioned element would otherwise paint over a static sibling. */
+/* The last thing on the page, breaking out of the padded column to full
+   bleed. It sits under the questions and above the fine print: once the
+   licence and the provenance are answered, the five objects are what the
+   answers were about. line-height is zeroed because an inline image otherwise
+   leaves a descender's worth of background under it, which reads as a hairline
+   seam against the rule the colophon draws. */
 .bannerBreak {
-  margin: -7svh 0 0;
+  width: 100vw;
+  margin: 0 0 0 calc(50% - 50vw);
   line-height: 0;
-  position: relative;
-  z-index: 1;
 }
 .bannerBreak img { display: block; width: 100%; height: auto; }
 
@@ -707,7 +711,12 @@ figcaption b { color: var(--ink); font-weight: 400; }
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
   gap: clamp(14px, 4vw, 72px);
-  align-items: end;
+  /* The heading's first line, not its last. Hung off the bottom the button sat
+     three lines down an otherwise empty column. Baseline rather than start,
+     because the heading carries 0.4em of top margin and its own half-leading
+     above that -- aligning boxes would float the button clear of the text it
+     belongs to, where sitting the label on the same baseline reads level. */
+  align-items: baseline;
 }
 
 .packCall { text-align: right; justify-self: end; max-width: 42ch; min-width: 0; }
@@ -828,12 +837,6 @@ figcaption b { color: var(--ink); font-weight: 400; }
     <p class="label cue" id="cue">Scroll</p>
   </div>
 </section>
-
-<figure class="bannerBreak">
-  <img src="../assets/banner/web/banner.jpg"
-       alt="Five Bee Homes of different heights and timbers standing in a row on a
-            concrete ledge against a sunlit wall" />
-</figure>
 
 <div class="pad">
   <section class="band" id="design">
@@ -1043,6 +1046,12 @@ figcaption b { color: var(--ink); font-weight: 400; }
       </details>
     </div>
   </section>
+
+  <figure class="bannerBreak">
+    <img src="../assets/banner/web/banner.jpg"
+         alt="Five Bee Homes of different heights and timbers standing in a row on a
+              concrete ledge against a sunlit wall" />
+  </figure>
 
   <p class="foot">
     The Bee Home is rendered from the project's own geometry file, not illustrated.
