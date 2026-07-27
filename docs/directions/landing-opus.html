@@ -369,6 +369,28 @@ figcaption b { color: var(--ink); font-weight: 400; }
   .ledeSplit { grid-template-columns: 1fr; gap: 18px; }
 }
 
+/* The band between the hero and the builder. The join has to land on the line
+   the flowers stand on, not on the bottom of the stage: the garden artwork
+   carries about 7% of its own height as clear ground beneath the lowest stem,
+   and left alone that became a strip of dead paper above the photograph. The
+   pull-up is in svh because the stage is sized in svh, so the two stay locked
+   together at any viewport. z-index is needed because the stage is sticky, and
+   a positioned element would otherwise paint over a static sibling. */
+.bannerBreak {
+  margin: -7svh 0 0;
+  line-height: 0;
+  position: relative;
+  z-index: 1;
+}
+.bannerBreak img { display: block; width: 100%; height: auto; }
+
+/* Narrow screens would render the full frame as a 170px sliver with five
+   unreadably small objects in it. Cropping to the middle of the row keeps the
+   homes at a legible size and still reads as a band. */
+@media (max-width: 860px) {
+  .bannerBreak img { height: 38vh; object-fit: cover; }
+}
+
 .plate { margin: clamp(38px, 6vh, 92px) 0 0; }
 .plate img { display: block; width: 100%; height: auto; }
 
@@ -797,6 +819,12 @@ figcaption b { color: var(--ink); font-weight: 400; }
     <p class="label cue" id="cue">Scroll</p>
   </div>
 </section>
+
+<figure class="bannerBreak">
+  <img src="../assets/banner/web/banner.jpg"
+       alt="Five Bee Homes of different heights and timbers standing in a row on a
+            concrete ledge against a sunlit wall" />
+</figure>
 
 <div class="pad">
   <section class="band" id="design">
