@@ -74,6 +74,18 @@ html = html.replace(
   /<iframe([^>]*)\ssrc="\.\.\/\.\.\/viewer\/"([^>]*)><\/iframe>/,
   (whole, before, attrs) => `<iframe${before} src="builder/index.html"${attrs}></iframe>`,
 );
+
+/* The bee globe travels as its own document, same as the builder. It is one
+   file with everything in it, so it only has to land beside the page. */
+const globeSrc = path.join(repo, 'viewer/public/bee-globe.html');
+if (!fs.existsSync(globeSrc)) {
+  throw new Error('build the globe first: python3 viewer/tools/build_globe.py');
+}
+fs.copyFileSync(globeSrc, path.join(out, 'bee-globe.html'));
+html = html.replace('src="../../viewer/public/bee-globe.html"', 'src="bee-globe.html"');
+if (html.includes('viewer/public/bee-globe.html')) {
+  throw new Error('globe iframe was not rewritten');
+}
 if (html.includes('src="../../viewer/"')) throw new Error('builder iframe was not rewritten');
 
 /* Lift the title out of the body. Browsers hoist a stray <title> into the head

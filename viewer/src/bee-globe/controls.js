@@ -1,0 +1,5 @@
+const defs=[['rotationSpeed','Globe rotation',0,.35,.005],['cycleDuration','Gait cycle',.8,1.8,.05],['bob','Body bob',0,.055,.002],['legAmplitude','Leg amplitude',4,24,1]];
+export function createControls(state,actions){ const host=document.querySelector('#controls');
+  for(const [key,label,min,max,step] of defs){ const row=document.createElement('label'); row.innerHTML=`<span>${label}<output>${state[key]}</output></span><input type="range" min="${min}" max="${max}" step="${step}" value="${state[key]}">`; const input=row.querySelector('input'),out=row.querySelector('output'); input.oninput=()=>{state[key]=Number(input.value);out.textContent=Number(input.value).toFixed(step<.01?3:step<1?2:0)}; host.append(row); }
+  for(const [key,label] of [['grid','Globe grid'],['coastlines','Coastlines'],['hiddenLegDebug','Hidden-leg debug'],['pivotDebug','Pivot debug']]){ const row=document.createElement('label'); row.className='check'; row.innerHTML=`<span>${label}</span><input type="checkbox" ${state[key]?'checked':''}>`; row.querySelector('input').onchange=e=>{state[key]=e.target.checked;actions.sync()}; host.append(row); }
+}

@@ -108,5 +108,38 @@ html = html.replace(
 );
 if (html.includes('src="../../viewer/"')) throw new Error('builder iframe was not replaced');
 
+/* The globe, inlined the same way and for the same reason as the builder: one
+   file has no siblings to fetch. Mounted on approach rather than at load, so a
+   second WebGL context is not created four screens above where it is needed. */
+const globeFile = path.join(repo, 'viewer/public/bee-globe.html');
+if (fs.existsSync(globeFile)) {
+  const globe = fs.readFileSync(globeFile).toString('base64');
+  html = html.replace(
+    /<iframe id="globeFrame"[^>]*src="\.\.\/\.\.\/viewer\/public\/bee-globe\.html"([^>]*)><\/iframe>/,
+    (whole, attrs) => `<iframe id="globeFrame"${attrs}></iframe>
+      <script type="text/plain" id="globeSrc">${globe}</script>
+      <script>
+        (function () {
+          var frame = document.getElementById('globeFrame');
+          var src = document.getElementById('globeSrc');
+          var mount = function () {
+            var bin = atob(src.textContent.replace(/\\s+/g, ''));
+            var bytes = new Uint8Array(bin.length);
+            for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+            frame.srcdoc = new TextDecoder('utf-8').decode(bytes);
+            src.remove();
+          };
+          if (!window.IntersectionObserver) return mount();
+          var io = new IntersectionObserver(function (entries) {
+            if (entries.some(function (e) { return e.isIntersecting; })) { io.disconnect(); mount(); }
+          }, { rootMargin: '500px' });
+          io.observe(frame);
+        })();
+      </script>`,
+  );
+  if (html.includes('viewer/public/bee-globe.html')) throw new Error('globe iframe was not replaced');
+  console.log('inlined the bee globe');
+}
+
 fs.writeFileSync(out, html);
 console.log(out, (fs.statSync(out).size / 1024 / 1024).toFixed(2), 'MB');

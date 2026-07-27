@@ -257,7 +257,52 @@ figcaption b { color: var(--ink); font-weight: 400; }
 /* The question that changes the drift, given the size of a question rather
    than the size of a form label. Loose heads fall around it: the same plates
    as the drift below, cropped to the flower, so the two read as one press. */
-.ask { margin-bottom: clamp(40px, 6vh, 84px); max-width: 46ch; }
+/* The question and the globe share the row: reading on the left, the thing
+   the question is about on the right. The globe is decorative — it carries no
+   information the select does not — so it is out of the tab order and hidden
+   from screen readers. */
+.ask {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.82fr);
+  gap: clamp(18px, 4vw, 70px);
+  align-items: center;
+  margin-bottom: clamp(40px, 6vh, 84px);
+}
+
+.askText { max-width: 46ch; min-width: 0; }
+
+.askGlobe {
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  aspect-ratio: 1;
+  justify-self: end;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* The frame is bigger than the hole it looks through. The scene draws its
+   globe at a fixed fraction of the canvas, and those scale values are
+   art-directed and documented, so the way to make it read larger here is to
+   crop the empty paper around it rather than to override them. Nudged up a
+   little because the bee stands on the crown, which puts the weight of the
+   composition above centre. */
+.askGlobe iframe {
+  position: absolute;
+  display: block;
+  border: 0;
+  width: 205%;
+  height: 205%;
+  left: -52.5%;
+  top: -49%;
+}
+
+@media (max-width: 860px) {
+  /* Stacked, and centred: off to one side under a full-width column it read
+     as something that had come loose rather than as part of the question. */
+  .ask { grid-template-columns: 1fr; gap: clamp(12px, 3vh, 26px); }
+  .askGlobe { justify-self: center; max-width: min(74vw, 340px); }
+}
 
 .askQ {
   display: flex;
@@ -268,13 +313,6 @@ figcaption b { color: var(--ink); font-weight: 400; }
   font-size: clamp(26px, 3.4vw, 52px);
   line-height: 1.1;
   letter-spacing: -0.02em;
-}
-
-.globeIcon {
-  flex: none;
-  width: clamp(28px, 3.4vw, 46px);
-  height: clamp(28px, 3.4vw, 46px);
-  color: var(--ink);
 }
 
 .askWhy {
@@ -954,20 +992,21 @@ figcaption b { color: var(--ink); font-weight: 400; }
          what is underneath them, so they belong at the same height, and loose
          heads fall around them the way they do out of a press. -->
     <div class="ask">
-      <h2 class="askQ">
-        <label for="regionPick">Where do you live?</label>
-        <svg class="globeIcon" viewBox="0 0 48 48" aria-hidden="true" fill="none"
-             stroke="currentColor" stroke-width="1.4">
-          <circle cx="24" cy="24" r="19" />
-          <ellipse cx="24" cy="24" rx="7.5" ry="19" />
-          <line x1="5.3" y1="24" x2="42.7" y2="24" />
-          <path d="M8.2 14c7.8 4.6 23.8 4.6 31.6 0" />
-          <path d="M8.2 34c7.8-4.6 23.8-4.6 31.6 0" />
-        </svg>
-      </h2>
-      <p class="askWhy">See the native bees that nest in your area, and the flowers
-        they pollinate.</p>
-      <select id="regionPick"></select>
+      <div class="askText">
+        <h2 class="askQ"><label for="regionPick">Where do you live?</label></h2>
+        <p class="askWhy">See the native bees that nest in your area, and the flowers
+          they pollinate.</p>
+        <select id="regionPick"></select>
+      </div>
+      <!-- The drawn globe that used to sit beside the heading, now turning, with
+           a bee walking the crown. Framed rather than inlined: it is a WebGL
+           scene of its own and has no business sharing a context with the
+           builder. -->
+      <div class="askGlobe">
+        <iframe id="globeFrame" src="../../viewer/public/bee-globe.html"
+                title="A bee walking on a slowly turning globe"
+                loading="lazy" aria-hidden="true" tabindex="-1"></iframe>
+      </div>
     </div>
 
     <div class="driftFieldWrap">
