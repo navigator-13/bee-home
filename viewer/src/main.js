@@ -5,6 +5,7 @@ import {
 } from './design.js';
 import { DEFAULT_WOOD, WOODS, finishSpec, woodByKey } from './woods.js';
 import { makeZip } from './zip.js';
+import { buildDxf } from './dxf.js';
 
 const state = {
   position: 'standing',
@@ -445,16 +446,29 @@ p { margin:0 0 3mm; }
       <p><b>Email them the whole folder this sheet came in.</b> A maker space is an open
         workshop where you pay per visit or hold a membership; most will do this with you
         rather than for you. Search for a maker space, fab lab or hackspace in your city —
-        most will quote from these files without you joining first. Three things matter:</p>
+        most will quote from these files without you joining first. Four things matter:</p>
       <ul>
         <li><b>This sheet, and the export string above it.</b> Dropped into
           <span class="mono">BEEHOME.gh</span> it regenerates the cutting files for exactly
-          this design.</li>
+          this design. That is the authoritative source, and the only one that carries the
+          pocket depths and the tool.</li>
+        <li><b>The DXF in the folder</b> — <span class="mono">Bee Home ${id} CNC.dxf</span>.
+          ${state.stack.length} storey profiles side by side, 1:1 in millimetres, R12.
+          Enough to quote from and to set up against; not enough to cut from unchanged.</li>
         <li><b>Untreated hardwood or exterior-grade ply.</b> Nothing chemically preserved —
           it has to be safe for the occupants.</li>
         <li><b>A CNC router and someone who runs it.</b> Every storey is cut from a single
           board.</li>
       </ul>
+      <div class="warn"><b>The DXF is a silhouette, not a toolpath.</b> Each profile is a
+        section through the storey solid at half its thickness, so it draws where the
+        material ends and nothing else. There is <b>no tool radius compensation</b>, so the
+        lines are not a cutter path. There are <b>no pocket depths</b> — the storeys are
+        pocketed rather than cut through, and one section cannot say how deep. And the inside
+        corners are square, with <b>no dogbone relief</b>, which a round cutter cannot reach
+        into. Whoever runs the machine adds all three, or works from
+        <span class="mono">BEEHOME.gh</span> instead. The base plate, roof slab and legs are
+        not in the DXF; they are on the cut list above as stock sizes.</div>
       <p>No CNC nearby? Every part is a flat profile. It is slower but entirely possible with
         a jigsaw, a drill and a chisel — print this sheet at 100% scale and use the cut list
         profiles as templates.</p>
@@ -536,14 +550,32 @@ const dataUriToBytes = (uri) => {
  * did. Fetched rather than bundled — it is half a megabyte, and nobody who
  * only wants to look at the builder should pay for it.
  *
- * The DXF slot is still empty. Everything here is honest about that: the sheet
- * carries the export string, and the notes say where the cutting files come
- * from, rather than shipping a file we cannot vouch for.
+ * The DXF slot used to be empty, on the grounds that shipping a file we could
+ * not vouch for was worse than shipping none. What goes in it now is the one
+ * thing the meshes can actually answer for: where each board's material ends,
+ * sliced straight out of the geometry on screen. It is not a toolpath and does
+ * not pretend to be — the notes below, the sheet, and the DXF's own title text
+ * all say the same thing in the same words.
  */
 async function buildPackZip(html) {
   const id = formatId(state);
+
+  // Straight off the geometry cache — these are the same meshes the stage is
+  // drawing, so the profiles cannot drift from the picture in the pack.
+  const storeys = [];
+  for (const letter of state.stack) {
+    const entry = index.storeys[letter][state.variant];
+    storeys.push({
+      letter,
+      thicknessMm: entry.size_mm[2],
+      geometry: await stage.load(entry.file),
+    });
+  }
+  const dxf = buildDxf(storeys, { id, exportString: exportString(state) });
+
   const files = [
     { name: `Bee Home ${id} — drawings and cut list.html`, data: html },
+    { name: `Bee Home ${id} CNC.dxf`, data: dxf.text },
     { name: `Bee Home ${id}.png`, data: dataUriToBytes(renderPng()) },
     {
       name: `Bee Home ${id}.txt`,
@@ -553,6 +585,7 @@ async function buildPackZip(html) {
         'WHAT IS IN THIS FOLDER',
         '  · Drawings and cut list, as a web page. Open it in any browser and',
         '    print it, or save it as a PDF from the print dialog.',
+        '  · A DXF of the storey profiles. See below for what it is and is not.',
         '  · A picture of this design.',
         '  · The Assembly & Maintenance Guide, from the original project.',
         '',
@@ -560,6 +593,26 @@ async function buildPackZip(html) {
         '  Email this whole folder to a maker space — an open workshop with a',
         '  CNC router, found by searching "makerspace", "fab lab" or "hackspace"',
         '  and your city. Most will quote from these files without you joining.',
+        '',
+        'ABOUT THE DXF',
+        `  ${state.stack.length} storey profiles, laid out side by side, 1:1 in`,
+        '  millimetres, DXF R12. Each one is a section through the storey solid',
+        '  at half its thickness, stitched into closed polylines: the outer',
+        '  profile on layer CUT-OUTER, any enclosed opening on CUT-INNER.',
+        '',
+        '  It is a silhouette, not a toolpath. Specifically:',
+        '   · No tool radius compensation. The lines are where the material',
+        '     ends, not where a cutter centre goes.',
+        '   · No pocket depths. The storeys are pocketed rather than cut',
+        '     through, and a single section cannot say how deep anything is.',
+        '   · No dogbone or T-bone relief, so the inside corners are square and',
+        '     a round cutter will not reach into them.',
+        '  Your operator adds all three. The authoritative cutting files come',
+        '  from BEEHOME.gh with the export string below, which carries the',
+        '  depths and the tool this drawing cannot.',
+        '',
+        '  Not in the DXF: the base plate, the roof slab and the legs or spike.',
+        '  Those are on the cut list as plain stock sizes.',
         '',
         'GRASSHOPPER EXPORT',
         `  ${exportString(state)}`,
