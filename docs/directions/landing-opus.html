@@ -276,9 +276,14 @@ figcaption b { color: var(--ink); font-weight: 400; }
    sitting at one fixed pixel size in a column that grew around it. */
 .askGlobe {
   position: relative;
-  width: clamp(118px, 17vw, 320px);
+  width: clamp(140px, 20vw, 360px);
   aspect-ratio: 1;
   justify-self: end;
+  /* Up against the question, not centred on the block as a whole. Centred, it
+     drifted down past the picker and read as belonging to the drift below
+     rather than to the heading beside it. */
+  align-self: start;
+  margin-top: clamp(4px, 1.2vh, 18px);
   overflow: hidden;
 }
 
@@ -819,7 +824,7 @@ figcaption b { color: var(--ink); font-weight: 400; }
      other two have nowhere to go but underneath. Squarish and centred against
      the heading it belongs to. */
   .ledeRow { align-items: center; }
-  .packCall { max-width: none; }
+  .packCall { max-width: none; justify-self: center; text-align: center; }
   .packCall .pill {
     width: min-content;
     white-space: normal;
