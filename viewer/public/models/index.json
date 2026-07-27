@@ -9,7 +9,8 @@
      160.0,
      30.0
     ],
-    "triangles": 188
+    "triangles": 764,
+    "source": "toolpaths A0 (DEFAULT)"
    },
    "b": {
     "file": "models/A_b.glb",
@@ -29,7 +30,8 @@
      160.0,
      30.0
     ],
-    "triangles": 196
+    "triangles": 788,
+    "source": "toolpaths B0 (DEFAULT)"
    },
    "b": {
     "file": "models/B_b.glb",
@@ -49,7 +51,8 @@
      160.0,
      30.0
     ],
-    "triangles": 216
+    "triangles": 970,
+    "source": "toolpaths C0 (DEFAULT)"
    },
    "b": {
     "file": "models/C_b.glb",
@@ -69,7 +72,8 @@
      160.0,
      30.0
     ],
-    "triangles": 144
+    "triangles": 292,
+    "source": "toolpaths D0 (DEFAULT)"
    },
    "b": {
     "file": "models/D_b.glb",
@@ -89,7 +93,8 @@
      160.0,
      30.0
     ],
-    "triangles": 228
+    "triangles": 936,
+    "source": "toolpaths E0 (DEFAULT)"
    },
    "b": {
     "file": "models/E_b.glb",
@@ -109,7 +114,8 @@
      160.0,
      30.0
     ],
-    "triangles": 212
+    "triangles": 616,
+    "source": "toolpaths F0 (DEFAULT)"
    },
    "b": {
     "file": "models/F_b.glb",
@@ -129,7 +135,8 @@
      160.0,
      30.0
     ],
-    "triangles": 216
+    "triangles": 572,
+    "source": "toolpaths G0 (DEFAULT)"
    },
    "b": {
     "file": "models/G_b.glb",
@@ -149,7 +156,8 @@
      140.0,
      30.0
     ],
-    "triangles": 196
+    "triangles": 456,
+    "source": "toolpaths H0 (DEFAULT)"
    },
    "b": {
     "file": "models/H_b.glb",
@@ -169,7 +177,8 @@
      160.0,
      30.0
     ],
-    "triangles": 216
+    "triangles": 732,
+    "source": "toolpaths I0 (DEFAULT)"
    },
    "b": {
     "file": "models/I_b.glb",
@@ -189,7 +198,8 @@
      160.0,
      30.0
     ],
-    "triangles": 212
+    "triangles": 600,
+    "source": "toolpaths J0 (DEFAULT)"
    },
    "b": {
     "file": "models/J_b.glb",
@@ -209,7 +219,8 @@
      160.0,
      30.0
     ],
-    "triangles": 148
+    "triangles": 500,
+    "source": "toolpaths K0 (DEFAULT)"
    },
    "b": {
     "file": "models/K_b.glb",
@@ -229,7 +240,8 @@
      160.0,
      30.0
     ],
-    "triangles": 204
+    "triangles": 792,
+    "source": "toolpaths L0 (DEFAULT)"
    },
    "b": {
     "file": "models/L_b.glb",
@@ -249,7 +261,8 @@
      160.0,
      30.0
     ],
-    "triangles": 148
+    "triangles": 500,
+    "source": "toolpaths M0 (DEFAULT)"
    },
    "b": {
     "file": "models/M_b.glb",
@@ -269,7 +282,8 @@
      160.0,
      30.0
     ],
-    "triangles": 168
+    "triangles": 340,
+    "source": "toolpaths N0 (DEFAULT)"
    },
    "b": {
     "file": "models/N_b.glb",
@@ -289,7 +303,8 @@
      160.0,
      30.0
     ],
-    "triangles": 260
+    "triangles": 872,
+    "source": "toolpaths O0 (DEFAULT)"
    },
    "b": {
     "file": "models/O_b.glb",
@@ -309,7 +324,8 @@
      160.0,
      30.0
     ],
-    "triangles": 228
+    "triangles": 1064,
+    "source": "toolpaths P0 (DEFAULT)"
    },
    "b": {
     "file": "models/P_b.glb",

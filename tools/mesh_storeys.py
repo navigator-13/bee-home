@@ -12,6 +12,14 @@ straight line — so they can be triangulated exactly without it:
   4. Lift the triangles back to 3D and orient them by the face normal.
 
     pip install rhino3dm mapbox_earcut numpy && python tools/mesh_storeys.py
+
+Note that the *_a.glb it writes are no longer what ships. `WEBSITE - Model` is
+a display derivative and measures as the FIXED storey, where nearly every
+storey in a stack is cut as DEFAULT -- up to 29.5 mm of outline apart on K, L
+and M. tools/mesh_from_toolpaths.py rebuilds those sixteen from the cutting
+geometry instead, so run it after this one; this still writes the plain-front
+*_b.glb, the guides and the index, and there is no production geometry for the
+plain fronts anywhere.
 """
 
 import json
