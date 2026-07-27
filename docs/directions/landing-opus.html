@@ -1279,6 +1279,25 @@ figcaption b { color: var(--ink); font-weight: 400; }
      paints it in another, which shatters each sweep into fragments. */
   var flights = [];
 
+  /*
+   * How far each trail has come, kept apart from the elements themselves.
+   *
+   * buildFlights() throws its <path> elements away and makes new ones on
+   * every resize -- the positions are measured off the model, and a phone's
+   * address bar collapsing as you start to scroll fires resize too, from the
+   * height change alone. The old fix latched progress on the element
+   * (el._k / el._out), which a fresh element has no memory of: each rebuild
+   * reset it to zero, and frame() ran right after with the current scroll
+   * position, so a trail already three-quarters drawn snapped back to nothing
+   * and drew itself in again -- the "drawn two or three times" a phone's
+   * scroll-triggered resizes were causing. Keyed by position in the route
+   * list, one object per slot, reused across rebuilds; only draw() ever
+   * writes into it, so the progress survives however many times the elements
+   * underneath it are rebuilt.
+   */
+  var wideMemory = [];
+  var narrowMemory = [];
+
   function measure(els) {
     els.forEach(function (el) {
       var len = el.getTotalLength();
@@ -1423,15 +1442,27 @@ figcaption b { color: var(--ink); font-weight: 400; }
       { front: true, art: 'switchback', from: [1.12, 0.20],  home: 3, flip: -1 },
     ];
 
-    (stacked ? NARROW : WIDE).forEach(function (line) {
+    // Wide and narrow are different routes, not the same ones laid out
+    // differently, so each keeps its own memory -- carrying "route 3 is 40%
+    // drawn" across from six routes to three would be attaching one trail's
+    // progress to a completely different one.
+    var memory = stacked ? narrowMemory : wideMemory;
+    (stacked ? NARROW : WIDE).forEach(function (line, i) {
       var to = line.to || home(line.home);
       var el = document.createElementNS(NS, 'path');
       el.setAttribute('class', 'ln come' + (line.grey ? ' alt' : ''));
       place(el, line.art, line.from, to, line.flip, W, H);
       (line.front ? flightFront : flightSvg).appendChild(el);
-      flights.push({ come: true, el: el });
+      var state = memory[i] || (memory[i] = { k: 0, out: 0 });
+      flights.push({ come: true, el: el, state: state });
     });
     measure(flights.map(function (f) { return f.el; }));
+    // measure() just reset every fresh element to fully hidden (or, under
+    // reduced motion, fully drawn -- reduce has no scroll-driven progress to
+    // put back, and this rebuild never runs again after the first call in
+    // that mode anyway). Otherwise, put back whatever the route had already
+    // drawn before this rebuild replaced it.
+    if (!reduce) flights.forEach(function (f) { draw(f.el, f.state.k, f.state.out, f.state); });
   }
 
   measure(plants.reduce(function (a, b) { return a.concat(b); }, []));
@@ -1451,16 +1482,24 @@ figcaption b { color: var(--ink); font-weight: 400; }
    * hides the front, negative offset eats the back. No second element, no
    * mask, no clip path.
    */
-  function draw(el, k, out) {
+  function draw(el, k, out, state) {
     var L = el._len;
     // Once, in each direction. Scroll position alone is reversible, so
     // scrolling back up un-drew every trail and scrolling down drew it again:
     // a bee that arrives, leaves, arrives, leaves as you hunt for the builder.
     // Each stage keeps its high-water mark, so a trail is drawn once, goes
     // into the box once, and stays gone.
-    el._k = Math.max(el._k || 0, Math.max(0, Math.min(1, k)));
-    el._out = Math.max(el._out || 0, Math.max(0, Math.min(1, out || 0)));
-    el.style.strokeDashoffset = el._out > 0 ? -L * el._out : L * (1 - el._k);
+    //
+    // The mark lives in `state`, not on the element (el._k used to hold it
+    // directly): a plant or trail can be rebuilt under the same state object,
+    // so the high-water mark survives a rebuild that the element itself does
+    // not. Callers that have no state to hand in -- the plants, which are
+    // never rebuilt mid-scroll -- get one made up on the spot, on the element,
+    // same as before.
+    var s = state || el._selfState || (el._selfState = { k: 0, out: 0 });
+    s.k = Math.max(s.k, Math.max(0, Math.min(1, k)));
+    s.out = Math.max(s.out, Math.max(0, Math.min(1, out || 0)));
+    el.style.strokeDashoffset = s.out > 0 ? -L * s.out : L * (1 - s.k);
   }
 
   function seg(p, a, b) { return Math.max(0, Math.min(1, (p - a) / (b - a))); }
@@ -1502,7 +1541,7 @@ figcaption b { color: var(--ink); font-weight: 400; }
       // Staggered so the last one is gone by the end of the section, not
       // still leaving when the next begins.
       var o0 = FLY_OUT[0] + i * 0.015;
-      draw(f.el, seg(p, t0, t0 + 0.16), seg(p, o0, o0 + 0.11));
+      draw(f.el, seg(p, t0, t0 + 0.16), seg(p, o0, o0 + 0.11), f.state);
     });
 
     cue.style.opacity = String(1 - seg(p, 0.01, 0.09));
@@ -1806,6 +1845,11 @@ figcaption b { color: var(--ink); font-weight: 400; }
      uses. Sparse on purpose: three, so the drift stays a field of flowers
      with bees in it rather than a diagram of flight paths. */
   var driftLines = [];
+  // Same reasoning as the hero's flight memory: buildDriftFlight() rebuilds
+  // these on every resize, and a phone can fire that just from the address
+  // bar collapsing as you start to scroll. One slot per route, surviving
+  // however many times the routes underneath it get rebuilt.
+  var driftMemory = [];
 
   function buildDriftFlight() {
     if (!driftFlight || !driftField) return;
@@ -1825,7 +1869,7 @@ figcaption b { color: var(--ink); font-weight: 400; }
       { art: 'wander',     from: [-0.10, 0.14], to: [0.62, 0.06] },
       { art: 'switchback', from: [0.34, 1.06],  to: [1.10, 0.58], flip: -1, grey: true },
       { art: 'loop',       from: [-0.10, 0.72], to: [0.52, 0.98] },
-    ].forEach(function (f) {
+    ].forEach(function (f, i) {
       var el = document.createElementNS(NS, 'path');
       if (f.grey) el.setAttribute('class', 'alt');
       place(el, f.art, f.from, f.to, f.flip, W, H);
@@ -1834,16 +1878,21 @@ figcaption b { color: var(--ink); font-weight: 400; }
       el.style.strokeDasharray = len;
       el.style.strokeDashoffset = reduce ? 0 : len;
       el._len = len;
-      driftLines.push(el);
+      var state = driftMemory[i] || (driftMemory[i] = { k: 0, out: 0 });
+      driftLines.push({ el: el, state: state });
+      // Put back whatever this route had already drawn before the rebuild --
+      // reduced motion has no scroll-driven progress to lose, and just drew
+      // the whole thing above.
+      if (!reduce) draw(el, state.k, state.out, state);
     });
     }
 
   function drawDriftFlight(p) {
-    driftLines.forEach(function (el, i) {
+    driftLines.forEach(function (line, i) {
       // Same in and out as the hero. Three lines held across a whole section
       // stop being flight and become a border.
-      draw(el, seg(p, 0.18 + i * 0.08, 0.56 + i * 0.08),
-        seg(p, 0.66 + i * 0.07, 0.94 + i * 0.07));
+      draw(line.el, seg(p, 0.18 + i * 0.08, 0.56 + i * 0.08),
+        seg(p, 0.66 + i * 0.07, 0.94 + i * 0.07), line.state);
     });
   }
 
@@ -1867,11 +1916,17 @@ figcaption b { color: var(--ink); font-weight: 400; }
   /* Where the bees stand in the drift. Between the plates, not in a row of
      their own: they are what the flowers are for, and a column of portraits
      beside a field of flowers says the opposite. */
+  // The gaps, not the flowers. Measured off the actual rendered plates rather
+  // than guessed: with four plants from DRIFT filling roughly the left three
+  // quarters of the field top-to-bottom, three quarters remain clear -- upper
+  // left (above the first plate), upper middle (between the second and
+  // fourth), and the open column past the fourth plate's right edge. There
+  // are always exactly three bees (every region lists three), so there is a
+  // slot for each with room to spare rather than a fourth that never draws.
   var BEE_DRIFT = [
-    { x: 0.135, y: 0.06, w: 0.115, tilt: -9 },
-    { x: 0.585, y: 0.20, w: 0.100, tilt: 12 },
-    { x: 0.395, y: 0.80, w: 0.108, tilt: -5 },
-    { x: 0.755, y: 0.72, w: 0.094, tilt: 7 },
+    { x: 0.06, y: 0.12, w: 0.105, tilt: -9 },
+    { x: 0.51, y: 0.14, w: 0.095, tilt: 11 },
+    { x: 0.90, y: 0.30, w: 0.085, tilt: -6 },
   ];
 
   /* Every bee is the toggle. One bee set apart with a label under it was a
@@ -1957,7 +2012,7 @@ figcaption b { color: var(--ink); font-weight: 400; }
 
   if (reduce) {
     plants.forEach(function (group) { group.forEach(function (el) { draw(el, 1); }); });
-    flights.forEach(function (f) { draw(f.el, 1); });
+    flights.forEach(function (f) { draw(f.el, 1, 0, f.state); });
     frames.forEach(function (img) { img.style.opacity = img.dataset.n === '4' ? '1' : '0'; });
     mounts.forEach(function (m) { var u = m.querySelector('img.uv'); if (u) u.style.opacity = '0'; });
   } else {

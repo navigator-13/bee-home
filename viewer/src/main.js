@@ -477,27 +477,23 @@ function buildControls() {
    * that is not a storey and not the drawer, and it folds away again -- which
    * is what dismissing something means everywhere else, and it keeps the model
    * one click from clear at all times.
+   *
+   * The stage handles its own case further down, on pointerdown, because
+   * touch devices can silently drop the click this listener would otherwise
+   * get. This one is for everything else: the rail, and the plain page
+   * around it.
    */
   // Capture, not bubble. Selecting a storey rebuilds the rail, so a chip is
   // already detached from the list by the time a bubbling listener sees it --
   // closest('.rail li') then finds no .rail ancestor, and the click reads as
   // "outside", which closed the drawer the chip had just asked to open.
   addEventListener('click', (event) => {
-    if (event.target.closest('.panel, #panelTab')) return;
+    if (event.target.closest('.panel, #panelTab, #stage')) return;
 
     const chip = event.target.closest('.rail li');
     if (chip) {
       document.body.classList.remove('panelHidden');
       return; // the chip's own handler does the selecting
-    }
-
-    if (event.target.closest('#stage')) {
-      const i = stage.pick(event);
-      if (i >= 0) {
-        selectStorey(i);
-        document.body.classList.remove('panelHidden');
-        return;
-      }
     }
 
     document.body.classList.add('panelHidden');
@@ -541,9 +537,20 @@ function buildControls() {
   });
 
   // Click a storey in the 3D view to select it; click empty space to deselect.
+  //
+  // The drawer answers to this event too, not to the window 'click' capture
+  // above. OrbitControls calls preventDefault() on the touch sequence while
+  // it decides whether a touch is a tap or the start of an orbit drag, and a
+  // touchstart with preventDefault called suppresses the synthetic click a
+  // browser would otherwise fire on touchend -- so on a phone, tapping the
+  // canvas outside the drawer never reached the click listener at all, and
+  // the drawer stayed open no matter where you tapped. pointerdown is never
+  // suppressed this way, so the same tap that used to vanish now closes it.
   el('stage').addEventListener('pointerdown', (event) => {
     if (event.button !== 0) return;
-    selectStorey(stage.pick(event));
+    const i = stage.pick(event);
+    selectStorey(i);
+    document.body.classList.toggle('panelHidden', i < 0);
   });
 
   syncControls();
