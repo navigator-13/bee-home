@@ -314,7 +314,7 @@ async function buildPackHtml() {
     return `<tr>
       <td class="n">${String(i + 1).padStart(2, '0')}</td>
       <td class="thumb">${cell(plates[i])}</td>
-      <td class="n">${letter}${state.variant === 'b' ? ' · plain' : ''}</td>
+      <td class="n">${letter} · ${state.variant === 'b' ? 'plain' : 'patterned'}</td>
       <td class="n">${size[0]} × ${size[1]} mm</td>
       <td class="n">${size[2]} mm</td>
       <td>${woodByKey(woodFor(i)).name}</td>
@@ -377,7 +377,7 @@ body { margin:0; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; color:
 .idblock .id { font-family:'SFMono-Regular',Menlo,monospace; font-size:14pt; letter-spacing:.06em; }
 .idblock .meta { color:#7d7d73; font-size:7pt; letter-spacing:.1em; text-transform:uppercase; }
 
-.specrow { display:grid; grid-template-columns: repeat(4, 1fr); gap:4mm; padding:2.5mm 0; }
+.specrow { display:grid; grid-template-columns: repeat(5, 1fr); gap:4mm; padding:2.5mm 0; }
 .specrow div span { display:block; color:#7d7d73; font-size:6.6pt; letter-spacing:.14em;
   text-transform:uppercase; }
 .specrow div b { font-weight:500; font-size:9pt; font-family:'SFMono-Regular',Menlo,monospace; }
@@ -426,6 +426,7 @@ p { margin:0 0 3mm; }
     <div><span>Overall height</span><b>${overallMm} mm</b></div>
     <div><span>Storeys</span><b>${state.stack.length} · ${stackMm} mm</b></div>
     <div><span>Timber</span><b>${timber}</b></div>
+    <div><span>Fronts</span><b>${state.variant === 'b' ? 'Plain' : 'Patterned'}</b></div>
   </div>
   <hr class="hair" />
 
@@ -616,6 +617,7 @@ async function buildPackZip(html) {
       name: `Bee Home ${id}.txt`,
       data: [
         `Bee Home ${id}`,
+        `  ${state.stack.length} storeys · ${state.variant === 'b' ? 'plain' : 'patterned'} fronts`,
         '',
         'WHAT IS IN THIS FOLDER',
         '  · Drawings and cut list, as a web page. Open it in any browser and',
