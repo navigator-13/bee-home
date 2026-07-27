@@ -428,6 +428,17 @@ async function buildPackHtml() {
   };
   const THROUGH_MM = 30;
 
+  /* Which cutters the job needs. Every part in the library is a 6mm job except
+     storey D, whose two small pockets are on a T5MM layer -- so a stack with a
+     D in it is a tool change, and a sheet that only ever mentions 6mm would
+     have someone find that out at the machine. */
+  const cutters = [...new Set(state.stack
+    .map((letter, i) => partFor(letter, i))
+    .filter(Boolean)
+    .flatMap((part) => part.ops.map((op) => op.tool_mm)))]
+    .sort((a, b) => b - a)
+    .join(' & ') || '6';
+
   /* Every row carries its own drawing. The numbers cannot do this job on
      their own: in a stack of four different letters each one measures
      120 × 160 × 30, and what separates an A from an M is the profile.
@@ -537,7 +548,7 @@ body { margin:0; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; color:
 .idblock .id { font-family:'SFMono-Regular',Menlo,monospace; font-size:14pt; letter-spacing:.06em; }
 .idblock .meta { color:#7d7d73; font-size:7pt; letter-spacing:.1em; text-transform:uppercase; }
 
-.specrow { display:grid; grid-template-columns: repeat(5, 1fr); gap:4mm; padding:2.5mm 0; }
+.specrow { display:grid; grid-template-columns: repeat(6, 1fr); gap:4mm; padding:2.5mm 0; }
 .specrow div span { display:block; color:#7d7d73; font-size:6.6pt; letter-spacing:.14em;
   text-transform:uppercase; }
 .specrow div b { font-weight:500; font-size:9pt; font-family:'SFMono-Regular',Menlo,monospace; }
@@ -623,6 +634,7 @@ p { margin:0 0 3mm; }
     <div><span>Storeys</span><b>${state.stack.length} · ${stackMm} mm</b></div>
     <div><span>Timber</span><b>${timber}</b></div>
     <div><span>Fronts</span><b>${state.variant === 'b' ? 'Plain' : 'Patterned'}</b></div>
+    <div><span>Cutters</span><b>${cutters} mm</b></div>
   </div>
   <hr class="hair" />
 
@@ -698,8 +710,9 @@ ${listAlone ? `<section class="page">
       cutter is one pass, and the outside profiles match the cut list to the millimetre.
       Which face each depth is measured from is not recorded, so cut one storey and check
       before committing to a full set. No lead-ins, no tabs, no feeds and speeds. The base
-      plate, legs and spike are not in the DXF and stay on the cut list as stock
-      sizes.</div>` : ''}
+      plate, roof slab, legs and spike are not in the DXF and stay on the cut list as
+      stock sizes; their dimensions are measured off the display model rather than taken
+      from the production file, so treat them as nominal.</div>` : ''}
     <p>No CNC nearby? Every part is a flat profile. It is slower but entirely possible with
       a jigsaw, a drill and a chisel. Print sheet 1 at 100% scale and use the cut list
       profiles as templates.</p>
