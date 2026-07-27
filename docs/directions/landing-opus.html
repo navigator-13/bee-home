@@ -198,6 +198,12 @@ body {
    best part of a dead screen between the flowers and the heading. */
 #about { padding-top: clamp(28px, 3.6vh, 56px); }
 
+/* The hero already ends on about 7% of its own height as clear ground under
+   the lowest stem -- the flowers stand well above the bottom of the stage. The
+   settling-in gap was landing on top of that and opening a dead screen between
+   the planting and the heading, so this one gives back most of it. */
+#design { padding-top: clamp(18px, 2.4vh, 40px); }
+
 .lede {
   font-weight: 400;
   font-size: clamp(23px, 3.1vw, 46px);
@@ -504,11 +510,22 @@ figcaption b { color: var(--ink); font-weight: 400; }
 
 .drift {
   position: relative;
-  padding: clamp(50px, 8vh, 110px) 0 clamp(60px, 9vh, 120px);
+  padding: 0 0 clamp(60px, 9vh, 120px);
   overflow: hidden;
   /* Labels hang below their plates, so the field needs room under it before
      the note starts or the two collide. */
   --drop: clamp(60px, 9vh, 110px);
+}
+
+/* The drift runs full bleed, so its rule has to be drawn by the padded column
+   inside it. On the section itself it would span the whole window and be the
+   one rule on the page that does not line up with the others. The top padding
+   moves here with it, matching what a band gives its own heading. */
+.drift > .pad::before {
+  content: '';
+  display: block;
+  border-top: 1px solid var(--rule);
+  margin-bottom: clamp(44px, 6vh, 88px);
 }
 
 .driftFieldWrap { position: relative; margin-bottom: var(--drop); }
@@ -1054,9 +1071,10 @@ figcaption b { color: var(--ink); font-weight: 400; }
   </figure>
 
   <p class="foot">
-    The Bee Home is rendered from the project's own geometry file, not illustrated.
+    The Bee Home Builder renders the project's original geometry files, modified.
     Copy adapted from the original beehome.design, recovered from the Wayback
-    Machine.<br />
+    Machine. The images are new, generated from the original source material and
+    this rebuild's design intent.<br />
     Original Bee Home CC BY 4.0 &#8212; SPACE10, Bakken &amp; B&aelig;ck, Tanita Klein.
     This revival and everything new in it, also CC BY 4.0 &#8212; Ivan, 2026.</p>
 </div>
