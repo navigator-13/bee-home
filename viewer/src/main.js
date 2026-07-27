@@ -636,6 +636,18 @@ async function buildPackZip(html) {
     ? buildDxf(library, { id, exportString: exportString(state) })
     : null;
 
+  /* Fetched before the folder note is written, because the note lists what is
+     in the folder. Embedded as one file, the builder has no sibling to fetch
+     and the guide is simply absent -- the rest of the pack is worth having
+     without it, but the note must not promise it. */
+  let guide = null;
+  try {
+    const res = await fetch('documents/bee-home-assembly-guide.pdf');
+    if (res.ok) guide = new Uint8Array(await res.arrayBuffer());
+  } catch {
+    guide = null;
+  }
+
   const files = [
     { name: `Bee Home ${id} — drawings and cut list.html`, data: html },
     { name: `Bee Home ${id}.png`, data: dataUriToBytes(renderPng()) },
@@ -650,7 +662,9 @@ async function buildPackZip(html) {
         '    print it, or save it as a PDF from the print dialog.',
         ...(dxf ? ['  · A DXF of the cutting geometry. See below.'] : []),
         '  · A picture of this design.',
-        '  · The Assembly & Maintenance Guide, from the original project.',
+        ...(guide
+          ? ['  · The Assembly & Maintenance Guide, from the original project.']
+          : []),
         '',
         'TO HAVE IT CUT',
         '  Email this whole folder to a maker space — an open workshop with a',
@@ -701,17 +715,8 @@ async function buildPackZip(html) {
 
   if (dxf) files.splice(1, 0, { name: `Bee Home ${id} CNC.dxf`, data: dxf.text });
 
-  try {
-    const res = await fetch('documents/bee-home-assembly-guide.pdf');
-    if (res.ok) {
-      files.push({
-        name: 'Bee Home Assembly & Maintenance Guide.pdf',
-        data: new Uint8Array(await res.arrayBuffer()),
-      });
-    }
-  } catch {
-    // Embedded as one file, the guide is not alongside to fetch. The rest of
-    // the pack is worth having without it.
+  if (guide) {
+    files.push({ name: 'Bee Home Assembly & Maintenance Guide.pdf', data: guide });
   }
 
   return makeZip(files);
