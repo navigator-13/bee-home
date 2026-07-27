@@ -503,7 +503,9 @@ function buildControls() {
     document.body.classList.add('panelHidden');
   }, true);
 
-  // Hover: resting the pointer on a storey lights it and its rail chip.
+  // Hover: resting the pointer on a storey lights it and its rail chip. No
+  // preview here -- orbiting the camera crosses the model constantly, and the
+  // turntable is only useful when it is called up on purpose, from the rail.
   let hoverPending = false;
   el('stage').addEventListener('pointermove', (event) => {
     if (hoverPending) return;
@@ -511,10 +513,10 @@ function buildControls() {
     requestAnimationFrame(() => {
       hoverPending = false;
       const i = stage.pick(event);
-      hoverStorey(i);
+      hoverStorey(i, false);
     });
   });
-  el('stage').addEventListener('pointerleave', () => hoverStorey(-1));
+  el('stage').addEventListener('pointerleave', () => hoverStorey(-1, false));
 
   const woods = el('woods');
   for (const wood of WOODS) {
@@ -604,14 +606,21 @@ function syncControls() {
 
 /**
  * One place decides what "hovering a storey" means: the model lights up, the
- * rail chip lights up, and the preview shows that part alone, turning.
+ * rail chip lights up, and -- when the hover started on the rail, not on the
+ * model itself -- the preview shows that part alone, turning.
+ *
+ * Rolling the camera means crossing the model with the pointer constantly, so
+ * wiring the turntable to hover-over-the-model popped it up on every orbit
+ * drag. It only means something when you are reading down the rail deciding
+ * which storey is which; withPreview is false for the model's own pointer
+ * events so the highlight still works there without the popup.
  */
-async function hoverStorey(i) {
+async function hoverStorey(i, withPreview = true) {
   stage.setHovered(i);
   for (const item of el('stackList').children) {
     item.classList.toggle('hot', Number(item.dataset.storey) === i && i >= 0);
   }
-  if (!preview) return;
+  if (!preview || !withPreview) return;
   const letter = i >= 0 ? state.stack[i] : null;
   if (!letter) {
     preview.hide();

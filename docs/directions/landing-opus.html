@@ -183,8 +183,14 @@ body {
 
 /* ---------------- page ---------------- */
 
-.band { padding: clamp(72px, 11vh, 150px) 0; border-top: 1px solid var(--rule); }
-.band:first-of-type { border-top: 0; }
+/* Top and bottom used to match, which put as much dead air between the rule
+   and the next heading as the section itself wanted below its own content --
+   a line, then a gap doing nothing, then finally the words it was
+   introducing. The rule is punctuation; the heading should follow it closely. */
+.band { padding: clamp(44px, 6vh, 88px) 0 clamp(72px, 11vh, 150px); border-top: 1px solid var(--rule); }
+/* No rule to follow here, so this one keeps the fuller gap -- it is settling
+   in after the hero, not resuming after a line. */
+.band:first-of-type { border-top: 0; padding-top: clamp(72px, 11vh, 150px); }
 
 .lede {
   font-weight: 400;
@@ -338,6 +344,7 @@ figcaption b { color: var(--ink); font-weight: 400; }
 }
 
 .ledeSplit .lede { margin-top: 0; }
+.ledeSplit .label { margin-bottom: 0.6em; }
 
 @media (max-width: 860px) {
   .ledeSplit { grid-template-columns: 1fr; gap: 18px; }
@@ -541,6 +548,57 @@ figcaption b { color: var(--ink); font-weight: 400; }
 
 .mount.bee .mountLabel u { opacity: 1; }
 
+/* Bees stand in the drift beside the flowers, at the flowers' own scale. Each
+   is the vision toggle; each wobbles when the pointer finds it, so which one
+   you press never matters. This rule went missing in an earlier pass, which
+   is why the bees rendered as bare, unstyled buttons -- full width, a default
+   white background, no size limit on the image inside. */
+.beeMount {
+  position: absolute;
+  width: var(--w);
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  transform: rotate(var(--tilt));
+  transform-origin: 55% 60%;
+  z-index: 3;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.beeMount img { display: block; width: 100%; height: auto; }
+
+.beeMount:hover, .beeMount:focus-visible {
+  animation: wiggle 0.5s ease-in-out infinite;
+  outline: none;
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(calc(var(--tilt) - 7deg)) scale(1.04); }
+  50%      { transform: rotate(calc(var(--tilt) + 8deg)) scale(1.04); }
+}
+
+.beeName {
+  position: absolute;
+  left: 0;
+  top: 100%;
+  margin-top: 8px;
+  display: block;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-align: left;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.beeMount:hover .beeName, .beeMount:focus-visible .beeName { opacity: 1; }
+.beeName b { display: block; font-weight: 400; color: var(--ink); }
+.beeName i { display: block; font-style: italic; text-transform: none;
+             letter-spacing: 0.06em; color: var(--soft); }
+
 /* The builder is the page, not a door to another one. */
 .builder {
   position: relative;
@@ -565,7 +623,7 @@ figcaption b { color: var(--ink); font-weight: 400; }
 .packCall { text-align: right; justify-self: end; max-width: 42ch; }
 .packCall p { margin: 0; font-size: clamp(13px, 1vw, 16px); }
 .packCall p + p { margin-top: 6px; color: var(--soft); }
-.packCall .pill { margin-top: 16px; }
+.packCall .pill { margin-bottom: 14px; }
 
 @media (max-width: 860px) {
   .ledeRow { grid-template-columns: 1fr; }
@@ -677,9 +735,9 @@ figcaption b { color: var(--ink); font-weight: 400; }
     <div class="ledeRow">
       <h2 class="lede">Download the design files for free and share them with a makerspace.</h2>
       <div class="packCall">
+        <button id="getPack" class="pill">Download build pack</button>
         <p class="packFor">Your design <b id="packId">&#8212;</b></p>
         <p>Elevations, cut list and assembly order &#8212; two A4 pages.</p>
-        <button id="getPack" class="pill">Download build pack</button>
       </div>
     </div>
     <div class="two">
@@ -722,12 +780,12 @@ figcaption b { color: var(--ink); font-weight: 400; }
 
   <section class="band" id="plant">
     <div class="ledeSplit">
-      <blockquote class="opener">A single solitary bee can provide as much
-        pollination as 120 honeybees.</blockquote>
       <div>
         <p class="label">Plant for your region</p>
-        <h2 class="lede">Keep something in bloom.</h2>
+        <blockquote class="opener">A single solitary bee can provide as much
+          pollination as 120 honeybees.</blockquote>
       </div>
+      <h2 class="lede">Keep something in bloom.</h2>
     </div>
     <div class="two">
       <p>A red mason bee will forage up to about 600 metres from her nest, but when flowers
@@ -1877,8 +1935,8 @@ figcaption b { color: var(--ink); font-weight: 400; }
   pop.className = 'eyePop';
   pop.innerHTML = 'A bee sees ultraviolet and has no red receptor at all. Her '
     + 'ultraviolet, blue and green are shown here as blue, green and red, because '
-    + 'those are the three a screen has. The marks are real; the colours are ours. '
-    + 'Where nobody has recorded a pattern for a species, the plate stays plain.'
+    + 'those are the three a screen has. Where nobody has recorded a pattern for '
+    + 'a species, the plate stays plain.'
     + '<button type="button">Got it</button>';
   document.body.appendChild(pop);
   pop.querySelector('button').addEventListener('click', function () {
