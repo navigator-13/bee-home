@@ -57,16 +57,20 @@ if count == 0:
 # explicit that the sliders stay in the source and may be hidden: setLayout()
 # reads their values and writes back to the <output> elements, so cutting them
 # out threw "Cannot set properties of null" and the bee never drew.
+# Transparent, not paper. The renderer is already created with alpha, so
+# clearing the CSS backdrop lets the section behind the frame show through —
+# which means the globe keeps working if the page's paper ever changes, and
+# there is no near-miss between two off-whites to notice.
 hide = (
     "<style>header,.scale-controls,.hover-note{display:none!important}"
-    "body,main.viewer{background:%s}</style>" % PAPER
+    "html,body,main.viewer{background:transparent!important}</style>"
 )
 html = html.replace("</head>", hide + "</head>", 1)
 if hide not in html:
     raise SystemExit("could not find </head> to hide the prototype chrome")
 
-# Sit on the same paper as the section that frames it.
-html = html.replace("#f5f4f0", PAPER).replace("rgba(245,244,240,.82)", "rgba(233,233,225,.82)")
+# The prototype's own backdrop colour goes with it.
+html = html.replace("background:#f5f4f0", "background:transparent")
 
 OUT.parent.mkdir(parents=True, exist_ok=True)
 OUT.write_text(html, encoding="utf-8")
