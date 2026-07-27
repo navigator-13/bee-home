@@ -386,12 +386,6 @@ figcaption b { color: var(--ink); font-weight: 400; }
   text-wrap: balance;
 }
 
-.aboutMe {
-  margin: clamp(20px, 3vh, 34px) 0 0;
-  max-width: 58ch;
-  font-size: clamp(14px, 1.05vw, 18px);
-}
-
 .faq {
   margin: clamp(28px, 4vh, 52px) 0 0;
   max-width: 860px;
@@ -472,10 +466,53 @@ figcaption b { color: var(--ink); font-weight: 400; }
   --drop: clamp(60px, 9vh, 110px);
 }
 
+.driftFieldWrap { position: relative; margin-bottom: var(--drop); }
+
 .driftField {
   position: relative;
   height: clamp(480px, 74vh, 760px);
-  margin-bottom: var(--drop);
+}
+
+/* Shown once, on whichever bee the pointer finds -- a shared line above the
+   field reads as "here's what clicking does" without a caption trailing
+   every single bee around the drift. */
+.driftHint {
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  z-index: 5;
+  margin: 0;
+  transform: translateX(-50%);
+  font-size: clamp(15px, 1.7vw, 21px);
+  color: var(--ink);
+  text-align: center;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.driftFieldWrap:has(.beeMount:hover) .driftHint,
+.driftFieldWrap:has(.beeMount:focus-visible) .driftHint { opacity: 1; }
+
+@media (max-width: 600px) {
+  /* No room for one line above four stacked plates -- and nothing to hover
+     with a finger anyway. */
+  .driftHint { display: none; }
+}
+
+.driftNote {
+  max-width: 62ch;
+  margin: 0;
+  font-size: clamp(13px, 1vw, 16px);
+  color: #55544b;
+}
+
+.regionNote {
+  max-width: 62ch;
+  margin: 14px 0 0;
+  font-size: clamp(12px, 0.95vw, 15px);
+  color: var(--soft);
 }
 
 .driftFlight { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 2;
@@ -611,21 +648,32 @@ figcaption b { color: var(--ink); font-weight: 400; }
 
 .builder iframe { display: block; width: 100%; height: 100%; border: 0; }
 
-/* The heading and what it hands you, on one line: the pack is the thing the
-   sentence is about, so it belongs beside it rather than below the section. */
+/* The heading and what it hands you, side by side at any width: stacking
+   this under the heading on a narrow screen was the one place the page
+   still read as "content, then a separate download offer" instead of "the
+   heading and the thing it's about." Both columns shrink their type instead
+   of losing the split. */
 .ledeRow {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-  gap: clamp(24px, 4vw, 72px);
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: clamp(14px, 4vw, 72px);
   align-items: end;
 }
 
-.packCall { text-align: right; justify-self: end; max-width: 42ch; }
-.packCall p { margin: 0; font-size: clamp(13px, 1vw, 16px); }
+.packCall { text-align: right; justify-self: end; max-width: 42ch; min-width: 0; }
+.packCall p { margin: 0; font-size: clamp(11px, 2.6vw, 16px); }
 .packCall p + p { margin-top: 6px; color: var(--soft); }
-.packCall .pill { margin-bottom: 14px; }
+.packCall .pill {
+  margin-bottom: 14px;
+  padding: clamp(8px, 2vw, 11px) clamp(14px, 3.4vw, 22px);
+  font-size: clamp(12px, 3vw, 14px);
+  white-space: nowrap;
+}
 
-@media (max-width: 860px) {
+@media (max-width: 380px) {
+  /* Only the narrowest phones give up the split -- past this there is no
+     honest amount of shrinking left to do without the button's own label
+     wrapping in half. */
   .ledeRow { grid-template-columns: 1fr; }
   .packCall { text-align: left; justify-self: start; margin-top: 8px; }
 }
@@ -735,7 +783,7 @@ figcaption b { color: var(--ink); font-weight: 400; }
     <div class="ledeRow">
       <h2 class="lede">Download the design files for free and share them with a makerspace.</h2>
       <div class="packCall">
-        <button id="getPack" class="pill">Download build pack</button>
+        <button id="getPack" class="pill">Download Build Pack</button>
         <p class="packFor">Your design <b id="packId">&#8212;</b></p>
         <p>Elevations, cut list and assembly order &#8212; two A4 pages.</p>
       </div>
@@ -827,13 +875,17 @@ figcaption b { color: var(--ink); font-weight: 400; }
       <select id="regionPick"></select>
     </div>
 
-    <div class="driftField" id="herbarium"></div>
+    <div class="driftFieldWrap">
+      <p class="driftHint" aria-hidden="true">Click a bee to see how they see the world.</p>
+      <div class="driftField" id="herbarium"></div>
+    </div>
     <p class="driftNote">
-      Bees see ultraviolet, and many flowers print landing guides in it. These
-      plates are bee-vision simulations, mapping the bee's ultraviolet, blue and
-      green receptors onto blue, green and red so a human screen can show them
-      &#8212; a legend, not what she sees. Where no ultraviolet pattern is
-      documented for a species we have left it plain rather than invent one.
+      Unlike humans, bees see ultraviolet light, and many flowers print landing
+      guides for them in this spectrum we can't see. These images show a
+      simulation of how bees may see, mapping the bee's ultraviolet, blue and
+      green receptors onto blue, green and red so a computer screen can show
+      them. Where no ultraviolet pattern is documented for a species we have
+      applied a colour filter that emulates how it may look.
     </p>
     <p class="regionNote"><span id="regionCrops"></span> <span id="regionSeed"></span></p>
   </div>
@@ -858,21 +910,19 @@ figcaption b { color: var(--ink); font-weight: 400; }
 <div class="pad">
   <section class="band" id="about">
     <h2 class="lede">Reviving an open-source project that went offline.</h2>
-    <p class="aboutMe">Bee Home was published, used, and then quietly disappeared when
-      the lab behind it shut. The licence says anyone may pick it up. I am Ivan, and I
-      did: rebuilding the builder from the original geometry file, drawing the plates
-      and the site around it, and putting the whole thing back where people can reach
-      it. It is open, so the next person does not have to wait for me either.</p>
     <div class="faq">
       <details>
         <summary>What is Bee Home?<i class="mark"></i></summary>
-        <div>Bee Home was released by SPACE10, IKEA's research lab, on
-          <b>20 May 2020</b> &#8212; World Bee Day. A parametric bee hotel anyone
-          could configure and have cut locally, free, under CC BY 4.0. SPACE10 closed
-          in <b>2023</b> and the site went offline with it. This rebuild was started
-          in <b>July 2026</b>, working from the project's own geometry file and a copy
-          of the original site recovered from the Wayback Machine. What is ours and
-          what is theirs is listed below.</div>
+        <div>Bee Home was released by SPACE10, IKEA's research lab, in collaboration
+          with Bakken &amp; B&aelig;ck and designer Tanita Klein, on <b>20 May 2020</b>
+          &#8212; World Bee Day. A parametric bee hotel anyone could configure and have
+          cut locally, free, under CC BY 4.0. SPACE10 closed in <b>2023</b> and the site
+          went offline with it. This rebuild was started in <b>July 2026</b>, working
+          from the project's own geometry file and a few screenshots of the original
+          site recovered from the Wayback Machine. The original project, design,
+          builder and site concept have been extended further and, where possible,
+          improved as seen fit. The rebuild was undertaken independently, without
+          involvement from SPACE10, Bakken &amp; B&aelig;ck or Tanita Klein.</div>
       </details>
       <details>
         <summary>What&#8217;s original and what&#8217;s rebuilt?<i class="mark"></i></summary>
@@ -1423,22 +1473,29 @@ figcaption b { color: var(--ink); font-weight: 400; }
     // pattern. So the outermost two come in from the left and the right, wide
     // and level, and the rest drop in from above and rise from below.
     var WIDE = [
-      { front: true,  art: 'wander',     from: [-0.12, 0.30], home: 0 },
-      { front: true,  art: 'curl',       from: [0.30, -0.08], home: 1, grey: true },
+      // Grey belongs to the line that enters from the left and stays up in
+      // the open sky -- it used to sit on the one running low behind the
+      // legs, which put a near-black stroke directly over the black-inked
+      // flower stems it was passing through and the two read as one smear.
+      { front: true,  art: 'wander',     from: [-0.12, 0.30], home: 0, grey: true },
+      { front: true,  art: 'curl',       from: [0.30, -0.08], home: 1 },
       { front: true,  art: 'switchback', from: [0.60, -0.08], home: 2, flip: -1 },
       { front: true,  art: 'loop',       from: [0.46, 1.10],  home: 4 },
       { front: false, art: 'curl',       from: [1.12, 0.46],  home: 3, flip: -1, grey: true },
       // Passing through, low and behind the legs, on its way somewhere else.
       // Kept to the far left: sharing the bottom edge with the route above put
       // two sets of loops in the same square of page.
-      { front: false, art: 'wander',     from: [-0.10, 0.66], to: [0.24, 1.06], grey: true },
+      { front: false, art: 'wander',     from: [-0.10, 0.66], to: [0.24, 1.06] },
     ];
 
     // Narrow: the copy sits over the box and there is far less room, so this is
     // three lines rather than six -- but not three from the same edge.
     var NARROW = [
-      { front: true, art: 'loop',       from: [-0.12, 0.46], home: 2 },
-      { front: true, art: 'curl',       from: [0.42, 1.10],  home: 6, flip: -1, grey: true },
+      // Same reasoning as WIDE: grey moves to the line entering from the
+      // left, away from the flower bed the bottom-entering route used to
+      // cross in the same near-black ink as the stems.
+      { front: true, art: 'loop',       from: [-0.12, 0.46], home: 2, grey: true },
+      { front: true, art: 'curl',       from: [0.42, 1.10],  home: 6, flip: -1 },
       { front: true, art: 'switchback', from: [1.12, 0.20],  home: 3, flip: -1 },
     ];
 
@@ -1614,7 +1671,7 @@ figcaption b { color: var(--ink); font-weight: 400; }
       packView.hidden = false;
       document.body.style.overflow = 'hidden';
       getPack.disabled = false;
-      getPack.textContent = 'Download build pack';
+      getPack.textContent = 'Download Build Pack';
     });
   }
 
@@ -1646,7 +1703,7 @@ figcaption b { color: var(--ink); font-weight: 400; }
       crops: ['Apple', 'Oilseed rape', 'Bilberry', 'Strawberry'],
       plants: [['Yarrow', 'Achillea millefolium'], ['Field scabious', 'Knautia arvensis'],
         ['Selfheal', 'Prunella vulgaris'], ['Meadow clary', 'Salvia pratensis']],
-      seed: 'Nordic seed houses list \u00e4ngsfr\u00f6 / engfr\u00f8 mixes by county of origin.'
+      seed: 'Nordic seed houses list \u00e4ngsfr\u00f6 / engfr\u00f8 (meadow seed) mixes by county of origin.'
     },
     {
       name: 'Central Europe',
@@ -1655,7 +1712,7 @@ figcaption b { color: var(--ink); font-weight: 400; }
       crops: ['Apple', 'Cherry', 'Plum', 'Oilseed rape'],
       plants: [['Common poppy', 'Papaver rhoeas'], ['Cornflower', 'Centaurea cyanus'],
         ['Sainfoin', 'Onobrychis viciifolia'], ['Wild carrot', 'Daucus carota']],
-      seed: 'Regiosaatgut is sold by provenance region; the zone number is on the packet.'
+      seed: 'Regiosaatgut (local seed) is sold by provenance region; the zone number is on the packet.'
     },
     {
       name: 'Mediterranean',
@@ -1817,11 +1874,6 @@ figcaption b { color: var(--ink); font-weight: 400; }
   function toggleVision() {
     beeVision = !beeVision;
     paintVision();
-    if (beeVision && !explained) {
-      explained = true;
-      pop.classList.add('on');
-      setTimeout(function () { pop.classList.remove('on'); }, 9000);
-    }
   }
 
   function paintVision() {
@@ -1925,7 +1977,10 @@ figcaption b { color: var(--ink); font-weight: 400; }
   // slot for each with room to spare rather than a fourth that never draws.
   var BEE_DRIFT = [
     { x: 0.06, y: 0.12, w: 0.105, tilt: -9 },
-    { x: 0.51, y: 0.14, w: 0.095, tilt: 11 },
+    // Below the fourth plate and right of the third, not another slot in the
+    // top half -- three bees stacked into the same band overhead read as a
+    // row, and left the whole lower field empty.
+    { x: 0.72, y: 0.86, w: 0.085, tilt: 8 },
     { x: 0.90, y: 0.30, w: 0.085, tilt: -6 },
   ];
 
@@ -1969,7 +2024,8 @@ figcaption b { color: var(--ink); font-weight: 400; }
     // One breath, not a band: crops as a sentence, seed advice after it.
     cropsList.textContent = 'The bees here work '
       + r.crops.slice(0, -1).join(', ').toLowerCase()
-      + ' and ' + r.crops[r.crops.length - 1].toLowerCase() + '.';
+      + ' and ' + r.crops[r.crops.length - 1].toLowerCase()
+      + ' crops, in addition to native wildflowers.';
     seedNote.textContent = r.seed;
     buildDriftFlight();
     paintVision();
@@ -1983,23 +2039,6 @@ figcaption b { color: var(--ink); font-weight: 400; }
   });
   pick.addEventListener('change', showRegion);
   showRegion();
-
-  /* Bee vision on demand. The explainer pops the first time only -- after
-     that the toggle speaks for itself and a repeated popover is a nag. */
-  var pop = document.createElement('div');
-  pop.className = 'eyePop';
-  pop.innerHTML = 'A bee sees ultraviolet and has no red receptor at all. Her '
-    + 'ultraviolet, blue and green are shown here as blue, green and red, because '
-    + 'those are the three a screen has. Where nobody has recorded a pattern for '
-    + 'a species, the plate stays plain.'
-    + '<button type="button">Got it</button>';
-  document.body.appendChild(pop);
-  pop.querySelector('button').addEventListener('click', function () {
-    pop.classList.remove('on');
-  });
-  var explained = false;
-
-
 
   var ticking = false;
   function onScroll() {
