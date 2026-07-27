@@ -542,16 +542,25 @@ figcaption b { color: var(--ink); font-weight: 400; }
   .driftHint { display: none; }
 }
 
+/* The two notes are a pair: one says how the pictures were made, the other
+   what to plant. Side by side they stop the ultraviolet paragraph from running
+   under the field as a single slab of small type, and the field itself needs
+   more clear air above them than the plate labels alone leave. */
+.driftNotes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: clamp(26px, 3.4vw, 72px);
+  padding-top: clamp(30px, 4.6vh, 66px);
+}
+
 .driftNote {
-  max-width: 62ch;
   margin: 0;
   font-size: clamp(13px, 1vw, 16px);
   color: #55544b;
 }
 
 .regionNote {
-  max-width: 62ch;
-  margin: 14px 0 0;
+  margin: 0;
   font-size: clamp(12px, 0.95vw, 15px);
   color: var(--soft);
 }
@@ -934,9 +943,8 @@ figcaption b { color: var(--ink); font-weight: 400; }
           <path d="M8.2 34c7.8-4.6 23.8-4.6 31.6 0" />
         </svg>
       </h2>
-      <p class="askWhy">The drift below becomes the one that grows near you, with the
-        cavity-nesting bees recorded there. Click any bee to see the flowers as she
-        does.</p>
+      <p class="askWhy">See the native bees that nest in your area, and the flowers
+        they pollinate.</p>
       <select id="regionPick"></select>
     </div>
 
@@ -944,15 +952,17 @@ figcaption b { color: var(--ink); font-weight: 400; }
       <p class="driftHint" aria-hidden="true">Click a bee to see how they see the world.</p>
       <div class="driftField" id="herbarium"></div>
     </div>
-    <p class="driftNote">
-      Unlike humans, bees see ultraviolet light, and many flowers print landing
-      guides for them in this spectrum we can't see. These images show a
-      simulation of how bees may see, mapping the bee's ultraviolet, blue and
-      green receptors onto blue, green and red so a computer screen can show
-      them. Where no ultraviolet pattern is documented for a species we have
-      applied a colour filter that emulates how it may look.
-    </p>
-    <p class="regionNote"><span id="regionCrops"></span> <span id="regionSeed"></span></p>
+    <div class="driftNotes">
+      <p class="driftNote">
+        Unlike humans, bees see ultraviolet light, and many flowers print landing
+        guides for them in this spectrum we can't see. These images show a
+        simulation of how bees may see, mapping the bee's ultraviolet, blue and
+        green receptors onto blue, green and red so a computer screen can show
+        them. Where no ultraviolet pattern is documented for a species we have
+        applied a colour filter that emulates how it may look.
+      </p>
+      <p class="regionNote"><span id="regionCrops"></span> <span id="regionSeed"></span></p>
+    </div>
   </div>
 </section>
 
@@ -1932,6 +1942,25 @@ figcaption b { color: var(--ink); font-weight: 400; }
   var mounts = [];
   var driftField = document.getElementById('herbarium');
   var driftFlight = document.getElementById('driftFlight');
+  var driftWrap = document.querySelector('.driftFieldWrap');
+
+  /* The plates fall at their own scale and angle, so the lowest of them --
+     with a two-line latin label hanging under it -- finishes well below the
+     field's own box: 188px past it at 1600 wide, 31px at 900. A fixed gap
+     cannot cover that, and the one that was there left the ultraviolet note
+     sitting underneath a species name at every width over about 1100. So the
+     drop is measured off whatever actually rendered. It goes on padding, not
+     margin, so the designed breathing room in --drop survives underneath it. */
+  function fitDriftDrop() {
+    if (!driftField || !driftWrap) return;
+    var base = driftField.getBoundingClientRect().bottom;
+    var low = base;
+    driftField.querySelectorAll('.mount, .beeMount').forEach(function (el) {
+      var b = el.getBoundingClientRect().bottom;
+      if (b > low) low = b;
+    });
+    driftWrap.style.paddingBottom = Math.round(Math.max(0, low - base)) + 'px';
+  }
 
   var beeVision = false;
   var beeMounts = [];
@@ -1968,7 +1997,14 @@ figcaption b { color: var(--ink); font-weight: 400; }
   // however many times the routes underneath it get rebuilt.
   var driftMemory = [];
 
+  // Parked. Three routes over a field that already carries fifteen plates,
+  // five bees and their labels read as clutter, and they were not drawing
+  // reliably at every width. The routes and the scroll wiring below stay as
+  // they are -- set this to true to put the lines back.
+  var DRIFT_LINES = false;
+
   function buildDriftFlight() {
+    if (!DRIFT_LINES) return;
     if (!driftFlight || !driftField) return;
     while (driftFlight.firstChild) driftFlight.removeChild(driftFlight.firstChild);
     driftLines = [];
@@ -2095,6 +2131,7 @@ figcaption b { color: var(--ink); font-weight: 400; }
     buildDriftFlight();
     paintVision();
     updateHerbarium();
+    fitDriftDrop();
   }
 
   REGIONS.forEach(function (r) {
@@ -2126,9 +2163,16 @@ figcaption b { color: var(--ink); font-weight: 400; }
     }, { passive: true });
     addEventListener('resize', function () {
       buildFlights(); frame();
-      buildDriftFlight(); updateHerbarium();
+      buildDriftFlight(); updateHerbarium(); fitDriftDrop();
     });
     frame();
   }
+
+  /* Both branches: the labels are set in the mono face, and their height is
+     what the drop is measured from. Measuring before that face has arrived
+     gives a fallback metric and a gap that is wrong by a line. */
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitDriftDrop);
+  addEventListener('load', fitDriftDrop);
+  if (reduce) addEventListener('resize', fitDriftDrop);
 })();
 </script>
