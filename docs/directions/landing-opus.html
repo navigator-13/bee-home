@@ -890,8 +890,12 @@ figcaption b { color: var(--ink); font-weight: 400; }
 }
 
 .foot span { display: block; }
-/* The licence stands apart from the note about how the thing was made: one is
-   provenance, the other is what you are allowed to do with it. */
+/* The provenance note runs on from the credits; the licence stands apart from
+   both, because one is how the thing was made and the other is what you are
+   allowed to do with it. */
+.foot span + span { margin-top: 1.5em; }
+.foot a { color: inherit; text-underline-offset: 3px; }
+.foot a:hover { color: var(--bee); }
 .footLicence { margin-top: 1.5em; }
 
 .foot {
@@ -1179,6 +1183,10 @@ figcaption b { color: var(--ink); font-weight: 400; }
     Copy adapted from the original beehome.design, recovered from the Wayback
     Machine. Some images are reworked from the original source material, others
     are this rebuild's own design intent. None are the original images.</span>
+    <span>The files the project left behind do not answer every question they
+    raise. What was recovered, what turned out to be wrong, how each was settled
+    and what is still open are written down in
+    <a href="https://github.com/navigator-13/bee-home/blob/master/docs/FINDINGS.md">FINDINGS.md</a>.</span>
     <span class="footLicence">Original Bee Home CC BY 4.0 &#8212; SPACE10, Bakken &amp; B&aelig;ck, Tanita Klein.
     This revival and everything new in it, also CC BY 4.0 &#8212; Iv&aacute;n
     Langesfeld, 2026.</span></p>
