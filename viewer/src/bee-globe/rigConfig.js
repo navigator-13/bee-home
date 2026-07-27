@@ -1,0 +1,27 @@
+export const rigConfig = {
+  sourceWidth: 800, sourceHeight: 800, scale: 0.00105,
+  parts: [
+    ['antenna-far','antenna-far.png','head',[.20,.31],-.018,-2],
+    ['wing-lower','wing-lower.png','thorax',[.54,.38],-.012,-1],
+    ['wing-upper','wing-upper.png','thorax',[.53,.36],-.008,0],
+    ['leg-front-far-upper','leg-front-far-upper.png','root',[.33,.47],-.005,0],
+    ['leg-front-far-lower','leg-front-far-lower.png','leg-front-far-upper',[.29,.61],-.004,0],
+    ['abdomen','abdomen.png','root',[.61,.48],.001,0],
+    ['leg-rear-near-upper','leg-rear-near-upper.png','root',[.65,.58],.008,0],
+    ['leg-rear-near-lower','leg-rear-near-lower.png','leg-rear-near-upper',[.69,.70],.009,0],
+    ['thorax','thorax.png','root',[.48,.41],.012,0],
+    ['leg-mid-near-upper','leg-mid-near-upper.png','root',[.47,.55],.016,0],
+    ['leg-mid-near-lower','leg-mid-near-lower.png','leg-mid-near-upper',[.44,.67],.017,0],
+    ['head','head.png','root',[.38,.43],.020,0], ['mouthparts','mouthparts.png','head',[.38,.43],.021,0],
+    ['leg-front-near-upper','leg-front-near-upper.png','root',[.35,.50],.024,0],
+    ['leg-front-near-lower','leg-front-near-lower.png','leg-front-near-upper',[.30,.64],.025,0],
+    ['antenna-near','antenna-near.png','head',[.16,.33],.028,2],
+  ].map(([id,texturePath,parentId,pivot,depth,initialRotation])=>({id,texturePath,parentId,pivot:{x:pivot[0],y:pivot[1]},depth,initialRotation,visible:true})),
+  legs: [
+    ['front-near','near','front','leg-front-near-upper','leg-front-near-lower',0,true],
+    ['mid-far','far','mid',null,null,0,false], ['rear-near','near','rear','leg-rear-near-upper','leg-rear-near-lower',0,true],
+    ['front-far','far','front','leg-front-far-upper','leg-front-far-lower',.5,true],
+    ['mid-near','near','mid','leg-mid-near-upper','leg-mid-near-lower',.5,true], ['rear-far','far','rear',null,null,.5,false],
+  ].map(([id,side,position,upperPartId,lowerPartId,phase,visible])=>({id,side,position,upperPartId,lowerPartId,phase,visible})),
+  animation: { cycleDuration:1.2, upperDegrees:13, lowerDegrees:23, footLift:0.018, bob:0.026, foreAft:0.012, pitchDegrees:1.8 },
+};
