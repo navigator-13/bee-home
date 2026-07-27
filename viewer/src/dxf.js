@@ -1,315 +1,132 @@
 /**
- * The cutting geometry, from the same meshes the builder draws.
+ * The cutting file, from the production toolpaths.
  *
- * The pack has always carried drawings — measured views and a per-storey
- * profile thumbnail — and a maker space could work from those. What it could
- * not do was open them in CAM. This turns the storey meshes into a DXF: each
- * board's outline sliced out of the solid at mid-thickness, stitched into
- * closed loops, laid out side by side at 1:1 in millimetres.
+ * An earlier version of this module sliced the storey meshes and called the
+ * outline a cutting profile. It was wrong, and worth saying why. The meshes
+ * come from the `WEBSITE - Model` layer of BEEHOME GEOMETRIES.3dm, which is a
+ * de-featured display copy: every fillet and every corner relief has been
+ * taken out of it. Cutting a storey from that outline with the 6 mm endmill
+ * the project specifies leaves about 1.2 mm of material standing in each
+ * inside corner, and Bee Home is friction-fit joinery with no screws, so the
+ * storeys would not seat on each other.
  *
- * What it is not: a toolpath. There is no cutter compensation, no pocket
- * depth, no dogbone relief at the inside corners. Those come from BEEHOME.gh,
- * which knows the tool and the stock; this file knows only where the material
- * ends. Everything here is derived from the mesh — nothing is assumed about
- * how it gets cut.
- *
- * Coordinates. `Stage.load()` hands back geometry that has already been turned
- * from Rhino's Z-up millimetres into three's Y-up metres: rotateX(-90°) then
- * ×0.001, so a Rhino point (x, y, z) arrives as (x, z, -y) / 1000. This module
- * undoes that, because a cutting file wants the board lying in the XY plane
- * the way it was modelled.
+ * The same file already contains the finished toolpaths — 51 parts across
+ * three storey variants, on layers whose names carry the operation, the
+ * cutter and the depth of cut. `tools/extract_toolpaths.py` lifts them into
+ * `toolpaths.json` at build time; this assembles a design's worth of them into
+ * a DXF at download time. Nothing in between is redrawn: every line and arc
+ * here is the one the Grasshopper definition authored, and the layer names
+ * travel with it so the depths cannot be separated from the geometry.
  */
 
-/** Mesh coordinates are exact to a few microns; features are millimetres. */
-const WELD_MM = 0.01;
+/** Which library part each storey of a design needs. */
+const LABEL_MM = 7;      // part label cap height
+const NOTE_MM = 5;       // note block cap height
+const LABEL_BAND = 13;   // room reserved under each row for the label
 
-/** Below this a stitched loop is slicing noise rather than a part. */
-const MIN_AREA_MM2 = 0.05;
-
-/** How far a point may sit off the line through its neighbours and be dropped. */
-const COLLINEAR_MM = 0.001;
-
-const LAYERS = [
-  { name: 'CUT-OUTER', colour: 7 },  // outer profile of the board
-  { name: 'CUT-INNER', colour: 1 },  // interior openings
-  { name: 'LABEL', colour: 3 },      // part identification, not geometry
-];
+const VARIANT_WORD = { 0: 'default', 1: 'fixed', 2: 'roof' };
 
 /**
- * Every triangle of a BufferGeometry, in board millimetres.
+ * The part keys for a design, read off the export string.
  *
- * Deliberately takes the geometry duck-typed rather than importing three: this
- * module has no dependencies, which is also what makes it testable outside a
- * browser.
+ * `exportString()` in design.js already decides which variant every storey
+ * takes — `2` for the topmost, `1` for the one under it when the base is
+ * fixed, `0` otherwise — because that is the string the original site handed
+ * to Grasshopper. Those digits are exactly the library's three columns, so the
+ * DXF asks the same question the same way rather than working it out a second
+ * time and risking a different answer.
  *
- * @param {{attributes: {position: {array: ArrayLike<number>, count: number}},
- *          index?: {array: ArrayLike<number>}|null}} geometry
- * @returns {Array<Array<number>>} one [ax,ay,ah, bx,by,bh, cx,cy,ch] per face
+ * The leading token names the mounting, not a part, and is dropped. The base
+ * plate itself is not included: the library holds one under each storey
+ * variant, and nothing in the file says which of those three belongs to which
+ * of the three mountings.
  */
-export function boardTriangles(geometry) {
-  const position = geometry.attributes.position;
-  const source = position.array;
-  const index = geometry.index ? geometry.index.array : null;
-  const count = index ? index.length : position.count;
+export function partKeys(exportString) {
+  return String(exportString).split(',').slice(1).filter(Boolean);
+}
 
-  const at = (v) => {
-    const i = (index ? index[v] : v) * 3;
-    // three (X, Y, Z) metres -> board (x, y) plan mm and h height mm.
-    return [source[i] * 1000, -source[i + 2] * 1000, source[i + 1] * 1000];
-  };
+/* ------------------------------------------------------------------ */
+/* Geometry                                                            */
+/* ------------------------------------------------------------------ */
 
-  const out = [];
-  for (let v = 0; v + 2 < count; v += 3) {
-    out.push([...at(v), ...at(v + 1), ...at(v + 2)]);
-  }
-  return out;
+const rad = (deg) => (deg * Math.PI) / 180;
+
+/** Where an arc starts and ends, counter-clockwise from `a0` to `a1`. */
+function arcEnds([, cx, cy, r, a0, a1]) {
+  return [
+    [cx + r * Math.cos(rad(a0)), cy + r * Math.sin(rad(a0))],
+    [cx + r * Math.cos(rad(a1)), cy + r * Math.sin(rad(a1))],
+  ];
 }
 
 /**
- * Slice a mesh on a horizontal plane and return the boundary as directed
- * segments.
+ * An arc's true extent, not its endpoints'.
  *
- * Direction is not decoration. Each segment is turned so the material sits on
- * its left, taken from the winding of the triangle it came off, which means
- * the loops stitched out of them come back already wound: outer boundaries
- * counter-clockwise, openings clockwise. Sorting that out afterwards from
- * containment tests would be guesswork by comparison.
- *
- * A vertex sitting exactly on the plane has no side to be on, and the two
- * triangles sharing it would disagree about what to emit. Nudging the
- * comparison rather than the geometry puts every such vertex above the plane
- * consistently, which is why the caller cuts at mid-thickness in the first
- * place: away from the faces, the case barely arises.
+ * A quarter turn that crosses due north reaches further up than either end of
+ * it does, so the cardinal points inside the sweep have to be tested too.
+ * Getting this wrong would not show as a broken drawing — it would show as two
+ * parts laid out close enough to overlap.
  */
-export function sectionAt(geometry, heightMm) {
-  const segments = [];
-  for (const t of boardTriangles(geometry)) {
-    const p = [[t[0], t[1], t[2]], [t[3], t[4], t[5]], [t[6], t[7], t[8]]];
-    const d = p.map((v) => {
-      const gap = v[2] - heightMm;
-      return Math.abs(gap) < 1e-9 ? 1e-9 : gap;
-    });
-    if (d[0] > 0 === d[1] > 0 && d[1] > 0 === d[2] > 0) continue;
-
-    const hits = [];
-    for (let i = 0; i < 3; i += 1) {
-      const j = (i + 1) % 3;
-      if (d[i] > 0 === d[j] > 0) continue;
-      const s = d[i] / (d[i] - d[j]);
-      hits.push([p[i][0] + (p[j][0] - p[i][0]) * s, p[i][1] + (p[j][1] - p[i][1]) * s]);
-    }
-    if (hits.length !== 2) continue;
-
-    // The face normal, projected flat. Turned a quarter turn it points the
-    // way the boundary runs with the solid on its left.
-    const ux = p[1][0] - p[0][0];
-    const uy = p[1][1] - p[0][1];
-    const uh = p[1][2] - p[0][2];
-    const vx = p[2][0] - p[0][0];
-    const vy = p[2][1] - p[0][1];
-    const vh = p[2][2] - p[0][2];
-    const nx = uy * vh - uh * vy;
-    const ny = uh * vx - ux * vh;
-    const dir = [-ny, nx];
-
-    const [a, b] = hits;
-    const along = (b[0] - a[0]) * dir[0] + (b[1] - a[1]) * dir[1];
-    segments.push(along >= 0 ? [a, b] : [b, a]);
+function growByArc(box, seg) {
+  const [, cx, cy, r, a0, a1] = seg;
+  for (const [x, y] of arcEnds(seg)) {
+    box[0] = Math.min(box[0], x); box[1] = Math.min(box[1], y);
+    box[2] = Math.max(box[2], x); box[3] = Math.max(box[3], y);
   }
-  return segments;
-}
-
-/**
- * Weld points onto shared vertices, so segments that meet actually meet.
- *
- * Rounding to a grid would split a pair of points that straddle a cell
- * boundary however fine the grid, so this hashes into cells and then looks at
- * the neighbours too — a point joins an existing vertex if it is genuinely
- * within tolerance of it, not merely in the same box.
- */
-function welder(eps) {
-  const cells = new Map();
-  const points = [];
-  const key = (i, j) => `${i},${j}`;
-  const add = (x, y) => {
-    const ci = Math.floor(x / eps);
-    const cj = Math.floor(y / eps);
-    for (let i = ci - 1; i <= ci + 1; i += 1) {
-      for (let j = cj - 1; j <= cj + 1; j += 1) {
-        for (const id of cells.get(key(i, j)) || []) {
-          const p = points[id];
-          if (Math.abs(p[0] - x) <= eps && Math.abs(p[1] - y) <= eps) return id;
-        }
-      }
-    }
-    const id = points.length;
-    points.push([x, y]);
-    const bucket = cells.get(key(ci, cj));
-    if (bucket) bucket.push(id);
-    else cells.set(key(ci, cj), [id]);
-    return id;
-  };
-  return { add, points };
-}
-
-/** Twice the signed area. Positive is counter-clockwise. */
-export function signedArea(loop) {
-  let sum = 0;
-  for (let i = 0; i < loop.length; i += 1) {
-    const a = loop[i];
-    const b = loop[(i + 1) % loop.length];
-    sum += a[0] * b[1] - b[0] * a[1];
+  const sweep = ((a1 - a0) % 360 + 360) % 360;
+  for (const [k, dx, dy] of [[0, 1, 0], [90, 0, 1], [180, -1, 0], [270, 0, -1]]) {
+    if (((k - a0) % 360 + 360) % 360 > sweep) continue;
+    box[0] = Math.min(box[0], cx + r * dx); box[1] = Math.min(box[1], cy + r * dy);
+    box[2] = Math.max(box[2], cx + r * dx); box[3] = Math.max(box[3], cy + r * dy);
   }
-  return sum / 2;
 }
 
-/**
- * Drop points that sit on the line between their neighbours.
- *
- * A triangulated wall sheds one section segment per triangle, so a plain
- * 120 mm edge arrives as a run of collinear pieces. They cut identically
- * either way; this is so the file reads like the drawing it represents.
- */
-function straighten(loop) {
-  const out = [];
-  for (let i = 0; i < loop.length; i += 1) {
-    const a = loop[(i - 1 + loop.length) % loop.length];
-    const b = loop[i];
-    const c = loop[(i + 1) % loop.length];
-    const cross = (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
-    const span = Math.hypot(c[0] - a[0], c[1] - a[1]);
-    if (span > 0 && Math.abs(cross) / span < COLLINEAR_MM) continue;
-    out.push(b);
-  }
-  return out.length >= 3 ? out : loop;
-}
-
-/**
- * Stitch directed segments into closed loops.
- *
- * Every welded vertex on a closed section has exactly as many segments leaving
- * it as arriving, so the walk is only ever picking the next unused one. A
- * segment that cannot be continued means the section was not closed — a hole
- * in the mesh, a plane grazing a face — and the partial loop is dropped rather
- * than closed by force, because a fake loop in a cutting file is worse than a
- * missing one.
- *
- * @returns {{loops: Array<Array<[number, number]>>, dropped: number}}
- */
-export function stitch(segments, eps = WELD_MM) {
-  const { add, points } = welder(eps);
-  const outgoing = new Map();
-  const edges = [];
-
-  for (const [a, b] of segments) {
-    const ia = add(a[0], a[1]);
-    const ib = add(b[0], b[1]);
-    if (ia === ib) continue; // shorter than the weld tolerance
-    const id = edges.length;
-    edges.push({ from: ia, to: ib, used: false });
-    if (outgoing.has(ia)) outgoing.get(ia).push(id);
-    else outgoing.set(ia, [id]);
-  }
-
-  const loops = [];
-  let dropped = 0;
-  for (let start = 0; start < edges.length; start += 1) {
-    if (edges[start].used) continue;
-    const walk = [];
-    let edge = start;
-    let closed = false;
-    while (edge !== -1 && !edges[edge].used) {
-      edges[edge].used = true;
-      walk.push(points[edges[edge].from]);
-      const next = (outgoing.get(edges[edge].to) || []).find((e) => !edges[e].used);
-      if (edges[edge].to === edges[start].from) { closed = true; break; }
-      edge = next === undefined ? -1 : next;
-    }
-    if (!closed || walk.length < 3) { dropped += 1; continue; }
-    const loop = straighten(walk);
-    if (Math.abs(signedArea(loop)) < MIN_AREA_MM2) { dropped += 1; continue; }
-    loops.push(loop);
-  }
-  return { loops, dropped };
-}
-
-/**
- * One storey's cut profile.
- *
- * Cut at mid-thickness on purpose. The faces of these boards are dense with
- * coplanar geometry — every pocket floor and every rebate sits on some exact
- * millimetre — and a plane laid on one of them slices along a face rather than
- * through it, which produces slivers instead of a boundary. Halfway is the one
- * height guaranteed to be clear of them.
- *
- * The consequence is worth being plain about, and it is not small: this is the
- * board's shape at that one height, not its through-profile. These storeys are
- * pocketed slabs — measured across the thickness of an A the enclosed area
- * runs from 15847 mm² near the bottom face to the full 19200 mm² rectangle
- * above 20 mm — so the notches this draws are cavity walls that stop partway
- * down, not edges to cut through. The file says so, in text, on itself.
- */
-export function storeyProfile(geometry, thicknessMm) {
-  const { loops, dropped } = stitch(sectionAt(geometry, thicknessMm / 2));
-  return {
-    outer: loops.filter((l) => signedArea(l) > 0),
-    inner: loops.filter((l) => signedArea(l) < 0),
-    dropped,
-  };
-}
-
-/** Bounding box of a set of loops. */
-function extentOf(loops) {
+/** The box a part actually occupies, toolpath overruns included. */
+export function partExtent(part) {
   const box = [Infinity, Infinity, -Infinity, -Infinity];
-  for (const loop of loops) {
-    for (const [x, y] of loop) {
-      if (x < box[0]) box[0] = x;
-      if (y < box[1]) box[1] = y;
-      if (x > box[2]) box[2] = x;
-      if (y > box[3]) box[3] = y;
+  for (const op of part.ops) {
+    for (const seg of op.segs) {
+      if (seg[0] === 'L') {
+        for (const [x, y] of [[seg[1], seg[2]], [seg[3], seg[4]]]) {
+          box[0] = Math.min(box[0], x); box[1] = Math.min(box[1], y);
+          box[2] = Math.max(box[2], x); box[3] = Math.max(box[3], y);
+        }
+      } else {
+        growByArc(box, seg);
+      }
     }
   }
   return box;
 }
 
-const LABEL_MM = 7;      // text cap height
-const LABEL_BAND = 13;   // room reserved under each row for it
-
 /**
- * Shelf packing: parts left to right, wrapping when the row runs out.
+ * Shelf packing: parts left to right in build order, wrapping when the row
+ * runs out.
  *
- * Not nesting. Nesting is a question about somebody's stock, their tool and
- * their offcuts, and answering it here would be inventing all three. This puts
- * the parts in a row in build order at a spacing nothing can overlap at, which
- * is the arrangement you would want to re-nest from anyway.
+ * Not nesting. Nesting is a question about somebody's stock, their offcuts and
+ * their hold-down, and answering it here would be inventing all three.
+ *
+ * Spacing is measured on the real extent rather than the 120 x 160 footprint,
+ * because the pocket paths that break out through an edge run up to 7 mm past
+ * it. Packed to the footprint, two neighbouring storeys' toolpaths would
+ * overlap on the sheet while the outlines still looked clear.
  */
 export function layout(parts, { gapMm = 20, rowMm = 1200 } = {}) {
   const placed = [];
   let x = 0;
   let rowY = 0;
   let rowTop = 0;
-
   for (const part of parts) {
-    const loops = [...part.outer, ...part.inner];
-    const [minX, minY, maxX, maxY] = extentOf(loops);
+    const [minX, minY, maxX, maxY] = partExtent(part);
     const width = maxX - minX;
-    const height = maxY - minY;
     if (x > 0 && x + width > rowMm) {
       rowY = rowTop + LABEL_BAND + gapMm;
       rowTop = rowY;
       x = 0;
     }
-    const dx = x - minX;
-    const dy = rowY - minY;
-    const move = (loop) => loop.map(([px, py]) => [px + dx, py + dy]);
-    placed.push({
-      ...part,
-      outer: part.outer.map(move),
-      inner: part.inner.map(move),
-      label: { x, y: rowY - LABEL_BAND + 3, text: part.label },
-    });
+    placed.push({ ...part, dx: x - minX, dy: rowY - minY, labelY: rowY - LABEL_BAND + 3 });
     x += width + gapMm;
-    rowTop = Math.max(rowTop, rowY + height);
+    rowTop = Math.max(rowTop, rowY + (maxY - minY));
   }
   return placed;
 }
@@ -319,36 +136,31 @@ export function layout(parts, { gapMm = 20, rowMm = 1200 } = {}) {
 /* ------------------------------------------------------------------ */
 
 /**
- * R12, not something newer, and POLYLINE rather than LWPOLYLINE.
- *
- * LWPOLYLINE is the obvious entity for a closed 2D profile and it does not
- * exist in R12 — it arrived with R14. R12 is the flavour every CAM package,
- * every old post and every free viewer will open without argument, and the
- * heavyweight POLYLINE/VERTEX/SEQEND triple is the price of that. For a part
- * with a few dozen corners the file is still small.
+ * R12 — the flavour every CAM package, every old post and every free viewer
+ * opens without argument. LWPOLYLINE does not exist in it, and neither does
+ * anything else that would let a run of lines and arcs travel as one entity,
+ * so each segment is its own LINE or ARC. That is also the honest shape for
+ * this data: the source is a chain of native lines and arcs, and writing them
+ * out one for one means no arc is ever flattened to chords.
  */
 const pair = (code, value) => `${code}\n${value}\n`;
-
-/** Six places is well past the precision the mesh carries; it just avoids 1e-7. */
 const num = (v) => (Math.abs(v) < 1e-9 ? '0.0' : v.toFixed(6));
 
-function polyline(loop, layer) {
-  let out = pair(0, 'POLYLINE') + pair(8, layer)
-    + pair(66, 1)   // vertices follow
-    + pair(70, 1)   // closed
-    + pair(10, '0.0') + pair(20, '0.0') + pair(30, '0.0');
-  for (const [x, y] of loop) {
-    out += pair(0, 'VERTEX') + pair(8, layer)
-      + pair(10, num(x)) + pair(20, num(y)) + pair(30, '0.0');
-  }
-  return out + pair(0, 'SEQEND') + pair(8, layer);
+function line(seg, layer, dx, dy) {
+  return pair(0, 'LINE') + pair(8, layer)
+    + pair(10, num(seg[1] + dx)) + pair(20, num(seg[2] + dy)) + pair(30, '0.0')
+    + pair(11, num(seg[3] + dx)) + pair(21, num(seg[4] + dy)) + pair(31, '0.0');
 }
 
-/**
- * R12 TEXT carries one line, and only what its codepage can spell. Anything
- * outside plain ASCII is dropped rather than mangled into a different
- * character somewhere downstream.
- */
+/** DXF arcs always run counter-clockwise, which is how they are extracted. */
+function arc(seg, layer, dx, dy) {
+  return pair(0, 'ARC') + pair(8, layer)
+    + pair(10, num(seg[1] + dx)) + pair(20, num(seg[2] + dy)) + pair(30, '0.0')
+    + pair(40, num(seg[3]))
+    + pair(50, num(seg[4])) + pair(51, num(seg[5]));
+}
+
+/** R12 TEXT holds one line, in one codepage. Anything else is dropped. */
 function text(x, y, height, body) {
   return pair(0, 'TEXT') + pair(8, 'LABEL')
     + pair(10, num(x)) + pair(20, num(y)) + pair(30, '0.0')
@@ -356,61 +168,84 @@ function text(x, y, height, body) {
     + pair(1, String(body).replace(/[^\x20-\x7e]/g, ''));
 }
 
+/** Layer colours by operation, so the two jobs read apart on screen. */
+function layerColour(name) {
+  if (name === 'LABEL') return 3;
+  return name.startsWith('CUT-') ? 7 : 6;
+}
+
 /**
- * Build the DXF for a stack.
+ * Build the DXF for one design.
  *
- * @param {Array<{letter: string, geometry: object, thicknessMm: number}>} storeys
- *   in build order, bottom first
- * @param {{id?: string, exportString?: string, gapMm?: number, rowMm?: number}} options
- * @returns {{text: string, parts: Array<object>, extent: number[]}}
+ * @param {object} library parsed toolpaths.json
+ * @param {{id?: string, exportString: string, gapMm?: number, rowMm?: number}} options
+ * @returns {{text: string, parts: Array<object>, extent: number[], missing: string[]}}
  */
-export function buildDxf(storeys, {
+export function buildDxf(library, {
   id = '', exportString = '', gapMm = 20, rowMm = 1200,
 } = {}) {
-  const profiles = storeys.map((storey, i) => {
-    const profile = storeyProfile(storey.geometry, storey.thicknessMm);
-    return {
-      ...profile,
-      letter: storey.letter,
-      order: i + 1,
-      thicknessMm: storey.thicknessMm,
-      sectionMm: storey.thicknessMm / 2,
-      label: `${String(i + 1).padStart(2, '0')} ${storey.letter} t${storey.thicknessMm}`,
-    };
-  });
-  const parts = layout(profiles, { gapMm, rowMm });
+  const keys = partKeys(exportString);
+  const missing = keys.filter((k) => !library.parts[k]);
+  const wanted = keys
+    .map((key, i) => {
+      const part = library.parts[key];
+      if (!part) return null;
+      return {
+        ...part,
+        key,
+        order: i + 1,
+        label: `${String(i + 1).padStart(2, '0')} ${part.letter}`
+          + ` ${VARIANT_WORD[part.variant] || part.variant}`
+          + ` ${part.size_mm[0]}x${part.size_mm[1]}x${part.size_mm[2]}`,
+      };
+    })
+    .filter(Boolean);
 
-  const all = parts.flatMap((p) => [...p.outer, ...p.inner]);
-  const box = all.length ? extentOf(all) : [0, 0, 0, 0];
+  const placed = layout(wanted, { gapMm, rowMm });
 
   let body = '';
-  for (const part of parts) {
-    for (const loop of part.outer) body += polyline(loop, 'CUT-OUTER');
-    for (const loop of part.inner) body += polyline(loop, 'CUT-INNER');
-    body += text(part.label.x, part.label.y, LABEL_MM, part.label.text);
+  const used = new Set(['LABEL']);
+  const box = [Infinity, Infinity, -Infinity, -Infinity];
+  for (const part of placed) {
+    const [x0, y0, x1, y1] = partExtent(part);
+    box[0] = Math.min(box[0], x0 + part.dx); box[1] = Math.min(box[1], y0 + part.dy);
+    box[2] = Math.max(box[2], x1 + part.dx); box[3] = Math.max(box[3], y1 + part.dy);
+    for (const op of part.ops) {
+      used.add(op.layer);
+      for (const seg of op.segs) {
+        body += seg[0] === 'L' ? line(seg, op.layer, part.dx, part.dy)
+          : arc(seg, op.layer, part.dx, part.dy);
+      }
+    }
+    body += text(part.dx + x0, part.labelY, LABEL_MM, part.label);
   }
+  if (!placed.length) { box[0] = box[1] = box[2] = box[3] = 0; }
 
   /* The caveats ride on the drawing, not only in the folder's readme. A DXF
-     gets forwarded on its own — opened in CAM two weeks later by somebody who
-     never saw the email — and this is a silhouette that would cut wrong if it
-     were taken for a toolpath. */
-  const sections = [...new Set(profiles.map((p) => p.sectionMm))].join('/');
+     gets forwarded on its own and opened in CAM weeks later by somebody who
+     never saw the email it arrived in. */
+  const tools = [...new Set(placed.flatMap((p) => p.ops.map((o) => o.tool_mm)))].sort();
   const notes = [
-    `BEE HOME ${id} - SILHOUETTE ONLY, NOT A TOOLPATH`,
-    `MILLIMETRES, 1:1. PROFILES ARE SECTIONS THROUGH THE STOREY SOLIDS AT ${sections} MM,`,
-    'HALF THE BOARD THICKNESS. THE STOREYS ARE POCKETED, NOT CUT THROUGH: THESE CONTOURS',
-    'ARE WHERE MATERIAL STANDS AT THAT ONE HEIGHT, AND CARRY NO POCKET DEPTHS.',
-    'NO TOOL RADIUS COMPENSATION. NO DOGBONE RELIEF AT THE INSIDE CORNERS.',
-    'THE OPERATOR ADDS BOTH. AUTHORITATIVE CUTTING FILES COME FROM BEEHOME.GH:',
-    exportString || '(see the drawings sheet for the Grasshopper export string)',
+    `BEE HOME ${id} - ${placed.length} STOREYS, MILLIMETRES, 1:1`,
+    'PRODUCTION TOOLPATHS AS AUTHORED IN BEEHOME GEOMETRIES.3DM. GEOMETRY IS COPIED,',
+    'NOT REDRAWN: NATIVE LINES AND ARCS, NO FLATTENING, CORNER RELIEF AS CUT.',
+    'LAYER NAMES CARRY THE OPERATION, THE CUTTER AND THE DEPTH OF CUT, E.G.',
+    'POCKET-INSIDE_T6MM_20.00MM = INSIDE POCKET, ' + tools.map((t) => `${t}MM`).join('/')
+      + ' CUTTER, 20MM DEEP.',
+    'EVERYTHING IS DRAWN AT Z=0; DEPTH LIVES IN THE LAYER NAME ONLY.',
+    'CHECK BEFORE RUNNING: WHETHER EACH POCKET CURVE IS A FINISHED WALL OR A TOOL',
+    'CENTRELINE, AND WHICH FACE ITS DEPTH IS MEASURED FROM, ARE NOT RECORDED IN THE',
+    'FILE AND HAVE NOT BEEN VERIFIED HERE. THE OUTSIDE PROFILE IS THE PART OUTLINE.',
+    'NO LEAD-INS, NO TABS, NO FEEDS AND SPEEDS. THE BASE PLATE, LEGS AND SPIKE ARE',
+    'NOT INCLUDED. THE FULL SOURCE IS BEEHOME.GH WITH THE EXPORT STRING:',
+    exportString || '(see the drawings sheet)',
   ];
   const noteTop = box[3] + 24;
-  const noteMm = 5;
-  notes.forEach((line, i) => {
-    body += text(box[0], noteTop + (notes.length - 1 - i) * noteMm * 1.8, noteMm, line);
+  notes.forEach((body_, i) => {
+    body += text(box[0], noteTop + (notes.length - 1 - i) * NOTE_MM * 1.8, NOTE_MM, body_);
   });
 
-  const extent = [box[0], box[1] - LABEL_BAND, box[2], noteTop + notes.length * noteMm * 1.8];
+  const extent = [box[0], box[1] - LABEL_BAND, box[2], noteTop + notes.length * NOTE_MM * 1.8];
 
   const header = pair(0, 'SECTION') + pair(2, 'HEADER')
     + pair(9, '$ACADVER') + pair(1, 'AC1009')
@@ -423,15 +258,16 @@ export function buildDxf(storeys, {
 
   // R12 readers expect a layer's linetype to be a name they can resolve, so
   // CONTINUOUS is declared rather than merely referenced.
+  const layers = [...used].sort();
   let tables = pair(0, 'SECTION') + pair(2, 'TABLES')
     + pair(0, 'TABLE') + pair(2, 'LTYPE') + pair(70, 1)
     + pair(0, 'LTYPE') + pair(2, 'CONTINUOUS') + pair(70, 0)
     + pair(3, 'Solid line') + pair(72, 65) + pair(73, 0) + pair(40, '0.0')
     + pair(0, 'ENDTAB')
-    + pair(0, 'TABLE') + pair(2, 'LAYER') + pair(70, LAYERS.length);
-  for (const layer of LAYERS) {
-    tables += pair(0, 'LAYER') + pair(2, layer.name) + pair(70, 0)
-      + pair(62, layer.colour) + pair(6, 'CONTINUOUS');
+    + pair(0, 'TABLE') + pair(2, 'LAYER') + pair(70, layers.length);
+  for (const name of layers) {
+    tables += pair(0, 'LAYER') + pair(2, name) + pair(70, 0)
+      + pair(62, layerColour(name)) + pair(6, 'CONTINUOUS');
   }
   tables += pair(0, 'ENDTAB') + pair(0, 'ENDSEC');
 
@@ -439,8 +275,9 @@ export function buildDxf(storeys, {
 
   return {
     text: `${header}${tables}${entities}${pair(0, 'EOF')}`,
-    parts,
+    parts: placed,
+    layers,
     extent,
-    id,
+    missing,
   };
 }

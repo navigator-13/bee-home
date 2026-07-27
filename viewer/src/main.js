@@ -278,6 +278,10 @@ async function buildPackHtml() {
 
   const id = formatId(state);
   const gh = exportString(state);
+  // The sheet describes the folder it travels in, so it has to know whether
+  // the DXF made it into that folder.
+  const library = await toolpathLibrary();
+  const dxf = library ? buildDxf(library, { id, exportString: gh }) : null;
   const sizes = state.stack.map((l) => index.storeys[l][state.variant].size_mm);
   const stackMm = Math.round(sizes.reduce((t, s) => t + s[2], 0));
   const overallMm = Math.round(stackHeight() + liftMm());
@@ -448,27 +452,33 @@ p { margin:0 0 3mm; }
         rather than for you. Search for a maker space, fab lab or hackspace in your city —
         most will quote from these files without you joining first. Four things matter:</p>
       <ul>
+        ${dxf ? `<li><b>The DXF in the folder</b> —
+          <span class="mono">Bee Home ${id} CNC.dxf</span>. The ${dxf.parts.length} storeys
+          laid out side by side, 1:1 in millimetres, R12. This is the production cutting
+          geometry from the original Rhino file, not a tracing of the pictures on this
+          sheet: native lines and arcs, and the inside-corner relief a round cutter needs.
+          The layer names are the original ones and they carry the work —
+          <span class="mono">POCKET-INSIDE_T6MM_20.00MM</span> is an inside pocket, 6&nbsp;mm
+          cutter, 20&nbsp;mm deep.</li>` : ''}
         <li><b>This sheet, and the export string above it.</b> Dropped into
           <span class="mono">BEEHOME.gh</span> it regenerates the cutting files for exactly
-          this design. That is the authoritative source, and the only one that carries the
-          pocket depths and the tool.</li>
-        <li><b>The DXF in the folder</b> — <span class="mono">Bee Home ${id} CNC.dxf</span>.
-          ${state.stack.length} storey profiles side by side, 1:1 in millimetres, R12.
-          Enough to quote from and to set up against; not enough to cut from unchanged.</li>
+          this design. That is the authoritative source and the one to settle any
+          disagreement against.</li>
         <li><b>Untreated hardwood or exterior-grade ply.</b> Nothing chemically preserved —
           it has to be safe for the occupants.</li>
         <li><b>A CNC router and someone who runs it.</b> Every storey is cut from a single
           board.</li>
       </ul>
-      <div class="warn"><b>The DXF is a silhouette, not a toolpath.</b> Each profile is a
-        section through the storey solid at half its thickness, so it draws where the
-        material ends and nothing else. There is <b>no tool radius compensation</b>, so the
-        lines are not a cutter path. There are <b>no pocket depths</b> — the storeys are
-        pocketed rather than cut through, and one section cannot say how deep. And the inside
-        corners are square, with <b>no dogbone relief</b>, which a round cutter cannot reach
-        into. Whoever runs the machine adds all three, or works from
-        <span class="mono">BEEHOME.gh</span> instead. The base plate, roof slab and legs are
-        not in the DXF; they are on the cut list above as stock sizes.</div>
+      ${dxf ? `<div class="warn"><b>Read the DXF's layers, do not just plot it.</b>
+        Everything is drawn flat at Z=0 and the depth of cut lives in the layer name and
+        nowhere else. Two things are not recorded in the source file and have
+        <b>not been verified</b> here: whether each pocket curve is a finished wall or a tool
+        centreline, and which face its depth is measured from. The outside profile is the
+        part outline. Check the pockets against <span class="mono">BEEHOME.gh</span> before
+        cutting a full set. There are no lead-ins, no tabs and no feeds and speeds. The base
+        plate, legs and spike are not in the DXF — the library holds a base plate under each
+        storey variant and nothing says which goes with which mounting, so they stay on the
+        cut list above as stock sizes.</div>` : ''}
       <p>No CNC nearby? Every part is a flat profile. It is slower but entirely possible with
         a jigsaw, a drill and a chisel — print this sheet at 100% scale and use the cut list
         profiles as templates.</p>
@@ -551,31 +561,37 @@ const dataUriToBytes = (uri) => {
  * only wants to look at the builder should pay for it.
  *
  * The DXF slot used to be empty, on the grounds that shipping a file we could
- * not vouch for was worse than shipping none. What goes in it now is the one
- * thing the meshes can actually answer for: where each board's material ends,
- * sliced straight out of the geometry on screen. It is not a toolpath and does
- * not pretend to be — the notes below, the sheet, and the DXF's own title text
- * all say the same thing in the same words.
+ * not vouch for was worse than shipping none. What goes in it now is not drawn
+ * from the meshes on screen — those are a de-featured display copy, and an
+ * outline taken off them would not seat. It is the production toolpaths out of
+ * BEEHOME GEOMETRIES.3dm, lifted at build time by tools/extract_toolpaths.py
+ * and assembled here. Fetched rather than bundled: 190 kB is worth carrying
+ * for someone who asks for the pack and not for someone who only wants to look
+ * at the builder.
  */
+let toolpaths = null;
+async function toolpathLibrary() {
+  if (toolpaths === undefined) return null;
+  if (toolpaths === null) {
+    try {
+      const res = await fetch('toolpaths.json');
+      toolpaths = res.ok ? await res.json() : undefined;
+    } catch {
+      toolpaths = undefined; // embedded as one file, with nothing alongside
+    }
+  }
+  return toolpaths || null;
+}
+
 async function buildPackZip(html) {
   const id = formatId(state);
-
-  // Straight off the geometry cache — these are the same meshes the stage is
-  // drawing, so the profiles cannot drift from the picture in the pack.
-  const storeys = [];
-  for (const letter of state.stack) {
-    const entry = index.storeys[letter][state.variant];
-    storeys.push({
-      letter,
-      thicknessMm: entry.size_mm[2],
-      geometry: await stage.load(entry.file),
-    });
-  }
-  const dxf = buildDxf(storeys, { id, exportString: exportString(state) });
+  const library = await toolpathLibrary();
+  const dxf = library
+    ? buildDxf(library, { id, exportString: exportString(state) })
+    : null;
 
   const files = [
     { name: `Bee Home ${id} — drawings and cut list.html`, data: html },
-    { name: `Bee Home ${id} CNC.dxf`, data: dxf.text },
     { name: `Bee Home ${id}.png`, data: dataUriToBytes(renderPng()) },
     {
       name: `Bee Home ${id}.txt`,
@@ -585,7 +601,7 @@ async function buildPackZip(html) {
         'WHAT IS IN THIS FOLDER',
         '  · Drawings and cut list, as a web page. Open it in any browser and',
         '    print it, or save it as a PDF from the print dialog.',
-        '  · A DXF of the storey profiles. See below for what it is and is not.',
+        ...(dxf ? ['  · A DXF of the cutting geometry. See below.'] : []),
         '  · A picture of this design.',
         '  · The Assembly & Maintenance Guide, from the original project.',
         '',
@@ -594,26 +610,33 @@ async function buildPackZip(html) {
         '  CNC router, found by searching "makerspace", "fab lab" or "hackspace"',
         '  and your city. Most will quote from these files without you joining.',
         '',
-        'ABOUT THE DXF',
-        `  ${state.stack.length} storey profiles, laid out side by side, 1:1 in`,
-        '  millimetres, DXF R12. Each one is a section through the storey solid',
-        '  at half its thickness, stitched into closed polylines: the outer',
-        '  profile on layer CUT-OUTER, any enclosed opening on CUT-INNER.',
-        '',
-        '  It is a silhouette, not a toolpath. Specifically:',
-        '   · No tool radius compensation. The lines are where the material',
-        '     ends, not where a cutter centre goes.',
-        '   · No pocket depths. The storeys are pocketed rather than cut',
-        '     through, and a single section cannot say how deep anything is.',
-        '   · No dogbone or T-bone relief, so the inside corners are square and',
-        '     a round cutter will not reach into them.',
-        '  Your operator adds all three. The authoritative cutting files come',
-        '  from BEEHOME.gh with the export string below, which carries the',
-        '  depths and the tool this drawing cannot.',
-        '',
-        '  Not in the DXF: the base plate, the roof slab and the legs or spike.',
-        '  Those are on the cut list as plain stock sizes.',
-        '',
+        ...(dxf ? [
+          'ABOUT THE DXF',
+          `  ${dxf.parts.length} storeys laid out side by side, 1:1 in millimetres,`,
+          '  DXF R12. This is not a tracing of the 3D preview. It is the',
+          '  production cutting geometry out of the original Rhino file, copied',
+          '  segment for segment: native lines and arcs, no flattening, and the',
+          '  inside-corner relief that lets a round cutter reach a square',
+          '  corner. The layer names are the original ones and they carry the',
+          '  work, e.g. POCKET-INSIDE_T6MM_20.00MM is an inside pocket, 6 mm',
+          '  cutter, 20 mm deep.',
+          '',
+          '  What your operator still has to settle:',
+          '   · Everything is drawn flat at Z=0. Depth is in the layer name and',
+          '     nowhere else, so the layers have to be read, not just plotted.',
+          '   · Whether each pocket curve is a finished wall or a tool',
+          '     centreline, and which face its depth is measured from, are not',
+          '     recorded in the file and have not been verified here. The',
+          '     outside profile is the part outline. Check the pockets against',
+          '     BEEHOME.gh before cutting a full set.',
+          '   · No lead-ins, no tabs, no hold-down, no feeds and speeds.',
+          '',
+          '  Not in the DXF: the base plate, the legs and the spike. The library',
+          '  holds a base plate under each storey variant and nothing in it says',
+          '  which one goes with which mounting, so rather than guess they are',
+          '  left on the cut list as stock sizes.',
+          '',
+        ] : []),
         'GRASSHOPPER EXPORT',
         `  ${exportString(state)}`,
         '',
@@ -628,6 +651,8 @@ async function buildPackZip(html) {
       ].join('\n'),
     },
   ];
+
+  if (dxf) files.splice(1, 0, { name: `Bee Home ${id} CNC.dxf`, data: dxf.text });
 
   try {
     const res = await fetch('documents/bee-home-assembly-guide.pdf');
