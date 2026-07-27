@@ -808,6 +808,23 @@ figcaption b { color: var(--ink); font-weight: 400; }
   white-space: nowrap;
 }
 
+@media (max-width: 700px) {
+  /* A wide bar of small caps beside a heading four lines deep read as a
+     stripe rather than a button. min-content is what actually guarantees one
+     word per line -- the box collapses to its longest word, DOWNLOAD, and the
+     other two have nowhere to go but underneath. Squarish and centred against
+     the heading it belongs to. */
+  .ledeRow { align-items: center; }
+  .packCall { max-width: none; }
+  .packCall .pill {
+    width: min-content;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.55;
+    padding: clamp(14px, 3.6vw, 20px) clamp(15px, 3.6vw, 20px);
+  }
+}
+
 @media (max-width: 380px) {
   /* Only the narrowest phones give up the split -- past this there is no
      honest amount of shrinking left to do without the button's own label
