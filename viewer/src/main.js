@@ -286,6 +286,77 @@ const POSITION_LABEL = {
   fixed: 'Wall-fixed',
 };
 
+/** Extent of one closed toolpath, in the flat plane it is cut in. */
+function pocketBox(segs) {
+  let minX = Infinity; let minY = Infinity; let maxX = -Infinity; let maxY = -Infinity;
+  const see = (x, y) => {
+    if (x < minX) minX = x;
+    if (x > maxX) maxX = x;
+    if (y < minY) minY = y;
+    if (y > maxY) maxY = y;
+  };
+  for (const seg of segs) {
+    if (seg[0] === 'L') { see(seg[1], seg[2]); see(seg[3], seg[4]); continue; }
+    // Arcs by their bounding square. Generous by up to a radius on the axes the
+    // arc does not reach, which for the 3.2mm corner fillets here is noise.
+    const [, cx, cy, r] = seg;
+    see(cx - r, cy - r);
+    see(cx + r, cy + r);
+  }
+  return minX === Infinity ? [0, 0] : [maxX - minX, maxY - minY];
+}
+
+/**
+ * Which of a storey's pockets are nesting channels.
+ *
+ * Nothing in the source says so. The Grasshopper definition is a binary
+ * archive, and the only names in the Rhino files are the layer names, which
+ * record the cutter and the depth and nothing about intent. So this is read
+ * off the geometry, and the geometry is clear enough:
+ *
+ *  · Every one of the sixteen letters carries the same 22.6 x 32.6mm pocket
+ *    cut the full 30mm through the board. Identical everywhere, open at both
+ *    ends -- that is the opening the stack shares, not somewhere to nest.
+ *  · Each letter also carries long narrow slots, 6 to 12mm across and 99 to
+ *    149mm long, cut 6 to 20mm into a 30mm board. Capped by the underside of
+ *    the storey above, a slot like that is a horizontal tunnel of exactly the
+ *    bore solitary bees use, at a length that favours female offspring. These
+ *    are the cavities.
+ *  · What is left is broad and shallow -- 52 x 22 up to 124 x 164 -- which is
+ *    the front pattern and the recesses, not tunnels.
+ *
+ * Worth being plain about the direction of that last point: the 20mm pockets
+ * are mostly pattern, and the letters whose deepest cut is 6 or 7mm are the
+ * ones full of nesting channels, not the ones without any.
+ */
+function channels(part) {
+  if (!part) return [];
+  const thickness = part.size_mm[2];
+  const found = [];
+  for (const op of part.ops) {
+    if (op.op !== 'POCKET-INSIDE' || op.depth_mm >= thickness) continue;
+    const [w, h] = pocketBox(op.segs);
+    const across = Math.min(w, h);
+    const along = Math.max(w, h);
+    if (across <= 12.5 && along >= 60) {
+      found.push({ across: Math.round(across), along: Math.round(along), deep: op.depth_mm });
+    }
+  }
+  return found;
+}
+
+/** The channel column of the cut list: like sizes grouped, one line each. */
+function channelCell(part) {
+  const found = channels(part);
+  if (!found.length) return '—';
+  const groups = new Map();
+  for (const c of found) {
+    const key = `${c.across} × ${c.along} × ${c.deep}`;
+    groups.set(key, (groups.get(key) || 0) + 1);
+  }
+  return [...groups].map(([key, n]) => `${n} × ${key}`).join('<br />');
+}
+
 /* The sheet is printed for one design, so it can say the one thing that
    applies to it rather than all three. SPACE10's own siting advice, split the
    way the builder splits the mountings. */
@@ -342,18 +413,37 @@ async function buildPackHtml() {
   const species = [...new Set(state.stack.map((unused, i) => woodByKey(woodFor(i)).name))];
   const timber = species.length === 1 ? species[0] : `Mixed · ${species.length} species`;
 
+  /* What this particular stack offers a bee, totalled. Per-storey detail is a
+     column of the cut list; this is the number that decides whether the thing
+     works at all, which is worth saying where someone will read it. */
+  const perStorey = state.stack.map((letter, i) => channels(partFor(letter, i)));
+  const allChannels = perStorey.flat();
+  const bores = [...new Set(allChannels.map((c) => c.across))].sort((a, b) => a - b);
+  const channelTotal = {
+    count: allChannels.length,
+    storeys: perStorey.filter((c) => c.length).length,
+    bores: bores.join(', '),
+    shortest: allChannels.length ? Math.min(...allChannels.map((c) => c.along)) : 0,
+    longest: allChannels.length ? Math.max(...allChannels.map((c) => c.along)) : 0,
+  };
+  const THROUGH_MM = 30;
+
   /* Every row carries its own drawing. The numbers cannot do this job on
      their own: in a stack of four different letters each one measures
-     120 × 160 × 30, and what separates an A from an M is the profile. */
+     120 × 160 × 30, and what separates an A from an M is the profile.
+
+     The fronts are not repeated per row. The spec row above says whether this
+     design is plain or patterned, and it says it once. */
   const cell = (art) => (art ? `<img src="${art}" alt="" />` : '');
   const rows = state.stack.map((letter, i) => {
     const size = footprint(letter, i);
     return `<tr>
       <td class="n">${String(i + 1).padStart(2, '0')}</td>
       <td class="thumb">${cell(plates[i])}</td>
-      <td class="n">${letter} · ${state.variant === 'b' ? 'plain' : 'patterned'}</td>
+      <td class="n">${letter}</td>
       <td class="n">${size[0]} × ${size[1]} mm</td>
       <td class="n">${size[2]} mm</td>
+      <td class="n">${channelCell(partFor(letter, i))}</td>
       <td>${woodByKey(woodFor(i)).name}</td>
     </tr>`;
   }).join('');
@@ -363,7 +453,7 @@ async function buildPackHtml() {
   const hardware = (name, size, wood) => `<tr class="hw">
     <td class="n">—</td><td class="thumb"></td><td>${name}</td>
     <td class="n">${size[0]} × ${size[1]} mm</td><td class="n">${size[2]} mm</td>
-    <td>${wood}</td></tr>`;
+    <td class="n">—</td><td>${wood}</td></tr>`;
 
   const parts = [];
   if (state.position !== 'fixed' && base) {
@@ -413,9 +503,10 @@ async function buildPackHtml() {
   ${listAlone ? '' : `<h2>Cut list — ${state.stack.length} storeys, bottom to top</h2>`}
   <table>
     <thead><tr>
-      <th style="width:7%">Order</th><th style="width:16%">Profile</th>
-      <th style="width:11%">Storey</th><th style="width:23%">Footprint</th>
-      <th style="width:14%">Thickness</th><th>Timber</th>
+      <th style="width:6%">Order</th><th style="width:13%">Profile</th>
+      <th style="width:12%">Storey</th><th style="width:17%">Footprint</th>
+      <th style="width:10%">Thick</th>
+      <th style="width:24%">Channels w × l × d</th><th>Timber</th>
     </tr></thead>
     <tbody>${rows}${parts.join('')}</tbody>
   </table>
@@ -455,16 +546,29 @@ body { margin:0; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; color:
    took their height from the images inside them -- the render buffer is wider
    than the frame it prints in -- and pushed sheet 1 to 360mm of content in a
    273mm page. */
-.drawings { display:grid; grid-template-columns: 1.5fr 1fr; gap:6mm; margin:4mm 0;
-  height:104mm; }
+/* Four columns, not two. Measured on the render, the ink in each plate fills
+   22 to 28 per cent of its width and about 90 per cent of its height: every
+   drawing here is a tall thin object, and a landscape box around one is mostly
+   margin. Narrowed to what they need, the three of them leave room for a panel
+   that says what the drawings cannot. */
+.drawings { display:grid; grid-template-columns: 1fr 1fr 1fr 1.35fr; gap:5mm;
+  margin:4mm 0; height:104mm; }
+.key { border:1px solid #d8d6cb; padding:3mm 3.5mm; overflow:hidden; }
+.key h3 { font-size:6.4pt; letter-spacing:.14em; text-transform:uppercase; color:#7d7d73;
+  font-weight:500; margin:0 0 1mm; }
+.key h3 + p { margin-top:0; }
+.key p { margin:0 0 2.6mm; font-size:7.2pt; line-height:1.45; }
+.key p:last-child { margin-bottom:0; }
 .plate { border:1px solid #d8d6cb; position:relative; display:flex; align-items:center;
   justify-content:center; overflow:hidden; min-height:0;
-  /* Room at the foot so the caption sits on paper rather than on the legs. */
-  padding:2.5mm 2.5mm 6mm; }
+  /* Room at the foot so the caption sits on paper rather than on the legs.
+     Two lines of it, set deliberately: at a column this narrow the view name
+     and its dimension will not share one. */
+  padding:2.5mm 2.5mm 9mm; }
 .plate img { width:100%; height:100%; object-fit:contain; }
 .plate .cap { position:absolute; left:2mm; bottom:1.6mm; font-size:6.4pt; letter-spacing:.14em;
-  text-transform:uppercase; color:#7d7d73; }
-.stackviews { display:grid; grid-template-rows:1fr 1fr; gap:6mm; min-height:0; }
+  text-transform:uppercase; color:#7d7d73; line-height:1.35; }
+
 
 table { width:100%; border-collapse:collapse; font-size:7.6pt; }
 /* A stack tall enough to run the list past the foot of the sheet carries its
@@ -524,12 +628,27 @@ p { margin:0 0 3mm; }
 
   <div class="drawings">
     <div class="plate"><img src="${views.iso}" alt="Exploded axonometric" />
-      <span class="cap">Exploded axonometric · storeys fanned in build order</span></div>
-    <div class="stackviews">
-      <div class="plate"><img src="${views.front}" alt="Front elevation" />
-        <span class="cap">Front elevation · ${width} mm wide · stack ${stackMm} mm</span></div>
-      <div class="plate"><img src="${views.side}" alt="Side elevation" />
-        <span class="cap">Side elevation · ${depth} mm deep · cavities in section</span></div>
+      <span class="cap">Exploded axonometric<br />storeys in build order</span></div>
+    <div class="plate"><img src="${views.front}" alt="Front elevation" />
+      <span class="cap">Front elevation<br />${width} mm wide</span></div>
+    <div class="plate"><img src="${views.side}" alt="Side elevation" />
+      <span class="cap">Side elevation<br />${depth} mm deep</span></div>
+    <div class="key">
+      <h3>Nesting channels</h3>
+      ${channelTotal.count ? `<p><b>${channelTotal.count}</b> across ${channelTotal.storeys}
+        of ${state.stack.length} storeys. Bore ${channelTotal.bores} mm,
+        ${channelTotal.shortest}–${channelTotal.longest} mm long.</p>
+      <p>Each is a slot milled into the top of a board and closed by the underside
+        of the one above it, so a storey only works with its neighbour in place.</p>`
+      : `<p><b>None.</b> Every storey in this design is chamber and pattern only.
+        Bees will land on it and leave. Add a storey with channels — most letters
+        have them — before you cut.</p>`}
+      <h3>The opening</h3>
+      <p>Every storey carries the same ${THROUGH_MM} mm pocket cut right through the
+        board. It is the shared opening, not somewhere to nest.</p>
+      <h3>Read this as measured</h3>
+      <p>Nothing in the Rhino or Grasshopper files names a pocket's purpose — only
+        its cutter and depth. The split above is taken off the cut geometry.</p>
     </div>
   </div>
 

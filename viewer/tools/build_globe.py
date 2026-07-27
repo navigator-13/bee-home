@@ -77,6 +77,20 @@ if hide not in html:
 # The prototype's own backdrop colour goes with it.
 html = html.replace("background:#f5f4f0", "background:transparent")
 
+# And so does the globe's own fill, which is the part that actually reads as
+# white: the sphere under the graticule is a basic material in #f4f3ef at 98%
+# opacity, so clearing the page backdrop behind the frame changed nothing you
+# could see. Dropping it entirely would show the far side of the world through
+# the near side, so it stays as a depth-only occluder -- no colour written, but
+# still writing depth ahead of the transparent lines, which is what hides the
+# meridians on the back. colorWrite also takes it out of the transparent pass,
+# so it is drawn before the lines rather than sorted against them.
+old_globe = "new Gt({color:16053231,transparent:!0,opacity:.98})"
+new_globe = "new Gt({colorWrite:!1})"
+if old_globe not in html:
+    raise SystemExit("globe sphere material not found -- has the prototype changed?")
+html = html.replace(old_globe, new_globe, 1)
+
 # Scale. The prototype framed its globe against a whole viewport, where 31% of
 # the canvas was right; dropped into a column beside a heading it left the
 # frame mostly empty. setLayout() derives everything from these two values —

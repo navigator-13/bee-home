@@ -464,7 +464,16 @@ export class Stage {
     this.setMode('drawing');
     this.setSelected(-1);
 
-    const aspect = this.camera.aspect || 1;
+    /* A portrait buffer, whatever shape the canvas on screen happens to be.
+       Every one of these views is of a tall thin object, and captured at the
+       builder's landscape aspect the drawing filled about a quarter of the
+       width -- margin that object-fit then carries into the printed plate,
+       where it becomes the empty space either side of the drawing. Sized to
+       roughly the box it prints in instead. The third argument leaves the CSS
+       size alone, so nothing on the page reflows while this runs. */
+    const BUFFER = { w: 520, h: 1100 };
+    this.renderer.setSize(BUFFER.w, BUFFER.h, false);
+    const aspect = BUFFER.w / BUFFER.h;
     const shot = (camera) => {
       this.renderer.render(this.scene, camera);
       // Read back synchronously, straight after the render, so the buffer is
@@ -568,6 +577,7 @@ export class Stage {
     this.plateWhite = previous.white;
     this.setMode(previous.mode);
     this.setSelected(previous.selected);
+    this.resize();
     return views;
   }
 
