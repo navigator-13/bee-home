@@ -124,6 +124,42 @@ body:not(.panelHidden) .panelTab { right: 268px; }
 }
 
 .panelTab:hover { color: var(--bone); border-color: var(--bone); }
+
+/* Bare icon, both places -- no border, no fill, no frosted box. It rides
+   alongside the tab when the drawer is folded away, and inline with
+   "Position" when it is open; nothing about it should read as its own
+   button chrome competing with either. */
+.shuffleIcon {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--grey-light);
+  cursor: pointer;
+  transition: color 0.16s, transform 0.2s ease;
+}
+
+.shuffleIcon:hover { color: var(--bone); transform: rotate(-14deg); }
+.shuffleIcon:focus-visible { outline: 2px solid var(--bee); outline-offset: 2px; }
+
+.shuffleOutside {
+  position: fixed;
+  top: 64px;
+  right: 20px;
+  width: 34px;
+  height: 34px;
+  z-index: 6;
+  transition: color 0.16s, transform 0.2s ease, opacity 0.3s ease;
+}
+
+/* Only makes sense standing in for the one inside -- once the drawer is
+   open, that one is a few centimetres away and this would be a second,
+   redundant control sitting on top of the panel it belongs to. */
+body:not(.panelHidden) .shuffleOutside { opacity: 0; pointer-events: none; }
+
+body.drawing .shuffleIcon { color: #4a4940; }
+body.drawing .shuffleIcon:hover { color: var(--ink); }
 .panelTab .ic-close { display: none; }
 body:not(.panelHidden) .panelTab .ic-open { display: none; }
 body:not(.panelHidden) .panelTab .ic-close { display: block; }
@@ -150,6 +186,10 @@ body.drawing .panelTab {
   justify-content: space-between;
   align-items: baseline;
 }
+
+/* An icon doesn't have a baseline worth aligning to -- centered against the
+   label's cap height instead of sitting where the text's baseline falls. */
+.panel h2:has(.shuffleIcon) { align-items: center; }
 
 .value {
   color: var(--timber);

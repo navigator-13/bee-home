@@ -248,11 +248,21 @@ figcaption b { color: var(--ink); font-weight: 400; }
 .ask { margin-bottom: clamp(40px, 6vh, 84px); max-width: 46ch; }
 
 .askQ {
+  display: flex;
+  align-items: center;
+  gap: clamp(12px, 1.6vw, 22px);
   margin: 0;
   font-weight: 400;
   font-size: clamp(26px, 3.4vw, 52px);
   line-height: 1.1;
   letter-spacing: -0.02em;
+}
+
+.globeIcon {
+  flex: none;
+  width: clamp(28px, 3.4vw, 46px);
+  height: clamp(28px, 3.4vw, 46px);
+  color: var(--ink);
 }
 
 .askWhy {
@@ -265,11 +275,20 @@ figcaption b { color: var(--ink); font-weight: 400; }
 .ask select {
   display: block;
   margin-top: clamp(18px, 2.4vh, 30px);
-  padding: 14px 18px;
+  padding: 14px 40px 14px 18px;
   min-width: min(100%, 380px);
   border: 1px solid var(--ink);
   border-radius: 0;
-  background: var(--paper);
+  /* border-radius: 0 alone still left native corners on some platforms --
+     the browser's own chrome for a <select> ignores it unless the default
+     appearance is turned off first. The dropdown arrow that comes with it
+     goes too, replaced with one drawn the same weight as the rest of the
+     page's line art. */
+  appearance: none;
+  -webkit-appearance: none;
+  background: var(--paper)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7' viewBox='0 0 11 7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' fill='none' stroke='%232a2920' stroke-width='1.3'/%3E%3C/svg%3E")
+    no-repeat right 16px center;
   color: var(--ink);
   font: inherit;
   font-size: clamp(15px, 1.2vw, 20px);
@@ -484,7 +503,7 @@ figcaption b { color: var(--ink); font-weight: 400; }
   margin: 0;
   transform: translateX(-50%);
   font-size: clamp(15px, 1.7vw, 21px);
-  color: var(--ink);
+  color: var(--bee);
   text-align: center;
   white-space: nowrap;
   opacity: 0;
@@ -661,10 +680,7 @@ figcaption b { color: var(--ink); font-weight: 400; }
 }
 
 .packCall { text-align: right; justify-self: end; max-width: 42ch; min-width: 0; }
-.packCall p { margin: 0; font-size: clamp(11px, 2.6vw, 16px); }
-.packCall p + p { margin-top: 6px; color: var(--soft); }
 .packCall .pill {
-  margin-bottom: 14px;
   padding: clamp(8px, 2vw, 11px) clamp(14px, 3.4vw, 22px);
   font-size: clamp(12px, 3vw, 14px);
   white-space: nowrap;
@@ -678,24 +694,35 @@ figcaption b { color: var(--ink); font-weight: 400; }
   .packCall { text-align: left; justify-self: start; margin-top: 8px; }
 }
 
+/* A quiet line under the builder, not another call to action -- the button
+   for this lives two sections down, in the one about fabricating. This is
+   just naming what the builder above it just produced. */
 .packFor {
+  margin: clamp(16px, 2.4vh, 26px) 0 0;
   font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.16em;
+  font-size: 11px;
+  line-height: 1.8;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--soft);
 }
 
 .packFor b { color: var(--ink); font-weight: 400; letter-spacing: 0.1em; }
 
+/* Square, not a pill despite the class name it kept from an earlier draft --
+   the rounded-full shape read as a marketing button dropped into a page that
+   is otherwise all straight edges and drawn lines. [ timber ]'s bracketed,
+   barely-rounded corner is the vocabulary the rest of the page speaks. */
 .pill {
-  padding: 11px 22px;
+  padding: 12px 24px;
   border: 1px solid var(--ink);
-  border-radius: 999px;
+  border-radius: 3px;
   background: var(--ink);
   color: var(--paper);
-  font: inherit;
-  font-size: 14px;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   cursor: pointer;
   transition: background 0.16s, color 0.16s;
 }
@@ -777,6 +804,8 @@ figcaption b { color: var(--ink); font-weight: 400; }
     <div class="builder">
       <iframe id="builderFrame" src="../../viewer/" title="Bee Home builder" loading="lazy"></iframe>
     </div>
+    <p class="packFor">Your design <b id="packId">&#8212;</b><br />
+      Elevations, cut list and assembly order &#8212; two A4 pages.</p>
   </section>
 
   <section class="band">
@@ -784,8 +813,6 @@ figcaption b { color: var(--ink); font-weight: 400; }
       <h2 class="lede">Download the design files for free and share them with a makerspace.</h2>
       <div class="packCall">
         <button id="getPack" class="pill">Download Build Pack</button>
-        <p class="packFor">Your design <b id="packId">&#8212;</b></p>
-        <p>Elevations, cut list and assembly order &#8212; two A4 pages.</p>
       </div>
     </div>
     <div class="two">
@@ -868,7 +895,17 @@ figcaption b { color: var(--ink); font-weight: 400; }
          what is underneath them, so they belong at the same height, and loose
          heads fall around them the way they do out of a press. -->
     <div class="ask">
-      <h2 class="askQ"><label for="regionPick">Where do you live?</label></h2>
+      <h2 class="askQ">
+        <label for="regionPick">Where do you live?</label>
+        <svg class="globeIcon" viewBox="0 0 48 48" aria-hidden="true" fill="none"
+             stroke="currentColor" stroke-width="1.4">
+          <circle cx="24" cy="24" r="19" />
+          <ellipse cx="24" cy="24" rx="7.5" ry="19" />
+          <line x1="5.3" y1="24" x2="42.7" y2="24" />
+          <path d="M8.2 14c7.8 4.6 23.8 4.6 31.6 0" />
+          <path d="M8.2 34c7.8-4.6 23.8-4.6 31.6 0" />
+        </svg>
+      </h2>
       <p class="askWhy">The drift below becomes the one that grows near you, with the
         cavity-nesting bees recorded there. Click any bee to see the flowers as she
         does.</p>
@@ -917,9 +954,10 @@ figcaption b { color: var(--ink); font-weight: 400; }
           with Bakken &amp; B&aelig;ck and designer Tanita Klein, on <b>20 May 2020</b>
           &#8212; World Bee Day. A parametric bee hotel anyone could configure and have
           cut locally, free, under CC BY 4.0. SPACE10 closed in <b>2023</b> and the site
-          went offline with it. This rebuild was started in <b>July 2026</b>, working
-          from the project's own geometry file and a few screenshots of the original
-          site recovered from the Wayback Machine. The original project, design,
+          went offline with it. This rebuild was implemented in <b>July 2026</b> by
+          Iv&aacute;n Langesfeld, an independent creative technologist, working from
+          the project's own geometry file and a few screenshots of the original site
+          recovered from the Wayback Machine. The original project, design,
           builder and site concept have been extended further and, where possible,
           improved as seen fit. The rebuild was undertaken independently, without
           involvement from SPACE10, Bakken &amp; B&aelig;ck or Tanita Klein.</div>
@@ -962,9 +1000,8 @@ figcaption b { color: var(--ink); font-weight: 400; }
           practice: build one, build a hundred, sell what you build, change the
           design, fork the code, put it on your own site. The one condition is
           attribution &#8212; name the original authors, say if you changed
-          anything, and link the licence. You cannot add conditions of your own
-          on top, so nobody downstream of you can close it either. The repository
-          is public and the geometry, the site and the build pack are all in it.</div>
+          anything, and link the licence. The repository is public and the
+          geometry, the site and the build pack are all in it.</div>
       </details>
     </div>
   </section>
@@ -1694,7 +1731,7 @@ figcaption b { color: var(--ink); font-weight: 400; }
       crops: ['Apple', 'Pear', 'Field bean', 'Raspberry'],
       plants: [['Viper\u2019s bugloss', 'Echium vulgare'], ['Common knapweed', 'Centaurea nigra'],
         ['Bird\u2019s-foot trefoil', 'Lotus corniculatus'], ['Wild marjoram', 'Origanum vulgare']],
-      seed: 'Sold as native-origin seed by UK meadow suppliers; ask for local provenance.'
+      seed: 'We recommend buying native-origin seed from a UK meadow supplier for your region.'
     },
     {
       name: 'Nordics',
@@ -1712,7 +1749,7 @@ figcaption b { color: var(--ink); font-weight: 400; }
       crops: ['Apple', 'Cherry', 'Plum', 'Oilseed rape'],
       plants: [['Common poppy', 'Papaver rhoeas'], ['Cornflower', 'Centaurea cyanus'],
         ['Sainfoin', 'Onobrychis viciifolia'], ['Wild carrot', 'Daucus carota']],
-      seed: 'Regiosaatgut (local seed) is sold by provenance region; the zone number is on the packet.'
+      seed: 'Buy Regiosaatgut (local seed) by provenance region \u2014 the zone number is on the packet.'
     },
     {
       name: 'Mediterranean',

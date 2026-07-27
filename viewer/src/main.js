@@ -425,12 +425,17 @@ function buildControls() {
     await rebuild();
   });
 
-  el('shuffle').addEventListener('click', async () => {
+  const doShuffle = async () => {
     state.stack = shuffleStack();
     state.selected = -1;
     syncControls();
     await rebuild();
-  });
+  };
+  // The same control, twice -- once for the drawer folded away, once inline
+  // with Position when it's open. Never both visible at once (CSS hides
+  // whichever one is redundant), but both need to work regardless.
+  el('shuffleOutside').addEventListener('click', doShuffle);
+  el('shuffleInside').addEventListener('click', doShuffle);
 
   el('remove').addEventListener('click', async () => {
     if (state.stack.length > 1) {
