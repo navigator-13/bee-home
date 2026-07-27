@@ -1764,8 +1764,31 @@ figcaption b { color: var(--ink); font-weight: 400; }
   // the sequence.
   var FLY_OUT = [0.80, 1.0];
 
+  /* The height the scroll animation is measured against, held still.
+     A phone's address bar collapsing and reappearing changes innerHeight by
+     ~100px without anybody scrolling, and span is what maps scroll position
+     onto every phase of the sequence -- so the whole timeline shifted under
+     the animation and a fully drawn trail snapped back to nothing and drew
+     itself again. Measured: 1.00 to 0.03 in a single frame. Width is what
+     actually changes the layout, so only a width change refreshes this. */
+  var frameW = innerWidth;
+  var frameSpan = 0;
+  var measureSpan = function () { frameSpan = section.offsetHeight - innerHeight; };
+  measureSpan();
+  addEventListener('resize', function () {
+    // Width is what actually relayouts. A height-only change is the address
+    // bar, and re-measuring on that is the whole bug: the section is sized in
+    // vh, so both its height and the viewport move at once, span moves with
+    // them, and p -- which every phase of the sequence is keyed off -- jumps.
+    // A fully drawn trail went 1.00 to 0.00 in one frame and drew itself
+    // again. Measured once per real layout instead.
+    if (innerWidth === frameW) return;
+    frameW = innerWidth;
+    measureSpan();
+  });
+
   function frame() {
-    var span = section.offsetHeight - innerHeight;
+    var span = frameSpan;
     var p = span > 0 ? -section.getBoundingClientRect().top / span : 0;
     p = Math.max(0, Math.min(1, p));
 

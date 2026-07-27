@@ -27,8 +27,8 @@ PAPER = "#e9e9e1"
 
 # Filling the frame rather than floating in it. Mobile keeps the prototype's
 # 80% relationship to desktop.
-DESK_GLOBE, DESK_BEE = ".96", "1.24"
-MOBILE_GLOBE, MOBILE_BEE = ".77", "1.00"
+DESK_GLOBE, DESK_BEE = ".84", "1.06"
+MOBILE_GLOBE, MOBILE_BEE = ".80", "0.86"
 
 html = SRC.read_text(encoding="utf-8")
 before = len(html)
@@ -83,6 +83,13 @@ html = html.replace("background:#f5f4f0", "background:transparent")
 # including the bee's foot contact, l.position.y = globe + 0.1 * bee — so
 # raising them here is the one change that cannot break the rig. Both stay
 # inside the ranges the sliders declare: globe .15-1.00, bee .20-1.45.
+# The frame is ~242px wide on a phone and ~368px on a desktop, so the
+# prototype's 700px breakpoint -- written for a full-window canvas -- matched
+# both and gave every desktop the phone's numbers. 300 is what actually
+# separates the two frames this page builds.
+html = html.replace('matchMedia("(max-width: 700px)")',
+                    'matchMedia("(max-width: 300px)")')
+
 old_scale = "u.value=v?.25:.31,f.value=v?.32:.4"
 new_scale = f"u.value=v?{MOBILE_GLOBE}:{DESK_GLOBE},f.value=v?{MOBILE_BEE}:{DESK_BEE}"
 if old_scale not in html:
@@ -98,6 +105,16 @@ click = (
     "});document.documentElement.style.cursor='pointer';</script>"
 )
 html = html.replace("</body>", click + "</body>", 1)
+
+# A brisker walk on a small screen. The gait is one number -- seconds per
+# cycle -- so 1.25/1.2 is exactly 20% faster, and nothing else about the rig
+# moves. Read from matchMedia directly rather than reusing the layout flag, so
+# this survives the prototype reordering its own boot.
+old_gait = "cycleDuration:1.25"
+new_gait = 'cycleDuration:matchMedia("(max-width: 300px)").matches?1.0417:1.25'
+if old_gait not in html:
+    raise SystemExit("gait constant not found -- has the prototype changed?")
+html = html.replace(old_gait, new_gait, 1)
 
 OUT.parent.mkdir(parents=True, exist_ok=True)
 OUT.write_text(html, encoding="utf-8")
