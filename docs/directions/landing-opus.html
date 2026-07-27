@@ -876,8 +876,10 @@ figcaption b { color: var(--ink); font-weight: 400; }
       <p>A makerspace is an open workshop with access to a variety of fabrication tools.
         Think of a gym, but for makers, where you either have a membership or pay per
         visit. Most have a CNC milling machine, which is what cuts the storeys.</p>
-      <p>Search for makerspace, fab lab or hackspace and your city. Most will quote
-        from the files without you joining first.
+      <p>The download is a folder: the drawings and cut list, a picture of your design,
+        the assembly guide, and the export string that regenerates the cutting files.
+        Email the whole folder to a space and ask them to quote. Search for makerspace,
+        fab lab or hackspace and your city — most will quote without you joining first.
         <a href="https://www.google.com/maps/search/makerspace+near+me" target="_blank"
            rel="noopener noreferrer">Find one near you</a>.</p>
     </div>
@@ -1729,10 +1731,15 @@ figcaption b { color: var(--ink); font-weight: 400; }
   var packDoc = document.getElementById('packDoc');
   var packName = document.getElementById('packName');
   var packHtml = '';
+  var packZip = null;
   var packFile = 'bee-home-build-pack.html';
 
+  /* The zip is what someone sends on; the sheet on screen is only the part of
+     it they need to read first. Falls back to the sheet alone if the builder
+     could not assemble a folder. */
   function savePack() {
-    var url = URL.createObjectURL(new Blob([packHtml], { type: 'text/html' }));
+    var blob = packZip || new Blob([packHtml], { type: 'text/html' });
+    var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
     a.href = url;
     a.download = packFile;
@@ -1774,8 +1781,9 @@ figcaption b { color: var(--ink); font-weight: 400; }
       }
       if (!data || data.type !== 'beehome:buildpack') return;
       packHtml = data.html;
+      packZip = data.zip || null;
       packFile = data.name || 'bee-home-build-pack.html';
-      packName.textContent = packFile.replace(/\.html$/, '');
+      packName.textContent = packFile.replace(/\.(html|zip)$/, '');
       packDoc.srcdoc = packHtml;
       packView.hidden = false;
       document.body.style.overflow = 'hidden';

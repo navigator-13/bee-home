@@ -56,9 +56,16 @@ const referenced = js
   + fs.readFileSync(path.join(dist, sheet[1]), 'utf8')
   + fs.readFileSync(path.join(dist, 'models/index.json'), 'utf8');
 
+// Wanted at download time and never at load time. The assembly guide is half a
+// megabyte, goes into the zip and is read by nobody who is only looking at the
+// builder; inlined it put 960KB onto the page for everyone. The pack skips it
+// when the fetch finds nothing, which is the right outcome here.
+const DEFERRED = /^documents\//;
+
 const inline = {};
 for (const [rel, abs] of Object.entries(files)) {
   if (rel === 'index.html' || rel === entry[1] || rel === sheet[1]) continue;
+  if (DEFERRED.test(rel)) continue;
   if (!referenced.includes(path.basename(rel))) continue;
   const mime = MIME[path.extname(rel)] || 'application/octet-stream';
   inline[rel] = `data:${mime};base64,${fs.readFileSync(abs).toString('base64')}`;

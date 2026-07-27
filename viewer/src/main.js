@@ -4,6 +4,7 @@ import {
   LETTERS, POSITIONS, allowedNext, canPlace, exportString, formatId, parseId, validateStack,
 } from './design.js';
 import { DEFAULT_WOOD, WOODS, finishSpec, woodByKey } from './woods.js';
+import { makeZip } from './zip.js';
 
 const state = {
   position: 'standing',
@@ -436,13 +437,15 @@ p { margin:0 0 3mm; }
 </section>
 
 <section class="page">
-  ${titleBlock('Make it, site it, keep it', 'Everything after the cutting')}
+  ${titleBlock('Build it, plant it, maintain it', 'Everything after the cutting')}
 
   <div class="cols">
     <div>
       <h2>What to hand your maker space</h2>
-      <p>A maker space is an open workshop where you pay per visit or hold a membership.
-        Most will do this with you rather than for you. Three things matter:</p>
+      <p><b>Email them the whole folder this sheet came in.</b> A maker space is an open
+        workshop where you pay per visit or hold a membership; most will do this with you
+        rather than for you. Search for a maker space, fab lab or hackspace in your city —
+        most will quote from these files without you joining first. Three things matter:</p>
       <ul>
         <li><b>This sheet, and the export string above it.</b> Dropped into
           <span class="mono">BEEHOME.gh</span> it regenerates the cutting files for exactly
@@ -496,30 +499,116 @@ p { margin:0 0 3mm; }
   </div>
 
   <div class="foot">
-    <span>Sheet 2 of 2 · make, site, maintain</span>
+    <span>Sheet 2 of 2 · build, plant, maintain</span>
     <span>CC BY 4.0 · SPACE10, Bakken &amp; Bæck, Tanita Klein</span>
   </div>
 </section>
 </body></html>`;
 }
 
+/** The design as a picture, for the folder and for whoever opens it first. */
+function renderPng() {
+  const previous = { mode: stage.mode, white: stage.plateWhite, selected: stage.selected };
+  stage.plateWhite = true;
+  stage.setMode('drawing');
+  stage.setSelected(-1);
+  stage.renderer.render(stage.scene, stage.camera);
+  const url = stage.renderer.domElement.toDataURL('image/png');
+  stage.plateWhite = previous.white;
+  stage.setMode(previous.mode);
+  stage.setSelected(previous.selected);
+  return url;
+}
+
+const dataUriToBytes = (uri) => {
+  const bin = atob(uri.slice(uri.indexOf(',') + 1));
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i += 1) out[i] = bin.charCodeAt(i);
+  return out;
+};
+
 /**
- * Hand the build pack over as a file.
+ * The folder someone sends to a maker space.
  *
- * window.open is blocked inside the embedded builder, which is why the button
- * did nothing on the page: the builder runs in an iframe. So the document is
- * built here and downloaded as a file -- and when there is a parent page, it
- * is posted up instead, so the button that lives outside the iframe can do
- * the download from a context that is allowed to.
+ * The original site did this too, and its shape is worth keeping: one zip with
+ * the cutting file, the assembly guide and a picture of your design. That guide
+ * is SPACE10's own, unchanged, and it travels with the pack the way it always
+ * did. Fetched rather than bundled — it is half a megabyte, and nobody who
+ * only wants to look at the builder should pay for it.
+ *
+ * The DXF slot is still empty. Everything here is honest about that: the sheet
+ * carries the export string, and the notes say where the cutting files come
+ * from, rather than shipping a file we cannot vouch for.
+ */
+async function buildPackZip(html) {
+  const id = formatId(state);
+  const files = [
+    { name: `Bee Home ${id} — drawings and cut list.html`, data: html },
+    { name: `Bee Home ${id}.png`, data: dataUriToBytes(renderPng()) },
+    {
+      name: `Bee Home ${id}.txt`,
+      data: [
+        `Bee Home ${id}`,
+        '',
+        'WHAT IS IN THIS FOLDER',
+        '  · Drawings and cut list, as a web page. Open it in any browser and',
+        '    print it, or save it as a PDF from the print dialog.',
+        '  · A picture of this design.',
+        '  · The Assembly & Maintenance Guide, from the original project.',
+        '',
+        'TO HAVE IT CUT',
+        '  Email this whole folder to a maker space — an open workshop with a',
+        '  CNC router, found by searching "makerspace", "fab lab" or "hackspace"',
+        '  and your city. Most will quote from these files without you joining.',
+        '',
+        'GRASSHOPPER EXPORT',
+        `  ${exportString(state)}`,
+        '',
+        '  Paste that into BEEHOME.gh, from the project repository, to',
+        '  regenerate the cutting files for exactly this design.',
+        '',
+        'LICENCE',
+        '  Bee Home is CC BY 4.0 — SPACE10, Bakken & Bæck, Tanita Klein.',
+        '  Build it, sell what you build, change it, share it. Credit the',
+        '  original authors, say if you changed anything, link the licence.',
+        '',
+      ].join('\n'),
+    },
+  ];
+
+  try {
+    const res = await fetch('documents/bee-home-assembly-guide.pdf');
+    if (res.ok) {
+      files.push({
+        name: 'Bee Home Assembly & Maintenance Guide.pdf',
+        data: new Uint8Array(await res.arrayBuffer()),
+      });
+    }
+  } catch {
+    // Embedded as one file, the guide is not alongside to fetch. The rest of
+    // the pack is worth having without it.
+  }
+
+  return makeZip(files);
+}
+
+/**
+ * Hand the build pack over.
+ *
+ * A download started inside the embedded builder is blocked — the builder runs
+ * in an iframe — so the zip is built here and posted up, and the page around
+ * it does the saving from a context that is allowed to.
  */
 async function downloadBuildPack() {
   const html = await buildPackHtml();
-  const name = `bee-home-${formatId(state)}.html`;
+  const id = formatId(state);
+  const zip = await buildPackZip(html);
+  const name = `Bee Home ${id} files.zip`;
   if (window.parent !== window) {
-    window.parent.postMessage({ type: 'beehome:buildpack', name, html }, '*');
+    window.parent.postMessage({ type: 'beehome:buildpack', name, html, zip }, '*');
     return;
   }
-  const url = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
+  const url = URL.createObjectURL(zip);
   const a = document.createElement('a');
   a.href = url;
   a.download = name;
