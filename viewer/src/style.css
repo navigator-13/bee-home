@@ -97,7 +97,13 @@ body.ready .readout { opacity: 1; }
 /* The drawer folds away entirely -- the model owns the viewport, and the
    controls are a visitor. */
 body.panelHidden .panel { transform: translateX(calc(100% + 24px)); }
-body:not(.panelHidden) .panelTab { right: 268px; }
+
+/* Only while the drawer is away. Open, it used to sit just off the panel's
+   left edge as a second frosted slab -- a piece of chrome hanging off the
+   side of another piece of chrome, and the one thing on screen that did not
+   line up with anything. Open, the collapse control is inside the panel
+   instead, inline with the first heading. */
+body:not(.panelHidden) .panelTab { opacity: 0; pointer-events: none; }
 
 /* Pinned to the top right corner, level with the panel's own top edge --
    floating at mid-height it drifted with viewport height and read as
@@ -121,6 +127,7 @@ body:not(.panelHidden) .panelTab { right: 268px; }
   color: var(--grey-light);
   cursor: pointer;
   z-index: 6;
+  transition: opacity 0.24s ease, color 0.16s, border-color 0.16s;
 }
 
 .panelTab:hover { color: var(--bone); border-color: var(--bone); }
@@ -160,9 +167,17 @@ body:not(.panelHidden) .shuffleOutside { opacity: 0; pointer-events: none; }
 
 body.drawing .shuffleIcon { color: #4a4940; }
 body.drawing .shuffleIcon:hover { color: var(--ink); }
-.panelTab .ic-close { display: none; }
-body:not(.panelHidden) .panelTab .ic-open { display: none; }
-body:not(.panelHidden) .panelTab .ic-close { display: block; }
+/* The two icons at the right end of the first heading. Both are bare, so the
+   gap is what separates them rather than any box of their own. */
+.h2icons {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+/* It folds the panel away rather than shuffling anything, so it should not
+   pick up the shuffle's tilt on hover. */
+#panelCollapse:hover { transform: translateX(2px); }
 
 body.drawing .panelTab {
   background: rgba(233, 233, 225, 0.4);

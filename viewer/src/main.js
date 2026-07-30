@@ -1091,9 +1091,14 @@ function buildControls() {
 
   // The drawer starts closed where it would cover the model. Opening it is a
   // choice; the model never has to share a phone screen by default.
-  el('panelTab').addEventListener('click', () => {
-    document.body.classList.toggle('panelHidden');
-  });
+  //
+  // Two controls, one for each direction, because each belongs somewhere
+  // different: the tab is the way back in and has to sit out on the page
+  // while the panel is gone, and the collapse is the way out and belongs
+  // inside the thing it closes.
+  const togglePanel = () => document.body.classList.toggle('panelHidden');
+  el('panelTab').addEventListener('click', togglePanel);
+  el('panelCollapse').addEventListener('click', togglePanel);
   if (matchMedia('(max-width: 820px)').matches) {
     document.body.classList.add('panelHidden');
   }
