@@ -334,37 +334,24 @@ figcaption b { color: var(--ink); font-weight: 400; }
 }
 
 /* The picker is the [ drawing ] toggle with a list behind it: brackets, mono,
-   centred, and only as wide as the name it is showing.
+   centred, and only as wide as the name it is showing. The slab, the brackets
+   and the name are all one control and read as the same family of thing as
+   the toggle above the builder.
 
-   The padding, border, fill and radius that make the pill live on the select
-   itself, not this wrapper -- a <select> can be styled with all of those but
-   not reliably with ::before/::after, which is real content on real form
-   controls in too few browsers to build the brackets out of. Putting the pill
-   on the wrapper instead left the select sized to its bare text, centred
-   inside a taller, wider box that only looked like the whole control: on a
-   360x37 pill the select's actual hit area measured 174x13, a quarter of
-   what was drawn. .pick now wraps tightly -- brackets and nothing else -- so
-   its box is the union of the brackets and the select's own pill, and a tap
-   anywhere on what the eye reads as the button lands on the control. */
+   The name on show is a span, and the <select> is stretched invisibly across
+   the whole slab on top of it. That split is what makes the target the button
+   rather than the words: left in the flow the select is only as big as its own
+   text, so on a 230x37 pill it answered taps in a 174x13 strip and the fill,
+   the padding and the brackets -- most of what the eye reads as the button --
+   were dead. It has to be the select that covers the slab, not a wrapper
+   forwarding clicks to it, because a native select opens its menu on a real
+   press and nothing else reproduces that on a phone. */
 .pick {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 7px;
   margin-top: clamp(18px, 2.4vh, 30px);
-}
-.pick::before { content: '['; }
-.pick::after { content: ']'; }
-.pick::before, .pick::after {
-  font-family: var(--mono);
-  font-size: 13px;
-  line-height: 1;
-  color: #4a4940;
-}
-
-.ask select {
-  appearance: none;
-  -webkit-appearance: none;
-  margin: 0;
   padding: 11px 14px;
   border: 1px solid rgba(42, 41, 32, 0.2);
   border-radius: 5px;
@@ -372,18 +359,54 @@ figcaption b { color: var(--ink); font-weight: 400; }
   box-shadow: 0 6px 20px rgba(42, 41, 32, 0.14),
               inset 0 1px 0 rgba(255, 255, 255, 0.5);
   color: #4a4940;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.pick::before { content: '['; }
+.pick::after { content: ']'; }
+.pick::before, .pick::after {
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1;
+}
+.pick:hover { border-color: var(--ink); color: var(--ink); }
+/* The select carries no visible focus ring of its own -- it has no visible
+   anything -- so the slab wears it. */
+.pick:focus-within { outline: 2px solid var(--bee); outline-offset: 3px; }
+
+/* The name, which is what sets the width of the whole control. It has to be
+   told not to wrap: a <select> never wrapped its own option text, so nothing
+   ever asked for this, and a span left to itself broke "Britain and Ireland"
+   over two lines and made the slab taller than it is wide. */
+.pickName {
   font-family: var(--mono);
   font-size: 13px;
   letter-spacing: 0.1em;
   line-height: 1;
   text-align: center;
-  text-align-last: center;
-  cursor: pointer;
-  transition: border-color 0.15s, color 0.15s;
+  white-space: nowrap;
 }
-.ask select:hover { border-color: var(--ink); color: var(--ink); }
+
+.ask select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  background: none;
+  /* Invisible, not hidden: it still takes the press, still opens the native
+     menu, and is still what a screen reader lands on. */
+  opacity: 0;
+  color: inherit;
+  font-family: var(--mono);
+  font-size: 13px;
+  cursor: pointer;
+}
 .ask select:focus { outline: none; }
-.ask select:focus-visible { outline: 2px solid var(--bee); outline-offset: 3px; }
 
 
 /* The line that opens the section about flowers. It used to be a band of its
@@ -1066,7 +1089,8 @@ figcaption b { color: var(--ink); font-weight: 400; }
         <h2 class="askQ"><label for="regionPick">Where do you live?</label></h2>
         <p class="askWhy">See the native bees that nest in your area, and the flowers
           they pollinate.</p>
-        <span class="pick"><select id="regionPick"></select></span>
+        <span class="pick"><span class="pickName" id="regionName" aria-hidden="true"></span><select
+          id="regionPick"></select></span>
       </div>
       <!-- The drawn globe that used to sit beside the heading, now turning, with
            a bee walking the crown. Framed rather than inlined: it is a WebGL
@@ -2028,6 +2052,7 @@ figcaption b { color: var(--ink); font-weight: 400; }
   ];
 
   var pick = document.getElementById('regionPick');
+  var regionName = document.getElementById('regionName');
   var herbarium = document.getElementById('herbarium');
   var cropsList = document.getElementById('regionCrops');
   var seedNote = document.getElementById('regionSeed');
@@ -2322,6 +2347,9 @@ figcaption b { color: var(--ink); font-weight: 400; }
 
   function showRegion() {
     var r = REGIONS[pick.selectedIndex];
+    // The select is invisible so that the whole slab can take the press; this
+    // span is the part anybody sees, so it has to say what the select says.
+    regionName.textContent = r.name;
     herbarium.textContent = '';
     mounts = [];
     beeMounts = [];
