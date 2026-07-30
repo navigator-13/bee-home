@@ -1727,20 +1727,25 @@ figcaption b { color: var(--ink); font-weight: 400; }
     // type is a trail, and every route arriving from the same quarter is a
     // pattern. So the outermost two come in from the left and the right, wide
     // and level, and the rest drop in from above and rise from below.
+    /* Four, one from each edge, two grey and two blue.
+       It was six. Six is fine in the frame a laptop gives it and reads as
+       clutter in the frame a wide monitor does: the routes are placed in
+       fractions of the stage, so a wider viewport does not thin them out, it
+       stretches every one of them across more empty paper and leaves the
+       loops sitting in the middle of it. The two that went were the ones
+       carrying the least: a second line entering along the top, next to one
+       already coming in a few tenths away, and one passing through the
+       bottom-left corner on its way somewhere else -- the only route that
+       never arrived at a hole, which is the whole subject of the drawing. */
     var WIDE = [
       // Grey belongs to the line that enters from the left and stays up in
       // the open sky -- it used to sit on the one running low behind the
       // legs, which put a near-black stroke directly over the black-inked
       // flower stems it was passing through and the two read as one smear.
       { front: true,  art: 'wander',     from: [-0.12, 0.30], home: 0, grey: true },
-      { front: true,  art: 'curl',       from: [0.30, -0.08], home: 1 },
       { front: true,  art: 'switchback', from: [0.60, -0.08], home: 2, flip: -1 },
       { front: true,  art: 'loop',       from: [0.46, 1.10],  home: 4 },
       { front: false, art: 'curl',       from: [1.12, 0.46],  home: 3, flip: -1, grey: true },
-      // Passing through, low and behind the legs, on its way somewhere else.
-      // Kept to the far left: sharing the bottom edge with the route above put
-      // two sets of loops in the same square of page.
-      { front: false, art: 'wander',     from: [-0.10, 0.66], to: [0.24, 1.06] },
     ];
 
     // Narrow: the copy sits over the box and there is far less room, so this is
