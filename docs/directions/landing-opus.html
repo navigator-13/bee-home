@@ -334,23 +334,23 @@ figcaption b { color: var(--ink); font-weight: 400; }
 }
 
 /* The picker is the [ drawing ] toggle with a list behind it: brackets, mono,
-   centred, and only as wide as the name it is showing. The select itself keeps
-   nothing of its own — no border, no fill, no arrow — so the slab around it is
-   the whole control and the two read as the same family of thing. */
+   centred, and only as wide as the name it is showing.
+
+   The padding, border, fill and radius that make the pill live on the select
+   itself, not this wrapper -- a <select> can be styled with all of those but
+   not reliably with ::before/::after, which is real content on real form
+   controls in too few browsers to build the brackets out of. Putting the pill
+   on the wrapper instead left the select sized to its bare text, centred
+   inside a taller, wider box that only looked like the whole control: on a
+   360x37 pill the select's actual hit area measured 174x13, a quarter of
+   what was drawn. .pick now wraps tightly -- brackets and nothing else -- so
+   its box is the union of the brackets and the select's own pill, and a tap
+   anywhere on what the eye reads as the button lands on the control. */
 .pick {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 5px;
   margin-top: clamp(18px, 2.4vh, 30px);
-  padding: 11px 14px;
-  border: 1px solid rgba(42, 41, 32, 0.2);
-  border-radius: 5px;
-  background: rgba(233, 233, 225, 0.4);
-  box-shadow: 0 6px 20px rgba(42, 41, 32, 0.14),
-              inset 0 1px 0 rgba(255, 255, 255, 0.5);
-  color: #4a4940;
-  cursor: pointer;
-  transition: border-color 0.15s, color 0.15s;
 }
 .pick::before { content: '['; }
 .pick::after { content: ']'; }
@@ -358,18 +358,20 @@ figcaption b { color: var(--ink); font-weight: 400; }
   font-family: var(--mono);
   font-size: 13px;
   line-height: 1;
+  color: #4a4940;
 }
-.pick:hover { border-color: var(--ink); color: var(--ink); }
-.pick:focus-within { outline: 2px solid var(--bee); outline-offset: 3px; }
 
 .ask select {
   appearance: none;
   -webkit-appearance: none;
-  border: 0;
-  padding: 0;
   margin: 0;
-  background: none;
-  color: inherit;
+  padding: 11px 14px;
+  border: 1px solid rgba(42, 41, 32, 0.2);
+  border-radius: 5px;
+  background: rgba(233, 233, 225, 0.4);
+  box-shadow: 0 6px 20px rgba(42, 41, 32, 0.14),
+              inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  color: #4a4940;
   font-family: var(--mono);
   font-size: 13px;
   letter-spacing: 0.1em;
@@ -377,10 +379,11 @@ figcaption b { color: var(--ink); font-weight: 400; }
   text-align: center;
   text-align-last: center;
   cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
 }
+.ask select:hover { border-color: var(--ink); color: var(--ink); }
 .ask select:focus { outline: none; }
-
-.ask select:focus-visible { outline: 2px solid var(--bee); outline-offset: 2px; }
+.ask select:focus-visible { outline: 2px solid var(--bee); outline-offset: 3px; }
 
 
 /* The line that opens the section about flowers. It used to be a band of its
@@ -1741,13 +1744,21 @@ figcaption b { color: var(--ink); font-weight: 400; }
       var state = memory[i] || (memory[i] = { k: 0, out: 0 });
       flights.push({ come: true, el: el, state: state });
     });
-    measure(flights.map(function (f) { return f.el; }));
-    // measure() just reset every fresh element to fully hidden (or, under
-    // reduced motion, fully drawn -- reduce has no scroll-driven progress to
-    // put back, and this rebuild never runs again after the first call in
-    // that mode anyway). Otherwise, put back whatever the route had already
-    // drawn before this rebuild replaced it.
-    if (!reduce) flights.forEach(function (f) { draw(f.el, f.state.k, f.state.out, f.state); });
+    /* Sized and set to its resting position in one write, not measure()'s
+       hidden-then-draw()'s-correction in two. Both writes land in the same
+       synchronous block and browsers are supposed to coalesce that into a
+       single paint -- but a rebuild happens precisely when a resize is
+       already disturbing the page, which is exactly the moment to stop
+       trusting a browser's discretion about what it paints in between two
+       statements. One write has no in-between for it to paint. */
+    flights.forEach(function (f) {
+      var el = f.el;
+      var len = el.getTotalLength();
+      el._len = len;
+      el.style.strokeDasharray = len;
+      el.style.strokeDashoffset = reduce ? 0
+        : (f.state.out > 0 ? -len * f.state.out : len * (1 - f.state.k));
+    });
   }
 
   measure(plants.reduce(function (a, b) { return a.concat(b); }, []));
@@ -1820,17 +1831,25 @@ figcaption b { color: var(--ink); font-weight: 400; }
     frameStacked = null;
   };
   measureSpan();
-  addEventListener('resize', function () {
-    // Width is what actually relayouts. A height-only change is the address
-    // bar, and re-measuring on that is the whole bug: the section is sized in
-    // vh, so both its height and the viewport move at once, span moves with
-    // them, and p -- which every phase of the sequence is keyed off -- jumps.
-    // A fully drawn trail went 1.00 to 0.00 in one frame and drew itself
-    // again. Measured once per real layout instead.
-    if (innerWidth === frameW) return;
-    frameW = innerWidth;
-    measureSpan();
-  });
+  // Width is what actually relayouts. A height-only change is the address
+  // bar, and re-measuring on that is the whole bug: the section is sized in
+  // vh, so both its height and the viewport move at once, span moves with
+  // them, and p -- which every phase of the sequence is keyed off -- jumps.
+  // A fully drawn trail went 1.00 to 0.00 in one frame and drew itself
+  // again. Measured once per real layout instead.
+  //
+  // Exact equality was the wrong test. Some mobile browsers report innerWidth
+  // a pixel or two either side of its settled value while the same chrome
+  // animation that hides the address bar is still playing -- a
+  // safe-area-inset or scrollbar-gutter rounding artefact, not a real
+  // layout change -- and that alone was enough to defeat the freeze and let
+  // the height jump straight through. A few pixels of width jitter is not a
+  // relayout; only a real one (rotation, resizing the window) is bigger than
+  // this by at least an order of magnitude.
+  var WIDTH_JITTER_PX = 8;
+  var widthChanged = function () {
+    return Math.abs(innerWidth - frameW) > WIDTH_JITTER_PX;
+  };
 
   function frame() {
     var span = frameSpan;
@@ -2357,10 +2376,32 @@ figcaption b { color: var(--ink); font-weight: 400; }
     addEventListener('scroll', function () {
       requestAnimationFrame(updateHerbarium);
     }, { passive: true });
-    addEventListener('resize', function () {
-      buildFlights(); frame();
-      buildDriftFlight(); updateHerbarium(); fitDriftDrop();
-    });
+
+    /* One settle-then-rebuild, not one rebuild per event.
+       An address bar hiding is not a single resize -- it is several, fired
+       across the few hundred milliseconds the chrome takes to animate away,
+       and this used to rebuild on every one of them: reading the stage and
+       ground rects mid-animation, before the browser had finished moving its
+       own furniture. A layout read taken between two of those events is a
+       real rect, just not the one anything will look like a moment later, and
+       the next event's rebuild replaced it with the next-still-transitional
+       one -- a trail's placement correcting itself two or three times in a
+       fraction of a second reads exactly like it drawing itself again.
+       Waiting for the events to stop before reading anything means every
+       rebuild works from geometry that has actually settled. */
+    var resizeSettle = null;
+    var queueResize = function () {
+      clearTimeout(resizeSettle);
+      resizeSettle = setTimeout(function () {
+        if (widthChanged()) { frameW = innerWidth; measureSpan(); }
+        buildFlights(); frame();
+        buildDriftFlight(); updateHerbarium(); fitDriftDrop();
+      }, 140);
+    };
+    addEventListener('resize', queueResize);
+    // iOS Safari's address bar moves the visual viewport without reliably
+    // firing `resize` on window at all -- this is the event it does fire.
+    if (window.visualViewport) visualViewport.addEventListener('resize', queueResize);
     frame();
   }
 
